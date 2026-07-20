@@ -3,171 +3,171 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xplainsight — who called it</title>
+<title>Xplainsight — predictions, graded</title>
 <!--
-  XPLAINSIGHT — THE PREDICTION RECORD v1 (S16). Dream-list build #4.
-  A permanent hall of famous, DOCUMENTED market predictions, each frozen at the
-  moment it was made and scored by what reality actually did. Strictly past-tense
-  (CORE §3 retrospective rule): every entry here is fully resolved history.
-  NON-BIAS RULE: the record holds confident wrongness up to the light from BOTH directions —
-  bulls and bears alike — because the lesson is that confidence doesn't correlate
-  with accuracy, not that any side is wrong. Real people appear only via their
-  on-the-record public statements, stated neutrally; several were brilliant, and
-  the record says so.
-  Facts verified this session: Fisher (Federal Reserve History; NYT Oct 16, 1929),
-  Dow 36,000 (Mankiw's contemporaneous 1999 review; Dow crossed 36,000 Nov 2021),
-  Nikkei 1989 (contemporaneous brokerage-report record), Shiller/Campbell 1996
-  (Mankiw, same source). Bitcoin-obituaries figure labeled as a popular tracker's
-  tally, not a study.
-  The LIVE record (freeze new predictions today, score them when they resolve)
-  needs a public timestamped store — deferred until the open-repo decision. This
-  static hall is v1 and stands on its own.
-  Zero external code. House tap-to-define.
+ XPLAINSIGHT — THE PREDICTION RECORD v1 (S16). Dream-list build #4.
+ A permanent hall of famous, DOCUMENTED market predictions, each frozen at the
+ moment it was made and scored by what reality actually did. Strictly past-tense
+ (CORE §3 retrospective rule): every entry here is fully resolved history.
+ NON-BIAS RULE: the record holds confident wrongness up to the light from BOTH directions —
+ bulls and bears alike — because the lesson is that confidence doesn't correlate
+ with accuracy, not that any side is wrong. Real people appear only via their
+ on-the-record public statements, stated neutrally; several were brilliant, and
+ the record says so.
+ Facts verified this session: Fisher (Federal Reserve History; NYT Oct 16, 1929),
+ Dow 36,000 (Mankiw's contemporaneous 1999 review; Dow crossed 36,000 Nov 2021),
+ Nikkei 1989 (contemporaneous brokerage-report record), Shiller/Campbell 1996
+ (Mankiw, same source). Bitcoin-obituaries figure labeled as a popular tracker's
+ tally, not a study.
+ The LIVE record (freeze new predictions today, score them when they resolve)
+ needs a public timestamped store — deferred until the open-repo decision. This
+ static hall is v1 and stands on its own.
+ Zero external code. House tap-to-define.
 -->
 <style>
-  :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
-    --muted:#99A1AB;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
-    --warn:#C9A227;--define:#A78BFA;}
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;-webkit-text-size-adjust:100%}
-  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
-  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
-  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
-  .sub b,.card b,.grave b{color:var(--ink);font-weight:620}
-  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
-  .term:active{opacity:.6}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
-  .card p{font-size:.88rem;margin:8px 0}
-  .grave{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:14px 0}
-  .grave.bull{border-left:3px solid var(--up)}
-  .grave.bear{border-left:3px solid var(--down)}
-  .grave p{font-size:.88rem;margin:8px 0}
-  .g-dir{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 9px;border-radius:999px;display:inline-block;margin-bottom:4px}
-  .g-dir.bull{color:var(--up);border:1px solid rgba(95,191,143,.4)}
-  .g-dir.bear{color:var(--down);border:1px solid rgba(224,144,108,.4)}
-  .g-title{font-weight:680;font-size:1rem}
-  .g-call{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:10px 13px;margin:9px 0;font-size:.9rem;font-style:italic}
-  .g-call .who{font-style:normal;font-size:.76rem;color:var(--muted);margin-top:4px}
-  .g-reality{border:1px solid rgba(201,162,39,.35);background:rgba(201,162,39,.06);border-radius:9px;padding:9px 12px;margin:9px 0;font-size:.86rem}
-  .g-reality b{color:var(--warn)}
-  .g-grade{font-size:.82rem;color:var(--muted)}
-  .g-grade b{color:var(--define)}
-  .filterbox{border:1px solid var(--line);border-left:3px solid var(--define);background:rgba(167,139,250,.06);border-radius:10px;padding:13px 15px;margin:14px 0;font-size:.88rem}
-  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
-  .mirror b{color:var(--ink)}
-  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
-    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
-    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
-  #deftip.show{display:block}
-  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
-  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
-  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
-  .wrap>*{animation:fadeUp .45s ease both}
-  .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+ :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+ --muted:#99A1AB;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+ --warn:#C9A227;--define:#A78BFA;}
+ *{box-sizing:border-box}
+ html,body{margin:0;background:var(--bg);color:var(--ink);
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;-webkit-text-size-adjust:100%}
+ .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+ h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+ .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+ .sub b,.card b,.grave b{color:var(--ink);font-weight:620}
+ .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+ .term:active{opacity:.6}
+ .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+ .card p{font-size:.88rem;margin:8px 0}
+ .grave{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:14px 0}
+ .grave.bull{border-left:3px solid var(--up)}
+ .grave.bear{border-left:3px solid var(--down)}
+ .grave p{font-size:.88rem;margin:8px 0}
+ .g-dir{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 9px;border-radius:999px;display:inline-block;margin-bottom:4px}
+ .g-dir.bull{color:var(--up);border:1px solid rgba(95,191,143,.4)}
+ .g-dir.bear{color:var(--down);border:1px solid rgba(224,144,108,.4)}
+ .g-title{font-weight:680;font-size:1rem}
+ .g-call{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:10px 13px;margin:9px 0;font-size:.9rem;font-style:italic}
+ .g-call .who{font-style:normal;font-size:.76rem;color:var(--muted);margin-top:4px}
+ .g-reality{border:1px solid rgba(201,162,39,.35);background:rgba(201,162,39,.06);border-radius:9px;padding:9px 12px;margin:9px 0;font-size:.86rem}
+ .g-reality b{color:var(--warn)}
+ .g-grade{font-size:.82rem;color:var(--muted)}
+ .g-grade b{color:var(--define)}
+ .filterbox{border:1px solid var(--line);border-left:3px solid var(--define);background:rgba(167,139,250,.06);border-radius:10px;padding:13px 15px;margin:14px 0;font-size:.88rem}
+ .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
+ .mirror b{color:var(--ink)}
+ #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+ border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+ box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+ #deftip.show{display:block}
+ #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+ #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+ #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+ .wrap>*{animation:fadeUp .45s ease both}
+ .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
+ @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+ @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
 
-  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
-  /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
-  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
-  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
-  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
-  .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
-  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
-  details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
-    background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
-    box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
-  details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
-    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
-  details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
+ /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
+ .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
+ .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+ .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
+ .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
+ .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
+ details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
+ background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
+ box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
+ details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
+ transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
+ details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
 </style>
-  <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
+ <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
 <body>
 <div style="position:sticky;top:0;z-index:40;background:rgba(14,17,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)"><div style="max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:8px"><a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#7FB0E8" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="#5FBF8F" stroke-width="2.2" stroke-linecap="round"/></svg>Xplainsight</a><span style="margin-left:auto;font-size:.7rem;color:var(--faint)">measuring history, not selling predictions</span></div></div>
 
 <div class="wrap">
-  <h1>Who called it</h1>
-  <p class="sub">Famous market predictions, each frozen at the moment it was made — then scored by the only judge that counts: <b>what actually happened.</b> Nobody keeps a record like this, because nobody profits from it and everyone powerful is embarrassed by it. That's exactly why it's ours to keep. The rule of the ground: it holds confident wrongness up to the light from <b>both directions</b> — bulls and bears sit here side by side, because the lesson is that <b>confidence doesn't correlate with accuracy</b>, not that either side is wrong. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+ <h1>Predictions, graded</h1>
+ <p class="sub">Famous market predictions, each frozen at the moment it was made — then scored by the only judge that counts: <b>what actually happened.</b> Nobody keeps a record like this, because nobody profits from it and everyone powerful is embarrassed by it. That's exactly why it's ours to keep. The rule of the ground: it holds confident wrongness up to the light from <b>both directions</b> — bulls and bears sit here side by side, because the lesson is that <b>confidence doesn't correlate with accuracy</b>, not that either side is wrong. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
 
-  <div class="card"><p><b>How each record is written:</b> the call as documented (who, when, where) · what reality did · how long resolution took · and how our <span class="term" data-def="needle">evidence needle</span> would have graded the claim <b>on the day it was made</b> — because a prediction's honesty can be judged before its outcome. Several of these people were brilliant, and the record says so; being smart and being calibrated are different things, which is the whole cemetery in one sentence.</p></div>
+ <div class="card"><p><b>How each record is written:</b> the call as documented (who, when, where) · what reality did · how long resolution took · and how our <span class="term" data-def="needle">evidence needle</span> would have graded the claim <b>on the day it was made</b> — because a prediction's honesty can be judged before its outcome. Several of these people were brilliant, and the record says so; being smart and being calibrated are different things, which is the whole cemetery in one sentence.</p></div>
 
-  <!-- GRAVE 1 -->
-  <div class="grave bull">
-    <span class="g-dir bull">Bullish call · missed</span>
-    <div class="g-title">The permanently high plateau<sup><a href="plainsight-citations-1.html#c15" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[15]</a></sup></div>
-    <div class="g-call">"Stock prices have reached what looks like a permanently high plateau."
-      <div class="who">Irving Fisher, Yale economist — then America's most famous — in a New York speech, printed in the New York Times, October 16, 1929.</div></div>
-    <p>Fisher wasn't a fraud — he was one of the great economists of his century, using data and a mathematical method he'd spent decades building. He also practiced what he preached: heavily in stocks, heavily on <span class="term" data-def="margin">margin</span>.</p>
-    <div class="g-reality"><b>Reality:</b> the crash began about two weeks later. By mid-November the market had lost nearly half its value; by the 1932 bottom, 89%. The Dow did not see its 1929 level again until <b>November 1954 — twenty-five years</b>. Fisher himself was ruined, doubling down on the way down, borrowing from family to meet margin calls. (Sources: Federal Reserve History; contemporaneous NYT record.)</div>
-    <p class="g-grade"><b>The needle, on the day:</b> "permanently" is a claim about all future time made from eight years of rising prices — <b>UNSUPPORTED CONCLUSION</b>, gradeable as such before the crash, by anyone, from the word alone. The word "looks like" was the honest part; "permanently" was the confidence talking.</p>
-  </div>
+ <!-- GRAVE 1 -->
+ <div class="grave bull">
+ <span class="g-dir bull">Bullish call · missed</span>
+ <div class="g-title">The permanently high plateau<sup><a href="plainsight-citations-1.html#c15" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[15]</a></sup></div>
+ <div class="g-call">"Stock prices have reached what looks like a permanently high plateau."
+ <div class="who">Irving Fisher, Yale economist — then America's most famous — in a New York speech, printed in the New York Times, October 16, 1929.</div></div>
+ <p>Fisher wasn't a fraud — he was one of the great economists of his century, using data and a mathematical method he'd spent decades building. He also practiced what he preached: heavily in stocks, heavily on <span class="term" data-def="margin">margin</span>.</p>
+ <div class="g-reality"><b>Reality:</b> the crash began about two weeks later. By mid-November the market had lost nearly half its value; by the 1932 bottom, 89%. The Dow did not see its 1929 level again until <b>November 1954 — twenty-five years</b>. Fisher himself was ruined, doubling down on the way down, borrowing from family to meet margin calls. (Sources: Federal Reserve History; contemporaneous NYT record.)</div>
+ <p class="g-grade"><b>The needle, on the day:</b> "permanently" is a claim about all future time made from eight years of rising prices — <b>UNSUPPORTED CONCLUSION</b>, gradeable as such before the crash, by anyone, from the word alone. The word "looks like" was the honest part; "permanently" was the confidence talking.</p>
+ </div>
 
-  <!-- GRAVE 2 -->
-  <div class="grave bull">
-    <span class="g-dir bull">Bullish call · missed</span>
-    <div class="g-title">Nikkei 80,000 by 1995</div>
-    <div class="g-call">In 1989, with Japan's Nikkei index near 39,000 and priced around 70 years' worth of earnings, the country's largest brokerage published a report projecting the index would reach 80,000 by 1995<sup><a href="plainsight-citations-1.html#c16" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[16]</a></sup>.
-      <div class="who">Nomura research report, 1989 — the peak of the Japanese bubble. (Contemporaneous brokerage record, cited in later reviews.)</div></div>
-    <div class="g-reality"><b>Reality:</b> the Nikkei peaked weeks later near 39,000 and then fell for over a decade, losing most of its value. It did not merely miss 80,000 by 1995 — it took until <b>2024, thirty-five years later,</b> just to climb back to its own 1989 peak. This is our buy-and-hold deep dive's Japan chapter, seen from the prediction side.</div>
-    <p class="g-grade"><b>The needle, on the day:</b> a doubling target justified by the same reasoning that had already driven prices to historic extremes — the evidence for the claim WAS the price itself, a circle. <b>STRETCHED at best.</b> Note who published it: the institution earning fees on the buying. The needle grades claims, not motives — but the field guide says always ask who's paid when the claim comes true.</p>
-  </div>
+ <!-- GRAVE 2 -->
+ <div class="grave bull">
+ <span class="g-dir bull">Bullish call · missed</span>
+ <div class="g-title">Nikkei 80,000 by 1995</div>
+ <div class="g-call">In 1989, with Japan's Nikkei index near 39,000 and priced around 70 years' worth of earnings, the country's largest brokerage published a report projecting the index would reach 80,000 by 1995<sup><a href="plainsight-citations-1.html#c16" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[16]</a></sup>.
+ <div class="who">Nomura research report, 1989 — the peak of the Japanese bubble. (Contemporaneous brokerage record, cited in later reviews.)</div></div>
+ <div class="g-reality"><b>Reality:</b> the Nikkei peaked weeks later near 39,000 and then fell for over a decade, losing most of its value. It did not merely miss 80,000 by 1995 — it took until <b>2024, thirty-five years later,</b> just to climb back to its own 1989 peak. This is our buy-and-hold deep dive's Japan chapter, seen from the prediction side.</div>
+ <p class="g-grade"><b>The needle, on the day:</b> a doubling target justified by the same reasoning that had already driven prices to historic extremes — the evidence for the claim WAS the price itself, a circle. <b>STRETCHED at best.</b> Note who published it: the institution earning fees on the buying. The needle grades claims, not motives — but the field guide says always ask who's paid when the claim comes true.</p>
+ </div>
 
-  <!-- COMPANION CARD: WHY JAPAN HAPPENED -->
-  <div class="card" style="border-left:3px solid var(--accent)">
-    <p><b>Companion card — why Japan's market did that (the 5-minute version):</b></p>
-    <p><b>1. Cheap money got turned on.</b> In 1985 the big countries made a deal that pushed Japan's currency way up, which hurt its exporters. To soften that, Japan's central bank made borrowing very cheap — and all that cheap borrowed money poured into stocks and land.</p>
-    <p><b>2. A loop that fed itself.</b> Banks lent money using land as the promise ("if you don't pay, we take the land"). The loans pushed land prices up. Higher land prices meant the promises looked bigger — so banks lent even more. Round and round. People joked that the Emperor's garden in Tokyo was "worth more than all of California."</p>
-    <p><b>3. Nobody was selling.</b> Big companies owned each other's shares as a loyalty custom, so most shares never came up for sale — buying pushed prices up fast because so little was available.</p>
-    <p><b>4. The story.</b> "Japan's economy is a new kind — the old price rules don't apply here." At the top, stocks cost about <b>70 years' worth</b> of the profits behind them. Normal is more like 15–20 years' worth.</p>
-    <p><b>5. The turn.</b> When Japan's central bank finally raised borrowing costs in 1989–90, the loop ran backwards: land fell → the banks' promises were suddenly worth less → banks were stuck with dying loans for a decade → prices kept sinking → and Japan's aging, shrinking population meant fewer new buyers behind them, year after year. That's why recovery took <b>35 years</b> instead of 3: the bubble wasn't just in prices — it was wired into the banks and the population itself.</p>
-    <p><b>Could America be next? The honest both-sides:</b> today the US market's price-vs-ten-years-of-profits gauge (the <span class="term" data-def="cape">CAPE</span>) reads around <b>40–42</b> (July 2026) — near its all-time record of 44.2, which was set in December 1999<sup><a href="plainsight-citations-1.html#c14" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[14]</a></sup>, right before the dot-com crash, against a long-run middle value near 16. And there's a confident "new era" story attached to a handful of giant companies. Those are real bubble ingredients, visibly present. <b>But most of Japan's deadliest plumbing is absent here:</b> US banks don't run on a land-loan loop and are required to hold more cushion since 2008; there's no everyone-owns-everyone share web; the US population still grows; big US companies earn worldwide; and America's central bank has shown it intervenes fast rather than letting prices sink for a decade — which is why the 2000 and 2008 crashes recovered in years, not decades. <b>What history fairly supports:</b> expensive markets have usually paid poorly over the following ten years, and sometimes crashed — but "expensive" has never told anyone <i>when</i>, and Japan's 35-year freezer needed ingredients America mostly lacks. "It's 1989 Japan" and "it can't happen here" are both forever-claims the needle grades hardest. The question that actually protects you is the museum's: not "what do I predict?" but "how much can I lose before I'm out — and does my plan survive being wrong for years?"</p>
-  </div>
+ <!-- COMPANION CARD: WHY JAPAN HAPPENED -->
+ <div class="card" style="border-left:3px solid var(--accent)">
+ <p><b>Companion card — why Japan's market did that (the 5-minute version):</b></p>
+ <p><b>1. Cheap money got turned on.</b> In 1985 the big countries made a deal that pushed Japan's currency way up, which hurt its exporters. To soften that, Japan's central bank made borrowing very cheap — and all that cheap borrowed money poured into stocks and land.</p>
+ <p><b>2. A loop that fed itself.</b> Banks lent money using land as the promise ("if you don't pay, we take the land"). The loans pushed land prices up. Higher land prices meant the promises looked bigger — so banks lent even more. Round and round. People joked that the Emperor's garden in Tokyo was "worth more than all of California."</p>
+ <p><b>3. Nobody was selling.</b> Big companies owned each other's shares as a loyalty custom, so most shares never came up for sale — buying pushed prices up fast because so little was available.</p>
+ <p><b>4. The story.</b> "Japan's economy is a new kind — the old price rules don't apply here." At the top, stocks cost about <b>70 years' worth</b> of the profits behind them. Normal is more like 15–20 years' worth.</p>
+ <p><b>5. The turn.</b> When Japan's central bank finally raised borrowing costs in 1989–90, the loop ran backwards: land fell → the banks' promises were suddenly worth less → banks were stuck with dying loans for a decade → prices kept sinking → and Japan's aging, shrinking population meant fewer new buyers behind them, year after year. That's why recovery took <b>35 years</b> instead of 3: the bubble wasn't just in prices — it was wired into the banks and the population itself.</p>
+ <p><b>Could America be next? The honest both-sides:</b> today the US market's price-vs-ten-years-of-profits gauge (the <span class="term" data-def="cape">CAPE</span>) reads around <b>40–42</b> (July 2026) — near its all-time record of 44.2, which was set in December 1999<sup><a href="plainsight-citations-1.html#c14" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[14]</a></sup>, right before the dot-com crash, against a long-run middle value near 16. And there's a confident "new era" story attached to a handful of giant companies. Those are real bubble ingredients, visibly present. <b>But most of Japan's deadliest plumbing is absent here:</b> US banks don't run on a land-loan loop and are required to hold more cushion since 2008; there's no everyone-owns-everyone share web; the US population still grows; big US companies earn worldwide; and America's central bank has shown it intervenes fast rather than letting prices sink for a decade — which is why the 2000 and 2008 crashes recovered in years, not decades. <b>What history fairly supports:</b> expensive markets have usually paid poorly over the following ten years, and sometimes crashed — but "expensive" has never told anyone <i>when</i>, and Japan's 35-year freezer needed ingredients America mostly lacks. "It's 1989 Japan" and "it can't happen here" are both forever-claims the needle grades hardest. The question that actually protects you is the museum's: not "what do I predict?" but "how much can I lose before I'm out — and does my plan survive being wrong for years?"</p>
+ </div>
 
-  <!-- GRAVE 3 -->
-  <div class="grave bull">
-    <span class="g-dir bull">Bull · "right" 22 years late — which is its own lesson</span>
-    <div class="g-title">Dow 36,000, "over the next few years"</div>
-    <div class="g-call">A 1999 best-selling book argued the Dow — then around 10,000 — was wildly undervalued and would rise to 36,000 within a few years, because stocks would soon be seen as no riskier than bonds.
-      <div class="who">"Dow 36,000," James Glassman<sup><a href="plainsight-citations-1.html#c17" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[17]</a></sup> & Kevin Hassett, 1999 — serious, credentialed authors; a contemporaneous Harvard review called the argument "not as laughable as it sounds" while rejecting the confidence.</div></div>
-    <div class="g-reality"><b>Reality:</b> within three years the Dow had instead fallen toward 7,000. It finally crossed 36,000 in <b>November 2021 — about 22 years later</b> — and, as reviewers noted, for reasons unrelated to the book's theory. Anyone who acted on "a few years" lived through two crashes first.</div>
-    <p class="g-grade"><b>The needle, on the day:</b> the mechanism was a real academic puzzle honestly argued — <b>SUPPORTED as a possibility</b>. The timeline ("next few years") and the certainty were <b>UNVERIFIED</b> dressed as arrival time. The lesson here is the sneakiest one on this page: <b>eventually right is not right.</b> A prediction without a deadline can never be wrong — which is exactly why our flight simulator's resolution rule has a fixed window, written in advance.</p>
-  </div>
+ <!-- GRAVE 3 -->
+ <div class="grave bull">
+ <span class="g-dir bull">Bull · "right" 22 years late — which is its own lesson</span>
+ <div class="g-title">Dow 36,000, "over the next few years"</div>
+ <div class="g-call">A 1999 best-selling book argued the Dow — then around 10,000 — was wildly undervalued and would rise to 36,000 within a few years, because stocks would soon be seen as no riskier than bonds.
+ <div class="who">"Dow 36,000," James Glassman<sup><a href="plainsight-citations-1.html#c17" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[17]</a></sup> & Kevin Hassett, 1999 — serious, credentialed authors; a contemporaneous Harvard review called the argument "not as laughable as it sounds" while rejecting the confidence.</div></div>
+ <div class="g-reality"><b>Reality:</b> within three years the Dow had instead fallen toward 7,000. It finally crossed 36,000 in <b>November 2021 — about 22 years later</b> — and, as reviewers noted, for reasons unrelated to the book's theory. Anyone who acted on "a few years" lived through two crashes first.</div>
+ <p class="g-grade"><b>The needle, on the day:</b> the mechanism was a real academic puzzle honestly argued — <b>SUPPORTED as a possibility</b>. The timeline ("next few years") and the certainty were <b>UNVERIFIED</b> dressed as arrival time. The lesson here is the sneakiest one on this page: <b>eventually right is not right.</b> A prediction without a deadline can never be wrong — which is exactly why our flight simulator's resolution rule has a fixed window, written in advance.</p>
+ </div>
 
-  <!-- GRAVE 4 -->
-  <div class="grave bear">
-    <span class="g-dir bear">Bearish call · early by years = wrong in leverage-time</span>
-    <div class="g-title">The warning at Dow 6,437</div>
-    <div class="g-call">In December 1996, two of the most respected market researchers alive warned the Federal Reserve that the stock market was poised for a big fall.
-      <div class="who">Robert Shiller (Yale) & John Campbell (Harvard), December 1996, Dow ≈ 6,437<sup><a href="plainsight-citations-1.html#c18" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[18]</a></sup> — as recorded in a contemporaneous Harvard economist's account.</div></div>
-    <div class="g-reality"><b>Reality:</b> the market roughly <b>doubled</b> over the following three years before the 2000 crash came — and even that crash never brought the Dow back down to 6,437. Shiller was later proven deeply right about the bubble's psychology (and won a Nobel Prize) — and anyone who bet money on the 1996 warning with borrowed size was wiped out by the rally <b>before being vindicated</b>.</div>
-    <p class="g-grade"><b>The needle, on the day:</b> grounded in real valuation evidence — <b>SUPPORTED</b> as a caution. This entry exists because of what it teaches about time: <b>in leveraged money, early and wrong are the same word.</b> Being right about the destination doesn't save you if the road first runs the other way farther than your cushion reaches. This is the bear-side mirror of Dow 36,000, and together they're the record's spine: neither side owns wrongness.</p>
-  </div>
+ <!-- GRAVE 4 -->
+ <div class="grave bear">
+ <span class="g-dir bear">Bearish call · early by years = wrong in leverage-time</span>
+ <div class="g-title">The warning at Dow 6,437</div>
+ <div class="g-call">In December 1996, two of the most respected market researchers alive warned the Federal Reserve that the stock market was poised for a big fall.
+ <div class="who">Robert Shiller (Yale) & John Campbell (Harvard), December 1996, Dow ≈ 6,437<sup><a href="plainsight-citations-1.html#c18" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[18]</a></sup> — as recorded in a contemporaneous Harvard economist's account.</div></div>
+ <div class="g-reality"><b>Reality:</b> the market roughly <b>doubled</b> over the following three years before the 2000 crash came — and even that crash never brought the Dow back down to 6,437. Shiller was later proven deeply right about the bubble's psychology (and won a Nobel Prize) — and anyone who bet money on the 1996 warning with borrowed size was wiped out by the rally <b>before being vindicated</b>.</div>
+ <p class="g-grade"><b>The needle, on the day:</b> grounded in real valuation evidence — <b>SUPPORTED</b> as a caution. This entry exists because of what it teaches about time: <b>in leveraged money, early and wrong are the same word.</b> Being right about the destination doesn't save you if the road first runs the other way farther than your cushion reaches. This is the bear-side mirror of Dow 36,000, and together they're the record's spine: neither side owns wrongness.</p>
+ </div>
 
-  <!-- GRAVE 5 -->
-  <div class="grave bear">
-    <span class="g-dir bear">Bears · wrong hundreds of times (so far)</span>
-    <div class="g-title">The obituaries of Bitcoin</div>
-    <div class="g-call">Since 2010, commentators, economists, and headlines have publicly declared Bitcoin dead, dying, or going to zero — a popular tracker has catalogued <b>hundreds</b><sup><a href="plainsight-citations-1.html#c19" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[19]</a></sup> of such on-record declarations.
-      <div class="who">An aggregate entry — no single author. The tally comes from a well-known community-run "Bitcoin obituaries" tracker; we cite it as a popular count, not a study.</div></div>
-    <div class="g-reality"><b>Reality:</b> through every declared death, Bitcoin went on to trade at prices its obituary-writers called impossible. <b>The honest other half:</b> this entry does NOT mean Bitcoin can't fail, and it sits in the same museum wing as Terra — where "it always comes back" was the confident story right up until it didn't. Past survival is evidence of past survival, nothing more.</div>
-    <p class="g-grade"><b>The needle, on the days:</b> most obituaries were <b>UNSUPPORTED CONCLUSIONS</b> — "this will die" is the same all-future-time claim as Fisher's "permanently," pointed the other way. The pair belongs together on purpose: <b>"forever" and "never" are the two words the needle grades hardest, in either direction.</b></p>
-  </div>
+ <!-- GRAVE 5 -->
+ <div class="grave bear">
+ <span class="g-dir bear">Bears · wrong hundreds of times (so far)</span>
+ <div class="g-title">The obituaries of Bitcoin</div>
+ <div class="g-call">Since 2010, commentators, economists, and headlines have publicly declared Bitcoin dead, dying, or going to zero — a popular tracker has catalogued <b>hundreds</b><sup><a href="plainsight-citations-1.html#c19" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[19]</a></sup> of such on-record declarations.
+ <div class="who">An aggregate entry — no single author. The tally comes from a well-known community-run "Bitcoin obituaries" tracker; we cite it as a popular count, not a study.</div></div>
+ <div class="g-reality"><b>Reality:</b> through every declared death, Bitcoin went on to trade at prices its obituary-writers called impossible. <b>The honest other half:</b> this entry does NOT mean Bitcoin can't fail, and it sits in the same museum wing as Terra — where "it always comes back" was the confident story right up until it didn't. Past survival is evidence of past survival, nothing more.</div>
+ <p class="g-grade"><b>The needle, on the days:</b> most obituaries were <b>UNSUPPORTED CONCLUSIONS</b> — "this will die" is the same all-future-time claim as Fisher's "permanently," pointed the other way. The pair belongs together on purpose: <b>"forever" and "never" are the two words the needle grades hardest, in either direction.</b></p>
+ </div>
 
-  <!-- THE FILTER -->
-  <div class="filterbox">
-    <b>How to read any prediction while its author is still alive (four questions, no expert needed):</b><br>
-    1. <b>Is there a deadline?</b> No deadline = unfalsifiable = not a prediction, just a mood. (Dow 36,000's real error was "a few years.")<br>
-    2. <b>Does it contain "forever" words?</b> "Permanently," "never," "always," "dead" — all-future-time claims from finite past data. The needle's hardest grades, both directions.<br>
-    3. <b>Who gets paid if you believe it?</b> Not proof of anything — but the brokerage predicting a doubling, and the pundit selling the crash course, both earn on your belief, not their accuracy.<br>
-    4. <b>What did this person's LAST ten predictions do?</b> Almost nobody checks, which is why almost nobody has to be right. A record exists so somebody keeps score.
-  </div>
+ <!-- THE FILTER -->
+ <div class="filterbox">
+ <b>How to read any prediction while its author is still alive (four questions, no expert needed):</b><br>
+ 1. <b>Is there a deadline?</b> No deadline = unfalsifiable = not a prediction, just a mood. (Dow 36,000's real error was "a few years.")<br>
+ 2. <b>Does it contain "forever" words?</b> "Permanently," "never," "always," "dead" — all-future-time claims from finite past data. The needle's hardest grades, both directions.<br>
+ 3. <b>Who gets paid if you believe it?</b> Not proof of anything — but the brokerage predicting a doubling, and the pundit selling the crash course, both earn on your belief, not their accuracy.<br>
+ 4. <b>What did this person's LAST ten predictions do?</b> Almost nobody checks, which is why almost nobody has to be right. A record exists so somebody keeps score.
+ </div>
 
-  <div class="card"><p><b>What's deliberately NOT here yet:</b> the live version — where today's confident public calls get frozen the moment they're made and scored automatically when their windows close. That needs a public, timestamped, tamper-proof place to store the frozen calls, which is waiting on the project's open-repository decision. This hall of resolved history stands on its own until then, and everything in it is checkable against the public record today.</p></div>
+ <div class="card"><p><b>What's deliberately NOT here yet:</b> the live version — where today's confident public calls get frozen the moment they're made and scored automatically when their windows close. That needs a public, timestamped, tamper-proof place to store the frozen calls, which is waiting on the project's open-repository decision. This hall of resolved history stands on its own until then, and everything in it is checkable against the public record today.</p></div>
 
-  <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror"><b>The mirror, as always:</b> nothing here mocks anyone — several of these people were among the best minds of their eras, and the record says so plainly. That's the point: if Fisher and Shiller couldn't call it, the confident voice in your feed probably can't either. Nothing here says what any market will do next; every stone marks something already finished. What you carry out of this record is yours.</div></details>
+ <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650"> The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror"><b>The mirror, as always:</b> nothing here mocks anyone — several of these people were among the best minds of their eras, and the record says so plainly. That's the point: if Fisher and Shiller couldn't call it, the confident voice in your feed probably can't either. Nothing here says what any market will do next; every stone marks something already finished. What you carry out of this record is yours.</div></details>
 </div>
 
 <div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
@@ -186,8 +186,8 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(
 $("deftip").querySelector(".x").onclick=hideDef;
 </script>
 
-<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">← The case for active</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: The wealth bookshelf →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)">🗺 All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">The behavior room</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test 🧪</a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test 🧪</a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The whale board 🧪</a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company 🧪</a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Who called it</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">What we've learned</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">The research desk 🧪</a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-needle-widget-2.html" style="color:var(--accent);text-decoration:none">The needle widget</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
-<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:"  ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
+<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">← The case for active</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: The wealth bookshelf →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)"> All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">How your mind works against you</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test </a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test </a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The risk board </a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company </a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Predictions, graded</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">Our findings</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">Practice reading the market </a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
+<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:" ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
 <script>(function(){var sel=".keyhole,.warnbox,.filterbox,.counter,.rulebox,.lens";document.querySelectorAll(sel).forEach(function(el){if(el.closest("details")||el.querySelector("details"))return;var b=el.querySelector("b");var label=b?b.textContent.replace(/[\s:—–-]+$/,""):el.textContent.trim().slice(0,60)+"…";if(el.textContent.trim().length<160)return;var d=document.createElement("details");d.className="psfold";var s=document.createElement("summary");s.textContent=label;d.appendChild(s);var inner=document.createElement("div");inner.innerHTML=el.innerHTML;d.appendChild(inner);el.innerHTML="";el.appendChild(d);});})();</script>
 <style>details.secfold{border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px;background:rgba(20,26,34,.5)}details.secfold[open]{border-color:rgba(127,176,232,.4)}details.secfold>summary{cursor:pointer;list-style:none;font-weight:660;font-size:.98rem;padding:12px 0;color:var(--ink)}details.secfold>summary::-webkit-details-marker{display:none}details.secfold>summary:after{content:" ⌄";color:#8A9099}details.secfold[open]>summary:after{content:""}</style>
 <script>(function(){

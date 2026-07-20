@@ -5,247 +5,247 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Xplainsight — the wealth bookshelf: who to trust</title>
 <!--
-  XPLAINSIGHT — the wealth bookshelf (S16). Companion to the buy-and-hold deep dive
-  (built in the "Parking 3b / 3c" session) and the Field Guide evidence base.
-  Job: take the most famous "getting rich" and investing books — across stocks,
-  crypto, real estate, and life — and sort them by ONE question:
-     "Did an independent scorekeeper check this, or is a survivor telling their story?"
-  The shelf layout IS the lesson (the survivorship filter, taught by sorting).
-  Endorses nothing, prescribes nothing. Verified claims carry sources; opinions
-  are labeled as opinions. Hill + Kiyosaki facts verified by live search this
-  session (Nasaw via Gizmodo/Inc; Rich Global LLC bankruptcy, public record).
-  Plain language, 8th grade, tap-to-define throughout (house GLOSSARY mechanism).
+ XPLAINSIGHT — the wealth bookshelf (S16). Companion to the buy-and-hold deep dive
+ (built in the "Parking 3b / 3c" session) and the Field Guide evidence base.
+ Job: take the most famous "getting rich" and investing books — across stocks,
+ crypto, real estate, and life — and sort them by ONE question:
+ "Did an independent scorekeeper check this, or is a survivor telling their story?"
+ The shelf layout IS the lesson (the survivorship filter, taught by sorting).
+ Endorses nothing, prescribes nothing. Verified claims carry sources; opinions
+ are labeled as opinions. Hill + Kiyosaki facts verified by live search this
+ session (Nasaw via Gizmodo/Inc; Rich Global LLC bankruptcy, public record).
+ Plain language, 8th grade, tap-to-define throughout (house GLOSSARY mechanism).
 -->
 <style>
-  :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
-    --muted:#99A1AB;--faint:#5A626C;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
-    --warn:#C9A227;--define:#A78BFA;}
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;-webkit-text-size-adjust:100%}
-  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
-  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
-  h2{font-size:1.05rem;font-weight:650;margin:30px 0 4px;border-top:1px solid var(--line);padding-top:20px}
-  h2:first-of-type{border-top:none;padding-top:0}
-  .sub{font-size:.9rem;color:var(--muted);margin:0 0 14px}
-  .sub b,.card b{color:var(--ink);font-weight:620}
-  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
-  .term:active{opacity:.6}
-  .shelfnote{font-size:.82rem;color:var(--faint);margin:0 0 12px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
-  .card p{font-size:.9rem;margin:8px 0}
-  .badge{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
-    padding:3px 10px;border-radius:999px;display:inline-block;margin-bottom:4px}
-  .badge.rock{background:rgba(95,191,143,.15);color:var(--up);border:1px solid rgba(95,191,143,.4)}
-  .badge.soft{background:rgba(201,162,39,.15);color:var(--warn);border:1px solid rgba(201,162,39,.4)}
-  .badge.crack{background:rgba(224,144,108,.15);color:var(--down);border:1px solid rgba(224,144,108,.4)}
-  .book{border-left:3px solid var(--accent);background:rgba(127,176,232,.05);border-radius:9px;padding:11px 14px;margin:9px 0}
-  .book.warnb{border-left-color:var(--warn);background:rgba(201,162,39,.05)}
-  .book.crackb{border-left-color:var(--down);background:rgba(224,144,108,.05)}
-  .book .t{font-weight:650;font-size:.9rem}
-  .book .a{font-size:.78rem;color:var(--muted)}
-  .book .d{font-size:.85rem;margin-top:5px}
-  .book .d p{margin:5px 0;font-size:.85rem}
-  .keep{font-size:.8rem;margin-top:6px;color:var(--up)}
-  .keep b{color:var(--up)}
-  .catch{font-size:.8rem;margin-top:4px;color:var(--warn)}
-  .catch b{color:var(--warn)}
-  .filterbox{border:1px solid var(--line);border-left:3px solid var(--define);background:rgba(167,139,250,.06);border-radius:10px;padding:13px 15px;margin:14px 0;font-size:.88rem}
-  .filterbox b{color:var(--ink)}
-  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:26px;font-size:.86rem;color:var(--muted)}
-  .mirror b{color:var(--ink)}
-  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
-    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
-    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
-  #deftip.show{display:block}
-  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
-  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
-  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
-  .wrap>*{animation:fadeUp .45s ease both}
-  .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+ :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+ --muted:#99A1AB;--faint:#5A626C;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+ --warn:#C9A227;--define:#A78BFA;}
+ *{box-sizing:border-box}
+ html,body{margin:0;background:var(--bg);color:var(--ink);
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;-webkit-text-size-adjust:100%}
+ .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+ h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+ h2{font-size:1.05rem;font-weight:650;margin:30px 0 4px;border-top:1px solid var(--line);padding-top:20px}
+ h2:first-of-type{border-top:none;padding-top:0}
+ .sub{font-size:.9rem;color:var(--muted);margin:0 0 14px}
+ .sub b,.card b{color:var(--ink);font-weight:620}
+ .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+ .term:active{opacity:.6}
+ .shelfnote{font-size:.82rem;color:var(--faint);margin:0 0 12px}
+ .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+ .card p{font-size:.9rem;margin:8px 0}
+ .badge{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+ padding:3px 10px;border-radius:999px;display:inline-block;margin-bottom:4px}
+ .badge.rock{background:rgba(95,191,143,.15);color:var(--up);border:1px solid rgba(95,191,143,.4)}
+ .badge.soft{background:rgba(201,162,39,.15);color:var(--warn);border:1px solid rgba(201,162,39,.4)}
+ .badge.crack{background:rgba(224,144,108,.15);color:var(--down);border:1px solid rgba(224,144,108,.4)}
+ .book{border-left:3px solid var(--accent);background:rgba(127,176,232,.05);border-radius:9px;padding:11px 14px;margin:9px 0}
+ .book.warnb{border-left-color:var(--warn);background:rgba(201,162,39,.05)}
+ .book.crackb{border-left-color:var(--down);background:rgba(224,144,108,.05)}
+ .book .t{font-weight:650;font-size:.9rem}
+ .book .a{font-size:.78rem;color:var(--muted)}
+ .book .d{font-size:.85rem;margin-top:5px}
+ .book .d p{margin:5px 0;font-size:.85rem}
+ .keep{font-size:.8rem;margin-top:6px;color:var(--up)}
+ .keep b{color:var(--up)}
+ .catch{font-size:.8rem;margin-top:4px;color:var(--warn)}
+ .catch b{color:var(--warn)}
+ .filterbox{border:1px solid var(--line);border-left:3px solid var(--define);background:rgba(167,139,250,.06);border-radius:10px;padding:13px 15px;margin:14px 0;font-size:.88rem}
+ .filterbox b{color:var(--ink)}
+ .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:26px;font-size:.86rem;color:var(--muted)}
+ .mirror b{color:var(--ink)}
+ #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+ border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+ box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+ #deftip.show{display:block}
+ #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+ #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+ #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+ .wrap>*{animation:fadeUp .45s ease both}
+ .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
+ @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+ @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
 
-  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
-  /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
-  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
-  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
-  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
-  .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
-  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
-  details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
-    background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
-    box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
-  details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
-    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
-  details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
+ /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
+ .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
+ .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+ .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
+ .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
+ .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
+ details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
+ background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
+ box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
+ details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
+ transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
+ details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
 </style>
-  <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
+ <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
 <body>
 <div style="position:sticky;top:0;z-index:40;background:rgba(14,17,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)"><div style="max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:8px"><a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#7FB0E8" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="#5FBF8F" stroke-width="2.2" stroke-linecap="round"/></svg>Xplainsight</a><span style="margin-left:auto;font-size:.7rem;color:var(--faint)">measuring history, not selling predictions</span></div></div>
 
 <div class="wrap">
-  <h1>The wealth bookshelf — who to trust when everyone promises riches</h1>
-  <p class="sub">The most famous "how to get rich" books ever sold, across stocks, crypto, real estate, and life itself — sorted by <b>one question</b>: did an independent <span class="term" data-def="scorekeeper">scorekeeper</span> check the claims, or is a <span class="term" data-def="survivor">survivor</span> just telling their own story? Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning. This page recommends no book and no move — it shows you how to weigh them, then you decide.</p>
+ <h1>The wealth bookshelf — who to trust when everyone promises riches</h1>
+ <p class="sub">The most famous "how to get rich" books ever sold, across stocks, crypto, real estate, and life itself — sorted by <b>one question</b>: did an independent <span class="term" data-def="scorekeeper">scorekeeper</span> check the claims, or is a <span class="term" data-def="survivor">survivor</span> just telling their own story? Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning. This page recommends no book and no move — it shows you how to weigh them, then you decide.</p>
 
-  <div class="filterbox">
-    <b>The one filter that sorts this whole shelf (the survivorship test):</b><br>
-    Only trust a method if a scorekeeper measured it across <b>everyone who tried it</b> — winners and losers both. A winner telling their own story proves almost nothing, because the losers who did the exact same things never got to write a book. That's called <span class="term" data-def="survivorship bias">survivorship bias</span>, and it's the engine behind most best-selling wealth books. This shelf is sorted by that test — top shelf passed it, bottom shelf failed it.
-  </div>
+ <div class="filterbox">
+ <b>The one filter that sorts this whole shelf (the survivorship test):</b><br>
+ Only trust a method if a scorekeeper measured it across <b>everyone who tried it</b> — winners and losers both. A winner telling their own story proves almost nothing, because the losers who did the exact same things never got to write a book. That's called <span class="term" data-def="survivorship bias">survivorship bias</span>, and it's the engine behind most best-selling wealth books. This shelf is sorted by that test — top shelf passed it, bottom shelf failed it.
+ </div>
 
-  <h2>🟢 Top shelf — checked by scorekeepers, or built on measured data</h2>
-  <p class="shelfnote">These books either survived independent checking, or were written by people whose results a scorekeeper verified. Notice what they have in common: almost all of them tell you the winning move is <b>boring</b>.</p>
+ <h2>🟢 Top shelf — checked by scorekeepers, or built on measured data</h2>
+ <p class="shelfnote">These books either survived independent checking, or were written by people whose results a scorekeeper verified. Notice what they have in common: almost all of them tell you the winning move is <b>boring</b>.</p>
 
-  <div class="book">
-    <span class="badge rock">Scorekeeper-verified ideas</span>
-    <div class="t">The Intelligent Investor (1949)</div>
-    <div class="a">Benjamin Graham — professor, investor; taught Warren Buffett</div>
-    <div class="d"><p>The book that split <b>investing</b> (buying a piece of a real business for less than it's worth) from <b>speculating</b> (betting on price moves). Its most famous ideas: treat the market as a moody neighbor making offers you can ignore ("Mr. Market"), and always leave a <span class="term" data-def="margin of safety">margin of safety</span>. It teaches temperament, not tricks.</p></div>
-    <p class="keep"><b>Why it's up here:</b> its core claim — that the crowd overpays in excitement and underpays in fear — has been measured and confirmed by decades of behavioral-finance research. And its most famous student's results are on the public record.</p>
-    <p class="catch"><b>The honest catch:</b> hand-picking cheap stocks is much harder than Graham's era suggested — the same scorekeepers (SPIVA data) show ~92%<sup><a href="plainsight-citations-1.html#c5" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[5]</a></sup> of US stock funds failed to beat their benchmarks over the 20 years through 2025 (SPIVA’s updated count). The temperament lessons hold; the stock-picking part mostly doesn't, even for pros.</p>
-  </div>
+ <div class="book">
+ <span class="badge rock">Scorekeeper-verified ideas</span>
+ <div class="t">The Intelligent Investor (1949)</div>
+ <div class="a">Benjamin Graham — professor, investor; taught Warren Buffett</div>
+ <div class="d"><p>The book that split <b>investing</b> (buying a piece of a real business for less than it's worth) from <b>speculating</b> (betting on price moves). Its most famous ideas: treat the market as a moody neighbor making offers you can ignore ("Mr. Market"), and always leave a <span class="term" data-def="margin of safety">margin of safety</span>. It teaches temperament, not tricks.</p></div>
+ <p class="keep"><b>Why it's up here:</b> its core claim — that the crowd overpays in excitement and underpays in fear — has been measured and confirmed by decades of behavioral-finance research. And its most famous student's results are on the public record.</p>
+ <p class="catch"><b>The honest catch:</b> hand-picking cheap stocks is much harder than Graham's era suggested — the same scorekeepers (SPIVA data) show ~92%<sup><a href="plainsight-citations-1.html#c5" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[5]</a></sup> of US stock funds failed to beat their benchmarks over the 20 years through 2025 (SPIVA’s updated count). The temperament lessons hold; the stock-picking part mostly doesn't, even for pros.</p>
+ </div>
 
-  <div class="book">
-    <span class="badge rock">Scorekeeper-verified ideas</span>
-    <div class="t">The Little Book of Common Sense Investing (2007)</div>
-    <div class="a">John Bogle — invented the index fund; founded Vanguard</div>
-    <div class="d"><p>The whole book in one sentence: don't look for the needle, buy the haystack — own everything at the lowest possible cost through an <span class="term" data-def="index fund">index fund</span>, and stop trading. Bogle is the rare author whose "product" was checked by every scorekeeper for fifty years and kept winning.</p></div>
-    <p class="keep"><b>Why it's up here:</b> the SPIVA scorecards, the academic record (Fama-French), and Buffett's public $1M bet all independently confirm the book's central claim. This is the most-verified idea on the shelf.</p>
-    <p class="catch"><b>The honest catch:</b> it's built on US stock history — the deep dive we built on buy-and-hold covers the counter-cases (Japan's lost decades, survivorship in the data itself). Verified doesn't mean guaranteed.</p>
-  </div>
+ <div class="book">
+ <span class="badge rock">Scorekeeper-verified ideas</span>
+ <div class="t">The Little Book of Common Sense Investing (2007)</div>
+ <div class="a">John Bogle — invented the index fund; founded Vanguard</div>
+ <div class="d"><p>The whole book in one sentence: don't look for the needle, buy the haystack — own everything at the lowest possible cost through an <span class="term" data-def="index fund">index fund</span>, and stop trading. Bogle is the rare author whose "product" was checked by every scorekeeper for fifty years and kept winning.</p></div>
+ <p class="keep"><b>Why it's up here:</b> the SPIVA scorecards, the academic record (Fama-French), and Buffett's public $1M bet all independently confirm the book's central claim. This is the most-verified idea on the shelf.</p>
+ <p class="catch"><b>The honest catch:</b> it's built on US stock history — the deep dive we built on buy-and-hold covers the counter-cases (Japan's lost decades, survivorship in the data itself). Verified doesn't mean guaranteed.</p>
+ </div>
 
-  <div class="book">
-    <span class="badge rock">Verified winner — who says don't try</span>
-    <div class="t">A Man for All Markets (2017) — the deep case</div>
-    <div class="a">Ed Thorp — math professor; beat blackjack, then beat markets for two decades</div>
-    <div class="d">
-      <p><b>Why he gets the longest card on the shelf:</b> Thorp is this page's hardest test case. If anyone on the shelf is "real skill" rather than luck sold as skill, it should be him — so we ran him through the filter at full strength.</p>
-      <p><b>The test that separates skill from packaged luck:</b> can you state your <span class="term" data-def="edge">edge</span> <b>in advance</b>, from a mechanism, and predict your results before betting — or does the "skill" only appear in hindsight, after the results are in? Luck-sellers only ever have hindsight. Thorp had the mechanism first. Three times:</p>
-      <p><b>1. Blackjack (1961–62).</b> He proved on a computer, before betting, that the odds shift as cards leave the deck and that tracking them gives the player about a 1–2% edge. He then won at the predicted rate — and <b>published the entire method</b> so anyone could check it. Thousands replicated it, and casinos <b>changed their own rules</b> to stop it. Nobody rewrites the rules of their own game to stop luck.</p>
-      <p><b>2. Mispriced securities (from 1967).</b> He found contracts priced mathematically wrong relative to the stocks they were tied to, derived the correct price, and bet the gap while <span class="term" data-def="hedge">hedging</span> away market direction. Math first, prediction first, results after — the same order every time.</p>
-      <p><b>3. His fund (1969–1988).</b> Roughly 19–20% a year for nearly two decades with almost no losing months. Here's why that survives the <span class="term" data-def="lottery steelman">lottery steelman</span> — the check we owe every winner: pure luck shows up as high returns with <b>big swings</b>. Thorp's record was high returns with <b>tiny swings across hundreds of independent months</b> — the statistical fingerprint of a small edge harvested thousands of times. Chance can fake a lucky year. It essentially cannot fake two hundred barely-losing months.</p>
-      <p><b>What it actually took (the recipe, honestly priced):</b> a mathematically <b>provable</b> mispricing — an equation, not a feeling about a chart (this is the scarce ingredient; everything else is worthless without it) · PhD-level probability skills, applied to markets <b>before</b> anyone else had computerized them · bet sizing that guarantees survival (the <span class="term" data-def="kelly">Kelly criterion</span> — the edge is nothing if a losing streak kills you first) · <b>thousands of small independent bets</b>, because an edge is invisible in any single one · and a verification habit: prove it offline, test it small, only then scale. That same habit is how he spotted the Madoff fraud in 1991 — thirteen years before regulators — just from returns too smooth to be real.</p>
-      <p><b>Is being Thorp possible today?</b> The honest answer comes from Thorp himself. His edges existed because he brought math to games and markets that didn't have it yet. Those doors are mostly closed: card counting got countered, and his market methods got crowded by entire industries of professionals running his own playbook with more computers and cheaper costs. The <b>method</b> — find a provable mispricing, size it to survive, harvest it in volume — is fully learnable. The <b>opportunities</b> mostly are not, for one person, because trying it today means competing head-on against the firms his book created.</p>
-    </div>
-    <p class="keep"><b>Why it's up here:</b> a real, checkable winning record — the closest thing to the filter's gold standard on this shelf. And the punchline the whole shelf turns on: <b>the verified winner tells you not to play.</b> Thorp's standing advice for nearly everyone is a boring index fund — because he, better than anyone, can calculate what a real edge requires and can see that almost nobody has one. The bottom-shelf authors got rich selling the secret and told you to chase it. Thorp got rich using one and tells you it's probably not there for you. When the incentives and the verified record point the same way, that's as close to truth as markets offer.</p>
-    <p class="catch"><b>The honest sourcing note:</b> his fund's exact month-by-month numbers come from Thorp's own accounts and period records — widely accepted, never credibly disputed, but not a SPIVA-style independent scorecard. So this badge means "verified record, audit-and-self sourced," a notch below the pure scorekeeper tier, and we say so.</p>
-  </div>
+ <div class="book">
+ <span class="badge rock">Verified winner — who says don't try</span>
+ <div class="t">A Man for All Markets (2017) — the deep case</div>
+ <div class="a">Ed Thorp — math professor; beat blackjack, then beat markets for two decades</div>
+ <div class="d">
+ <p><b>Why he gets the longest card on the shelf:</b> Thorp is this page's hardest test case. If anyone on the shelf is "real skill" rather than luck sold as skill, it should be him — so we ran him through the filter at full strength.</p>
+ <p><b>The test that separates skill from packaged luck:</b> can you state your <span class="term" data-def="edge">edge</span> <b>in advance</b>, from a mechanism, and predict your results before betting — or does the "skill" only appear in hindsight, after the results are in? Luck-sellers only ever have hindsight. Thorp had the mechanism first. Three times:</p>
+ <p><b>1. Blackjack (1961–62).</b> He proved on a computer, before betting, that the odds shift as cards leave the deck and that tracking them gives the player about a 1–2% edge. He then won at the predicted rate — and <b>published the entire method</b> so anyone could check it. Thousands replicated it, and casinos <b>changed their own rules</b> to stop it. Nobody rewrites the rules of their own game to stop luck.</p>
+ <p><b>2. Mispriced securities (from 1967).</b> He found contracts priced mathematically wrong relative to the stocks they were tied to, derived the correct price, and bet the gap while <span class="term" data-def="hedge">hedging</span> away market direction. Math first, prediction first, results after — the same order every time.</p>
+ <p><b>3. His fund (1969–1988).</b> Roughly 19–20% a year for nearly two decades with almost no losing months. Here's why that survives the <span class="term" data-def="lottery steelman">lottery steelman</span> — the check we owe every winner: pure luck shows up as high returns with <b>big swings</b>. Thorp's record was high returns with <b>tiny swings across hundreds of independent months</b> — the statistical fingerprint of a small edge harvested thousands of times. Chance can fake a lucky year. It essentially cannot fake two hundred barely-losing months.</p>
+ <p><b>What it actually took (the recipe, honestly priced):</b> a mathematically <b>provable</b> mispricing — an equation, not a feeling about a chart (this is the scarce ingredient; everything else is worthless without it) · PhD-level probability skills, applied to markets <b>before</b> anyone else had computerized them · bet sizing that guarantees survival (the <span class="term" data-def="kelly">Kelly criterion</span> — the edge is nothing if a losing streak kills you first) · <b>thousands of small independent bets</b>, because an edge is invisible in any single one · and a verification habit: prove it offline, test it small, only then scale. That same habit is how he spotted the Madoff fraud in 1991 — thirteen years before regulators — just from returns too smooth to be real.</p>
+ <p><b>Is being Thorp possible today?</b> The honest answer comes from Thorp himself. His edges existed because he brought math to games and markets that didn't have it yet. Those doors are mostly closed: card counting got countered, and his market methods got crowded by entire industries of professionals running his own playbook with more computers and cheaper costs. The <b>method</b> — find a provable mispricing, size it to survive, harvest it in volume — is fully learnable. The <b>opportunities</b> mostly are not, for one person, because trying it today means competing head-on against the firms his book created.</p>
+ </div>
+ <p class="keep"><b>Why it's up here:</b> a real, checkable winning record — the closest thing to the filter's gold standard on this shelf. And the punchline the whole shelf turns on: <b>the verified winner tells you not to play.</b> Thorp's standing advice for nearly everyone is a boring index fund — because he, better than anyone, can calculate what a real edge requires and can see that almost nobody has one. The bottom-shelf authors got rich selling the secret and told you to chase it. Thorp got rich using one and tells you it's probably not there for you. When the incentives and the verified record point the same way, that's as close to truth as markets offer.</p>
+ <p class="catch"><b>The honest sourcing note:</b> his fund's exact month-by-month numbers come from Thorp's own accounts and period records — widely accepted, never credibly disputed, but not a SPIVA-style independent scorecard. So this badge means "verified record, audit-and-self sourced," a notch below the pure scorekeeper tier, and we say so.</p>
+ </div>
 
-  <div class="book">
-    <span class="badge rock">Peer-reviewed science</span>
-    <div class="t">Thinking, Fast and Slow (2011)</div>
-    <div class="a">Daniel Kahneman — psychologist, Nobel Prize in economics</div>
-    <div class="d"><p>Not a money book — the science <b>under</b> every money book. It maps the mental shortcuts that make people overconfident, loss-scared, and pattern-hungry — the exact wiring that markets harvest. Kahneman's blunt verdict on stock-picking: the evidence says skill in it is mostly an <b>illusion</b>.</p></div>
-    <p class="keep"><b>Why it's up here:</b> the underlying research is peer-reviewed and replicated (some individual studies later wobbled, and the field said so openly — which is what honest science looks like). It explains <b>why</b> the loss data in our field guide (Barber-Odean, ESMA, BIS<sup><a href="plainsight-citations-1.html#c6" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[6]</a></sup>) keeps coming out the same.</p>
-  </div>
+ <div class="book">
+ <span class="badge rock">Peer-reviewed science</span>
+ <div class="t">Thinking, Fast and Slow (2011)</div>
+ <div class="a">Daniel Kahneman — psychologist, Nobel Prize in economics</div>
+ <div class="d"><p>Not a money book — the science <b>under</b> every money book. It maps the mental shortcuts that make people overconfident, loss-scared, and pattern-hungry — the exact wiring that markets harvest. Kahneman's blunt verdict on stock-picking: the evidence says skill in it is mostly an <b>illusion</b>.</p></div>
+ <p class="keep"><b>Why it's up here:</b> the underlying research is peer-reviewed and replicated (some individual studies later wobbled, and the field said so openly — which is what honest science looks like). It explains <b>why</b> the loss data in our field guide (Barber-Odean, ESMA, BIS<sup><a href="plainsight-citations-1.html#c6" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[6]</a></sup>) keeps coming out the same.</p>
+ </div>
 
-  <div class="book">
-    <span class="badge rock">Built on real data — with a named limit</span>
-    <div class="t">The Millionaire Next Door (1996)</div>
-    <div class="a">Thomas Stanley &amp; William Danko — researchers who surveyed actual millionaires</div>
-    <div class="d"><p>Actual survey research, not one man's story: most American millionaires turned out to be quiet savers — used cars, modest houses, steady businesses — not flashy earners. The famous formula: wealth comes from the gap between what you earn and what you <b>keep</b>.</p></div>
-    <p class="keep"><b>Why it's up here:</b> it's measured data across thousands of people, and its main lesson (spending less than you earn compounds) is arithmetic, not a claim.</p>
-    <p class="catch"><b>The honest catch:</b> it studied <b>only millionaires</b> — no comparison group of people who lived the same way and didn't get rich. That's a soft version of the very survivorship problem this shelf sorts by. The frugality lesson survives; the "do these habits and you'll be rich" reading doesn't follow from the data.</p>
-  </div>
+ <div class="book">
+ <span class="badge rock">Built on real data — with a named limit</span>
+ <div class="t">The Millionaire Next Door (1996)</div>
+ <div class="a">Thomas Stanley &amp; William Danko — researchers who surveyed actual millionaires</div>
+ <div class="d"><p>Actual survey research, not one man's story: most American millionaires turned out to be quiet savers — used cars, modest houses, steady businesses — not flashy earners. The famous formula: wealth comes from the gap between what you earn and what you <b>keep</b>.</p></div>
+ <p class="keep"><b>Why it's up here:</b> it's measured data across thousands of people, and its main lesson (spending less than you earn compounds) is arithmetic, not a claim.</p>
+ <p class="catch"><b>The honest catch:</b> it studied <b>only millionaires</b> — no comparison group of people who lived the same way and didn't get rich. That's a soft version of the very survivorship problem this shelf sorts by. The frugality lesson survives; the "do these habits and you'll be rich" reading doesn't follow from the data.</p>
+ </div>
 
-  <div class="book">
-    <span class="badge rock">Honest synthesis of the verified record</span>
-    <div class="t">The Psychology of Money (2020)</div>
-    <div class="a">Morgan Housel — financial writer</div>
-    <div class="d"><p>The modern best-seller that mostly <b>agrees with the scorekeepers</b>: luck and risk are huge and usually invisible, staying wealthy is a different skill than getting wealthy, and "enough" is the rarest financial skill. It openly says outcomes are driven by behavior and luck more than intelligence.</p></div>
-    <p class="keep"><b>Why it's up here:</b> its claims line up with the measured evidence rather than fighting it, and it admits uncertainty instead of selling a secret. That's the field guide's own standard.</p>
-    <p class="catch"><b>The honest catch:</b> it's stories and essays, not a study — up here because it summarizes verified findings honestly, not because it produced new ones.</p>
-  </div>
+ <div class="book">
+ <span class="badge rock">Honest synthesis of the verified record</span>
+ <div class="t">The Psychology of Money (2020)</div>
+ <div class="a">Morgan Housel — financial writer</div>
+ <div class="d"><p>The modern best-seller that mostly <b>agrees with the scorekeepers</b>: luck and risk are huge and usually invisible, staying wealthy is a different skill than getting wealthy, and "enough" is the rarest financial skill. It openly says outcomes are driven by behavior and luck more than intelligence.</p></div>
+ <p class="keep"><b>Why it's up here:</b> its claims line up with the measured evidence rather than fighting it, and it admits uncertainty instead of selling a secret. That's the field guide's own standard.</p>
+ <p class="catch"><b>The honest catch:</b> it's stories and essays, not a study — up here because it summarizes verified findings honestly, not because it produced new ones.</p>
+ </div>
 
-  <h2>🟡 Middle shelf — useful habits, thin proof</h2>
-  <p class="shelfnote">Books whose <b>habits</b> genuinely help many people, but whose big promises were never checked by a scorekeeper. Take the habit, leave the promise.</p>
+ <h2>🟡 Middle shelf — useful habits, thin proof</h2>
+ <p class="shelfnote">Books whose <b>habits</b> genuinely help many people, but whose big promises were never checked by a scorekeeper. Take the habit, leave the promise.</p>
 
-  <div class="book warnb">
-    <span class="badge soft">Old parables — sound arithmetic, no evidence needed or given</span>
-    <div class="t">The Richest Man in Babylon (1926)</div>
-    <div class="a">George Clason — wrote it as ancient-Babylon parables</div>
-    <div class="d"><p>The grandfather of them all: pay yourself first (save at least a tenth of everything you earn), make your savings work, guard against loss, and beware anyone selling easy riches. It's fiction and says so — made-up stories carrying real arithmetic.</p></div>
-    <p class="keep"><b>What survives checking:</b> "save a share of every paycheck before spending" is math, not a claim — it can't be wrong, only ignored. Ironically its own warning about get-rich-quick sellers describes half the bottom shelf.</p>
-    <p class="catch"><b>The honest catch:</b> saving a tenth builds security, not riches. The book promises more than the arithmetic delivers.</p>
-  </div>
+ <div class="book warnb">
+ <span class="badge soft">Old parables — sound arithmetic, no evidence needed or given</span>
+ <div class="t">The Richest Man in Babylon (1926)</div>
+ <div class="a">George Clason — wrote it as ancient-Babylon parables</div>
+ <div class="d"><p>The grandfather of them all: pay yourself first (save at least a tenth of everything you earn), make your savings work, guard against loss, and beware anyone selling easy riches. It's fiction and says so — made-up stories carrying real arithmetic.</p></div>
+ <p class="keep"><b>What survives checking:</b> "save a share of every paycheck before spending" is math, not a claim — it can't be wrong, only ignored. Ironically its own warning about get-rich-quick sellers describes half the bottom shelf.</p>
+ <p class="catch"><b>The honest catch:</b> saving a tenth builds security, not riches. The book promises more than the arithmetic delivers.</p>
+ </div>
 
-  <div class="book warnb">
-    <span class="badge soft">Behavior-first — partly supported, partly preference</span>
-    <div class="t">The Total Money Makeover (2003)</div>
-    <div class="a">Dave Ramsey — radio host; the "debt snowball"</div>
-    <div class="d"><p>A step plan for getting out of debt: small emergency fund first, then pay debts <b>smallest-first</b> (the "snowball") for the motivation of quick wins, even though largest-interest-first is mathematically cheaper.</p></div>
-    <p class="keep"><b>What survives checking:</b> research on debt payoff has found people are more likely to <b>stick with</b> smallest-first — the behavior beats the math because a plan you finish beats a cheaper plan you quit. That's a real, studied effect.</p>
-    <p class="catch"><b>The honest catch:</b> his investing-side claims (like expecting ~12% yearly stock returns) run well above what the long-term record supports, and the one-size-for-everyone rules are opinion, not evidence.</p>
-  </div>
+ <div class="book warnb">
+ <span class="badge soft">Behavior-first — partly supported, partly preference</span>
+ <div class="t">The Total Money Makeover (2003)</div>
+ <div class="a">Dave Ramsey — radio host; the "debt snowball"</div>
+ <div class="d"><p>A step plan for getting out of debt: small emergency fund first, then pay debts <b>smallest-first</b> (the "snowball") for the motivation of quick wins, even though largest-interest-first is mathematically cheaper.</p></div>
+ <p class="keep"><b>What survives checking:</b> research on debt payoff has found people are more likely to <b>stick with</b> smallest-first — the behavior beats the math because a plan you finish beats a cheaper plan you quit. That's a real, studied effect.</p>
+ <p class="catch"><b>The honest catch:</b> his investing-side claims (like expecting ~12% yearly stock returns) run well above what the long-term record supports, and the one-size-for-everyone rules are opinion, not evidence.</p>
+ </div>
 
-  <div class="book warnb">
-    <span class="badge soft">Honest interviews — but survivors by design</span>
-    <div class="t">Market Wizards (1989)</div>
-    <div class="a">Jack Schwager — interviewed famous traders</div>
-    <div class="d"><p>Interviews with traders who won big. Read carefully, it accidentally proves the filter: <b>no two winners won the same way</b> (so there's no copyable secret), and the one thing they all share is obsession with <b>not losing</b> — position sizing, cutting losses, surviving.</p></div>
-    <p class="keep"><b>What survives checking:</b> the risk-control lesson matches every scorekeeper study we have — the losers in the data (Barber-Odean's day-traders, ESMA's leveraged accounts) died of oversized bets, not bad ideas.</p>
-    <p class="catch"><b>The honest catch:</b> it's a book of survivors <b>by construction</b> — nobody interviewed the thousands who traded the same styles and went broke. Inspiration from it is exactly how the herd gets recruited.</p>
-  </div>
+ <div class="book warnb">
+ <span class="badge soft">Honest interviews — but survivors by design</span>
+ <div class="t">Market Wizards (1989)</div>
+ <div class="a">Jack Schwager — interviewed famous traders</div>
+ <div class="d"><p>Interviews with traders who won big. Read carefully, it accidentally proves the filter: <b>no two winners won the same way</b> (so there's no copyable secret), and the one thing they all share is obsession with <b>not losing</b> — position sizing, cutting losses, surviving.</p></div>
+ <p class="keep"><b>What survives checking:</b> the risk-control lesson matches every scorekeeper study we have — the losers in the data (Barber-Odean's day-traders, ESMA's leveraged accounts) died of oversized bets, not bad ideas.</p>
+ <p class="catch"><b>The honest catch:</b> it's a book of survivors <b>by construction</b> — nobody interviewed the thousands who traded the same styles and went broke. Inspiration from it is exactly how the herd gets recruited.</p>
+ </div>
 
-  <div class="book warnb">
-    <span class="badge soft">Sound framework, borrowed from a game with fixed odds</span>
-    <div class="t">Thinking in Bets (2018)</div>
-    <div class="a">Annie Duke — professional poker champion turned decision scientist</div>
-    <div class="d"><p>The core idea: judge decisions by the <b>quality of the reasoning</b>, not the result — a good decision can lose and a bad one can win, because luck sits between choice and outcome. (This is the exact principle Xplainsight's own grading is built on.)</p></div>
-    <p class="keep"><b>What survives checking:</b> the decision-vs-outcome split is standard, well-supported decision science.</p>
-    <p class="catch"><b>The honest catch:</b> poker has fixed, knowable odds. Markets don't — the odds themselves shift and react to the players. The framework transfers; the confidence shouldn't.</p>
-  </div>
+ <div class="book warnb">
+ <span class="badge soft">Sound framework, borrowed from a game with fixed odds</span>
+ <div class="t">Thinking in Bets (2018)</div>
+ <div class="a">Annie Duke — professional poker champion turned decision scientist</div>
+ <div class="d"><p>The core idea: judge decisions by the <b>quality of the reasoning</b>, not the result — a good decision can lose and a bad one can win, because luck sits between choice and outcome. (This is the exact principle Xplainsight's own grading is built on.)</p></div>
+ <p class="keep"><b>What survives checking:</b> the decision-vs-outcome split is standard, well-supported decision science.</p>
+ <p class="catch"><b>The honest catch:</b> poker has fixed, knowable odds. Markets don't — the odds themselves shift and react to the players. The framework transfers; the confidence shouldn't.</p>
+ </div>
 
-  <h2>🔴 Bottom shelf — survivor stories with cracked foundations</h2>
-  <p class="shelfnote">The best-selling books in history on getting rich. Also the ones where checking the author's own story found real cracks. We show what checking found — <b>you</b> decide what that's worth. Both remain useful for one thing: studying how a confident story sells.</p>
+ <h2>🔴 Bottom shelf — survivor stories with cracked foundations</h2>
+ <p class="shelfnote">The best-selling books in history on getting rich. Also the ones where checking the author's own story found real cracks. We show what checking found — <b>you</b> decide what that's worth. Both remain useful for one thing: studying how a confident story sells.</p>
 
-  <div class="book crackb">
-    <span class="badge crack">Foundation checked — key claims unsupported</span>
-    <div class="t">Think and Grow Rich (1937)</div>
-    <div class="a">Napoleon Hill — invented much of the self-help genre; tens of millions sold</div>
-    <div class="d"><p><b>The claim:</b> Hill said the steel tycoon Andrew Carnegie personally tasked him with interviewing America's greatest men (Ford, Edison, Bell) to distill the secret of riches — and that burning desire plus persistent belief attracts wealth.</p>
-    <p><b>What checking found:</b> Carnegie's leading biographer, David Nasaw, reports finding <b>no evidence Hill and Carnegie ever met</b> — and Hill only began telling the story after Carnegie died. Hill's documented history includes fraud warrants, fleeing states, and a federal false-advertising charge. The book's foundation story appears to be invented, stated with the confidence that keeps anyone from asking.</p></div>
-    <p class="keep"><b>What survives anyway:</b> that clear goals and persistence help people act — a fair motivational point that needs no fabricated Carnegie to be true.</p>
-    <p class="catch"><b>The lesson for a market reader:</b> this is the founding document of "confidence sells better than evidence." The needle would grade its core promise UNSUPPORTED CONCLUSION — desire does not measurably attract money, and the man who said it did got rich <b>selling the saying</b>, not applying it.</p>
-  </div>
+ <div class="book crackb">
+ <span class="badge crack">Foundation checked — key claims unsupported</span>
+ <div class="t">Think and Grow Rich (1937)</div>
+ <div class="a">Napoleon Hill — invented much of the self-help genre; tens of millions sold</div>
+ <div class="d"><p><b>The claim:</b> Hill said the steel tycoon Andrew Carnegie personally tasked him with interviewing America's greatest men (Ford, Edison, Bell) to distill the secret of riches — and that burning desire plus persistent belief attracts wealth.</p>
+ <p><b>What checking found:</b> Carnegie's leading biographer, David Nasaw, reports finding <b>no evidence Hill and Carnegie ever met</b> — and Hill only began telling the story after Carnegie died. Hill's documented history includes fraud warrants, fleeing states, and a federal false-advertising charge. The book's foundation story appears to be invented, stated with the confidence that keeps anyone from asking.</p></div>
+ <p class="keep"><b>What survives anyway:</b> that clear goals and persistence help people act — a fair motivational point that needs no fabricated Carnegie to be true.</p>
+ <p class="catch"><b>The lesson for a market reader:</b> this is the founding document of "confidence sells better than evidence." The needle would grade its core promise UNSUPPORTED CONCLUSION — desire does not measurably attract money, and the man who said it did got rich <b>selling the saying</b>, not applying it.</p>
+ </div>
 
-  <div class="book crackb">
-    <span class="badge crack">Foundation checked — teacher fictional, wealth from selling the teaching</span>
-    <div class="t">Rich Dad Poor Dad (1997)</div>
-    <div class="a">Robert Kiyosaki — best-selling personal-finance book of its era</div>
-    <div class="d"><p><b>The claim:</b> a rich mentor ("Rich Dad") taught him the secrets schools hide — buy assets not liabilities, make money work for you, use "good debt."</p>
-    <p><b>What checking found:</b> Kiyosaki has acknowledged "Rich Dad" was <b>not a single real person</b> but a composite — after years of presenting him as real. Reporting and public records show his fortune came mostly from <b>book sales and seminars</b>, not the investing he teaches; his brand's seminar funnels upsold attendees into courses costing tens of thousands and drew consumer-watchdog investigations; and in 2012 his company Rich Global LLC went bankrupt after a roughly $24 million court judgment (public record).</p></div>
-    <p class="keep"><b>What survives anyway:</b> "know the difference between things that feed you money and things that eat it" is a genuinely useful frame — it's basic accounting wearing a story.</p>
-    <p class="catch"><b>The lesson for a market reader:</b> this is the modern template of the trade the field guide keeps finding: the reliable money is in <b>selling the map</b>, not walking the territory. If someone truly held the secret to riches, ask why they'd sell it to you for $20 — or $40,000.</p>
-  </div>
+ <div class="book crackb">
+ <span class="badge crack">Foundation checked — teacher fictional, wealth from selling the teaching</span>
+ <div class="t">Rich Dad Poor Dad (1997)</div>
+ <div class="a">Robert Kiyosaki — best-selling personal-finance book of its era</div>
+ <div class="d"><p><b>The claim:</b> a rich mentor ("Rich Dad") taught him the secrets schools hide — buy assets not liabilities, make money work for you, use "good debt."</p>
+ <p><b>What checking found:</b> Kiyosaki has acknowledged "Rich Dad" was <b>not a single real person</b> but a composite — after years of presenting him as real. Reporting and public records show his fortune came mostly from <b>book sales and seminars</b>, not the investing he teaches; his brand's seminar funnels upsold attendees into courses costing tens of thousands and drew consumer-watchdog investigations; and in 2012 his company Rich Global LLC went bankrupt after a roughly $24 million court judgment (public record).</p></div>
+ <p class="keep"><b>What survives anyway:</b> "know the difference between things that feed you money and things that eat it" is a genuinely useful frame — it's basic accounting wearing a story.</p>
+ <p class="catch"><b>The lesson for a market reader:</b> this is the modern template of the trade the field guide keeps finding: the reliable money is in <b>selling the map</b>, not walking the territory. If someone truly held the secret to riches, ask why they'd sell it to you for $20 — or $40,000.</p>
+ </div>
 
-  <h2>The pattern — one lesson, every market, and life</h2>
-  <div class="card">
-    <p>Line the whole shelf up and one pattern jumps out, and it holds in stocks, crypto, real estate, business, and plain living:</p>
-    <p><b>The verified winners tell you the move is boring.</b> Save first (Clason — the arithmetic part). Own the whole market cheaply and sit still (Bogle, confirmed by SPIVA and Buffett's bet). Spend less than you earn (Stanley &amp; Danko's data). Control losses before chasing wins (every Schwager interview). Judge your reasoning, not your luck (Duke, Kahneman). Even the one verified active-trading winner on the shelf (Thorp) says: don't try this.</p>
-    <p><b>The unverified sellers tell you there's a secret.</b> And the checkable fact about them is the same every time: their wealth came from <b>selling the secret</b> — books, seminars, courses — not from using it. That's not an accusation; for Hill and Kiyosaki it's the documented record.</p>
-    <p>This is the same finding as our crypto field guide, arrived at from the opposite direction: there is <b>no scorekeeper-verified "how I got rich trading" guide</b> — because that group barely exists, and the credible winners point away from the game. The bookstore and the blockchain agree.</p>
-  </div>
+ <h2>The pattern — one lesson, every market, and life</h2>
+ <div class="card">
+ <p>Line the whole shelf up and one pattern jumps out, and it holds in stocks, crypto, real estate, business, and plain living:</p>
+ <p><b>The verified winners tell you the move is boring.</b> Save first (Clason — the arithmetic part). Own the whole market cheaply and sit still (Bogle, confirmed by SPIVA and Buffett's bet). Spend less than you earn (Stanley &amp; Danko's data). Control losses before chasing wins (every Schwager interview). Judge your reasoning, not your luck (Duke, Kahneman). Even the one verified active-trading winner on the shelf (Thorp) says: don't try this.</p>
+ <p><b>The unverified sellers tell you there's a secret.</b> And the checkable fact about them is the same every time: their wealth came from <b>selling the secret</b> — books, seminars, courses — not from using it. That's not an accusation; for Hill and Kiyosaki it's the documented record.</p>
+ <p>This is the same finding as our crypto field guide, arrived at from the opposite direction: there is <b>no scorekeeper-verified "how I got rich trading" guide</b> — because that group barely exists, and the credible winners point away from the game. The bookstore and the blockchain agree.</p>
+ </div>
 
-  <div class="filterbox">
-    <b>How to test any wealth book yourself (three questions, no expert needed):</b><br>
-    1. <b>Who kept score?</b> Did anyone independent measure the results across everyone who tried — or is the only evidence the author's own story?<br>
-    2. <b>Where did the author's money actually come from?</b> Using the method, or selling it? (Often checkable in ten minutes.)<br>
-    3. <b>Where are the losers?</b> If the book shows only people the method worked for, you're reading survivorship bias — the losers ran the same play and can't tell you.
-  </div>
+ <div class="filterbox">
+ <b>How to test any wealth book yourself (three questions, no expert needed):</b><br>
+ 1. <b>Who kept score?</b> Did anyone independent measure the results across everyone who tried — or is the only evidence the author's own story?<br>
+ 2. <b>Where did the author's money actually come from?</b> Using the method, or selling it? (Often checkable in ten minutes.)<br>
+ 3. <b>Where are the losers?</b> If the book shows only people the method worked for, you're reading survivorship bias — the losers ran the same play and can't tell you.
+ </div>
 
-  <div class="filterbox">
-    <b>Read them yourself — all of them, both shelves.</b><br>
-    This page is a map, not a substitute. The strongest thing you can do is go to the primary sources: read the top shelf AND the bottom shelf — buy them, borrow them from a library (all of these are in most libraries), or find the several that are free online — and <b>form your own opinion</b> with the filter in hand. Reading Hill and Kiyosaki yourself, knowing what checking found, teaches you to recognize a confident story mid-sentence — a skill no summary can give you. Reading Graham, Bogle, and Thorp yourself shows you what verified reasoning sounds like. Nobody's verdict on this page, ours included, should replace your own. That's the whole project in one sentence.
-  </div>
+ <div class="filterbox">
+ <b>Read them yourself — all of them, both shelves.</b><br>
+ This page is a map, not a substitute. The strongest thing you can do is go to the primary sources: read the top shelf AND the bottom shelf — buy them, borrow them from a library (all of these are in most libraries), or find the several that are free online — and <b>form your own opinion</b> with the filter in hand. Reading Hill and Kiyosaki yourself, knowing what checking found, teaches you to recognize a confident story mid-sentence — a skill no summary can give you. Reading Graham, Bogle, and Thorp yourself shows you what verified reasoning sounds like. Nobody's verdict on this page, ours included, should replace your own. That's the whole project in one sentence.
+ </div>
 
-  <p class="sub" style="margin-top:14px">Related pages already on your shelf: the <b>buy-and-hold deep dive</b> (the full hundred-year argument, both sides) and the <b>field guide evidence base</b> (the loss data across day-trading, CFDs, and crypto perps). This page is the bridge between them: the same survivorship filter, pointed at the bookstore.</p>
+ <p class="sub" style="margin-top:14px">Related pages already on your shelf: the <b>buy-and-hold deep dive</b> (the full hundred-year argument, both sides) and the <b>field guide evidence base</b> (the loss data across day-trading, CFDs, and crypto perps). This page is the bridge between them: the same survivorship filter, pointed at the bookstore.</p>
 
-  <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror">
-    <b>The mirror, as always:</b> nothing here says buy this book, follow that author, or make any move. It shows how each famous claim held up when someone actually checked — winning ideas and cracked ones both, with their receipts. Some verified facts sit next to labeled opinions; the badges tell you which is which. What you do with any of it is yours. That's the whole point.
-  </div></details>
+ <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650"> The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror">
+ <b>The mirror, as always:</b> nothing here says buy this book, follow that author, or make any move. It shows how each famous claim held up when someone actually checked — winning ideas and cracked ones both, with their receipts. Some verified facts sit next to labeled opinions; the badges tell you which is which. What you do with any of it is yours. That's the whole point.
+ </div></details>
 </div>
 
 <div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
@@ -270,8 +270,8 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(
 $("deftip").querySelector(".x").onclick=hideDef;
 </script>
 
-<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">← Who called it</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: What we've learned →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)">🗺 All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">The behavior room</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test 🧪</a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test 🧪</a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The whale board 🧪</a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company 🧪</a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Who called it</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">What we've learned</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">The research desk 🧪</a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-needle-widget-2.html" style="color:var(--accent);text-decoration:none">The needle widget</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
-<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:"  ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
+<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">← Predictions, graded</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: Our findings →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)"> All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">How your mind works against you</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test </a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test </a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The risk board </a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company </a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Predictions, graded</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">Our findings</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">Practice reading the market </a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
+<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:" ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
 <script>(function(){var sel=".keyhole,.warnbox,.filterbox,.counter,.rulebox,.lens";document.querySelectorAll(sel).forEach(function(el){if(el.closest("details")||el.querySelector("details"))return;var b=el.querySelector("b");var label=b?b.textContent.replace(/[\s:—–-]+$/,""):el.textContent.trim().slice(0,60)+"…";if(el.textContent.trim().length<160)return;var d=document.createElement("details");d.className="psfold";var s=document.createElement("summary");s.textContent=label;d.appendChild(s);var inner=document.createElement("div");inner.innerHTML=el.innerHTML;d.appendChild(inner);el.innerHTML="";el.appendChild(d);});})();</script>
 <style>details.secfold{border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px;background:rgba(20,26,34,.5)}details.secfold[open]{border-color:rgba(127,176,232,.4)}details.secfold>summary{cursor:pointer;list-style:none;font-weight:660;font-size:.98rem;padding:12px 0;color:var(--ink)}details.secfold>summary::-webkit-details-marker{display:none}details.secfold>summary:after{content:" ⌄";color:#8A9099}details.secfold[open]>summary:after{content:""}</style>
 <script>(function(){

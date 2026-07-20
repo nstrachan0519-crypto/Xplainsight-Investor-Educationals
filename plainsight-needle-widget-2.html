@@ -5,110 +5,115 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Xplainsight — the needle widget (v0)</title>
 <!--
-  XPLAINSIGHT — NEEDLE WIDGET v0 (S17). Dream-list #5, hosting knot CUT:
-  the widget is a SELF-CONTAINED COPY-PASTE SNIPPET — no hosted script, no
-  CDN, no server, no dependency. Distribution IS the text. Anyone can drop
-  it into any page to label a claim with an evidence grade; anyone can read
-  every line of what they pasted (it's ~30 lines); nobody (including us)
-  controls it after copying — forkable to the letter of the vow.
-  v0 scope, honest: the AUTHOR of the page assigns the grade (it's a labeling
-  standard, like a nutrition panel the cook fills in — the reader's protection
-  is that the label states its scale and its author). Machine-assisted grading
-  would need a server; not this, not now.
+ XPLAINSIGHT — NEEDLE WIDGET v0 (S17). Dream-list #5, hosting knot CUT:
+ the widget is a SELF-CONTAINED COPY-PASTE SNIPPET — no hosted script, no
+ CDN, no server, no dependency. Distribution IS the text. Anyone can drop
+ it into any page to label a claim with an evidence grade; anyone can read
+ every line of what they pasted (it's ~30 lines); nobody (including us)
+ controls it after copying — forkable to the letter of the vow.
+ v0 scope, honest: the AUTHOR of the page assigns the grade (it's a labeling
+ standard, like a nutrition panel the cook fills in — the reader's protection
+ is that the label states its scale and its author). Machine-assisted grading
+ would need a server; not this, not now.
 -->
 <style>
-  :root{--bg:#111419;--panel:#141A22;--line:#232A33;--ink:#E8EAED;--muted:#99A1AB;
-    --accent:#7FB0E8;--define:#A78BFA;}
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif;line-height:1.6}
-  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
-  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px}
-  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
-  .sub b,.card b{color:var(--ink)}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
-  .card p{font-size:.88rem;margin:8px 0}
-  textarea{width:100%;height:230px;background:#0B0E12;color:#9fb3c8;border:1px solid var(--line);
-    border-radius:9px;padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:.72rem}
-  button.copy{width:100%;background:var(--accent);color:#06121f;border:0;border-radius:9px;padding:12px;font-weight:680;cursor:pointer;margin-top:6px}
-  .wrap>*{animation:fadeUp .45s ease both}
-  .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+ :root{--bg:#111419;--panel:#141A22;--line:#232A33;--ink:#E8EAED;--muted:#99A1AB;
+ --accent:#7FB0E8;--define:#A78BFA;}
+ *{box-sizing:border-box}
+ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif;line-height:1.6}
+ .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+ h1{font-size:1.3rem;font-weight:680;margin:0 0 6px}
+ .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+ .sub b,.card b{color:var(--ink)}
+ .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+ .card p{font-size:.88rem;margin:8px 0}
+ textarea{width:100%;height:230px;background:#0B0E12;color:#9fb3c8;border:1px solid var(--line);
+ border-radius:9px;padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:.72rem}
+ button.copy{width:100%;background:var(--accent);color:#06121f;border:0;border-radius:9px;padding:12px;font-weight:680;cursor:pointer;margin-top:6px}
+ .wrap>*{animation:fadeUp .45s ease both}
+ .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
+ @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+ @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
 
-  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
-  /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
-  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
-  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
-  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
-  .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
-  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
-  details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
-    background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
-    box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
-  details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
-    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
-  details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
+ /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
+ .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
+ .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+ .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
+ .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
+ .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
+ details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
+ background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
+ box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
+ details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
+ transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
+ details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
 </style>
-  <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
+ <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
 <body>
+<div style="max-width:660px;margin:0 auto;padding:14px 16px 0">
+ <div style="background:rgba(201,162,39,.08);border:1px solid rgba(201,162,39,.45);border-left:4px solid #C9A227;border-radius:11px;padding:12px 14px;font-size:.86rem">
+ <b style="color:#C9A227">Temporarily off the shelf.</b> This tool is being reworked and isn't part of the current app while we make it clearer and more complete. Nothing here is broken or gone — it's just not finished enough to feature yet. It'll return in a later build. <a href="index.html" style="color:var(--accent)">← Back to the home page</a>
+ </div>
+</div>
 <div style="position:sticky;top:0;z-index:40;background:rgba(14,17,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)"><div style="max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:8px"><a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#7FB0E8" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="#5FBF8F" stroke-width="2.2" stroke-linecap="round"/></svg>Xplainsight</a><span style="margin-left:auto;font-size:.7rem;color:var(--faint)">measuring history, not selling predictions</span></div></div>
 
 <div class="wrap">
-  <h1>The needle widget — a nutrition label for market claims</h1>
-  <p class="sub">Food gets a nutrition panel; market claims get nothing. This is the missing label: a tiny badge any writer can attach to any claim, grading its evidence on the needle's five-step scale. <b>It's not a hosted service — it's ~30 lines you copy and own.</b> No server, no tracking, nothing to trust: read what you paste.</p>
+ <h1>The needle widget — a nutrition label for market claims</h1>
+ <p class="sub">Food gets a nutrition panel; market claims get nothing. This is the missing label: a tiny badge any writer can attach to any claim, grading its evidence on the needle's five-step scale. <b>It's not a hosted service — it's ~30 lines you copy and own.</b> No server, no tracking, nothing to trust: read what you paste.</p>
 
-  <div class="card">
-    <p><b>Live preview</b> — tap each badge:</p>
-    <p>The S&P 500 fell about 18% in 2022. <span class="ps-needle" data-grade="4" data-why="Public index data; checkable in seconds from any source."></span></p>
-    <p>High CAPE means poor returns are likely over the next decade. <span class="ps-needle" data-grade="3" data-why="Supported by long-run studies, with real scatter and honest dissent about the mechanism."></span></p>
-    <p>This coin will 100x by December. <span class="ps-needle" data-grade="0" data-why="A dated price prediction with no stated mechanism — the needle's hardest grade."></span></p>
-  </div>
+ <div class="card">
+ <p><b>Live preview</b> — tap each badge:</p>
+ <p>The S&P 500 fell about 18% in 2022. <span class="ps-needle" data-grade="4" data-why="Public index data; checkable in seconds from any source."></span></p>
+ <p>High CAPE means poor returns are likely over the next decade. <span class="ps-needle" data-grade="3" data-why="Supported by long-run studies, with real scatter and honest dissent about the mechanism."></span></p>
+ <p>This coin will 100x by December. <span class="ps-needle" data-grade="0" data-why="A dated price prediction with no stated mechanism — the needle's hardest grade."></span></p>
+ </div>
 
-  <div class="card">
-    <p><b>The snippet</b> — paste anywhere in a page, then mark claims with <span style="font-family:monospace;font-size:.78rem">&lt;span class="ps-needle" data-grade="0–4" data-why="..."&gt;&lt;/span&gt;</span>. Grades: 0 UNSUPPORTED · 1 STRETCHED · 2 UNVERIFIED · 3 SUPPORTED · 4 FACT-BACKED. The label names its own author (the page you're reading), states its scale on tap, and works with zero network access:</p>
-    <textarea id="snip" readonly><script>
+ <div class="card">
+ <p><b>The snippet</b> — paste anywhere in a page, then mark claims with <span style="font-family:monospace;font-size:.78rem">&lt;span class="ps-needle" data-grade="0–4" data-why="..."&gt;&lt;/span&gt;</span>. Grades: 0 UNSUPPORTED · 1 STRETCHED · 2 UNVERIFIED · 3 SUPPORTED · 4 FACT-BACKED. The label names its own author (the page you're reading), states its scale on tap, and works with zero network access:</p>
+ <textarea id="snip" readonly><script>
 /* Xplainsight needle badge v0 — public domain, self-contained, no network.
-   Grades are assigned by THIS PAGE'S AUTHOR on a stated 5-step scale.
-   Usage: <span class="ps-needle" data-grade="0-4" data-why="reason"></span> */
+ Grades are assigned by THIS PAGE'S AUTHOR on a stated 5-step scale.
+ Usage: <span class="ps-needle" data-grade="0-4" data-why="reason"></span> */
 (function(){
 var G=["UNSUPPORTED","STRETCHED","UNVERIFIED","SUPPORTED","FACT-BACKED"],
-    C=["#E0906C","#E0B06C","#C9C36C","#9FC96C","#5FBF8F"];
+ C=["#E0906C","#E0B06C","#C9C36C","#9FC96C","#5FBF8F"];
 document.querySelectorAll(".ps-needle").forEach(function(el){
-  var g=Math.max(0,Math.min(4,+el.dataset.grade||0));
-  el.style.cssText="display:inline-block;font:700 10px/1.6 system-ui;padding:1px 8px;"+
-    "border-radius:999px;cursor:pointer;vertical-align:middle;color:#111;background:"+C[g];
-  el.textContent="⚖ "+G[g];
-  el.title="Evidence grade (0-4 scale, assigned by this page's author): "+G[g]+
-    (el.dataset.why?" — "+el.dataset.why:"")+
-    " | Scale: 0 unsupported conclusion, 1 stretched, 2 unverified, 3 supported, 4 fact-backed. Grades label evidence, never truth.";
-  el.onclick=function(){alert(this.title)};
+ var g=Math.max(0,Math.min(4,+el.dataset.grade||0));
+ el.style.cssText="display:inline-block;font:700 10px/1.6 system-ui;padding:1px 8px;"+
+ "border-radius:999px;cursor:pointer;vertical-align:middle;color:#111;background:"+C[g];
+ el.textContent=" "+G[g];
+ el.title="Evidence grade (0-4 scale, assigned by this page's author): "+G[g]+
+ (el.dataset.why?" — "+el.dataset.why:"")+
+ " | Scale: 0 unsupported conclusion, 1 stretched, 2 unverified, 3 supported, 4 fact-backed. Grades label evidence, never truth.";
+ el.onclick=function(){alert(this.title)};
 });
 })();
 </script></textarea>
-    <button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('snip').value).then(()=>this.textContent='copied ✓')">Copy the snippet</button>
-  </div>
+ <button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('snip').value).then(()=>this.textContent='copied ✓')">Copy the snippet</button>
+ </div>
 
-  <div class="card"><p><b>v0 honesty:</b> the page's <b>author</b> assigns each grade — this is a labeling standard, not a lie detector. Its protections are transparency (the scale and authorship are stated on every tap) and forkability (the grader's code is the 30 lines above — nobody, including us, controls it after you copy it). The dream endpoint — readers expecting a receipts-label on market claims the way they expect one on food — starts with the label existing. It now does.</p></div>
+ <div class="card"><p><b>v0 honesty:</b> the page's <b>author</b> assigns each grade — this is a labeling standard, not a lie detector. Its protections are transparency (the scale and authorship are stated on every tap) and forkability (the grader's code is the 30 lines above — nobody, including us, controls it after you copy it). The dream endpoint — readers expecting a receipts-label on market claims the way they expect one on food — starts with the label existing. It now does.</p></div>
 </div>
 <script>
 /* run the same snippet on this demo page */
 (function(){
 var G=["UNSUPPORTED","STRETCHED","UNVERIFIED","SUPPORTED","FACT-BACKED"],
-    C=["#E0906C","#E0B06C","#C9C36C","#9FC96C","#5FBF8F"];
+ C=["#E0906C","#E0B06C","#C9C36C","#9FC96C","#5FBF8F"];
 document.querySelectorAll(".ps-needle").forEach(function(el){
-  var g=Math.max(0,Math.min(4,+el.dataset.grade||0));
-  el.style.cssText="display:inline-block;font:700 10px/1.6 system-ui;padding:1px 8px;border-radius:999px;cursor:pointer;vertical-align:middle;color:#111;background:"+C[g];
-  el.textContent="⚖ "+G[g];
-  el.title="Evidence grade (0-4 scale, assigned by this page's author): "+G[g]+(el.dataset.why?" — "+el.dataset.why:"")+" | Scale: 0 unsupported conclusion, 1 stretched, 2 unverified, 3 supported, 4 fact-backed. Grades label evidence, never truth.";
-  el.onclick=function(){alert(this.title)};
+ var g=Math.max(0,Math.min(4,+el.dataset.grade||0));
+ el.style.cssText="display:inline-block;font:700 10px/1.6 system-ui;padding:1px 8px;border-radius:999px;cursor:pointer;vertical-align:middle;color:#111;background:"+C[g];
+ el.textContent=" "+G[g];
+ el.title="Evidence grade (0-4 scale, assigned by this page's author): "+G[g]+(el.dataset.why?" — "+el.dataset.why:"")+" | Scale: 0 unsupported conclusion, 1 stretched, 2 unverified, 3 supported, 4 fact-backed. Grades label evidence, never truth.";
+ el.onclick=function(){alert(this.title)};
 });
 })();
 </script>
 
-<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><a href="index.html" style="color:var(--accent);text-decoration:none;font-weight:650">← Back to the map</a><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)">🗺 All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">The behavior room</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test 🧪</a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test 🧪</a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The whale board 🧪</a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company 🧪</a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Who called it</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">What we've learned</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">The research desk 🧪</a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-needle-widget-2.html" style="color:var(--accent);text-decoration:none">The needle widget</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
-<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:"  ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
+<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><a href="index.html" style="color:var(--accent);text-decoration:none;font-weight:650">← Back to the map</a><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)"> All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">How your mind works against you</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test </a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test </a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The risk board </a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company </a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Predictions, graded</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">Our findings</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">Practice reading the market </a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-needle-widget-2.html" style="color:var(--accent);text-decoration:none">The needle widget</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
+<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:" ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
 <script>(function(){var sel=".keyhole,.warnbox,.filterbox,.counter,.rulebox,.lens";document.querySelectorAll(sel).forEach(function(el){if(el.closest("details")||el.querySelector("details"))return;var b=el.querySelector("b");var label=b?b.textContent.replace(/[\s:—–-]+$/,""):el.textContent.trim().slice(0,60)+"…";if(el.textContent.trim().length<160)return;var d=document.createElement("details");d.className="psfold";var s=document.createElement("summary");s.textContent=label;d.appendChild(s);var inner=document.createElement("div");inner.innerHTML=el.innerHTML;d.appendChild(inner);el.innerHTML="";el.appendChild(d);});})();</script>
 </body>
 </html>

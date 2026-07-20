@@ -5,88 +5,88 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Xplainsight — graduation: audit us</title>
 <!--
-  XPLAINSIGHT — GRADUATION (S17). Dream-list #6, the last philosophical piece:
-  a school whose diploma is catching the teacher. The final exam turns every
-  method this project taught back on the project itself. No paid course can
-  offer this exam, because their business ends the day the student stops
-  needing them. Ours is SUPPOSED to end that day.
-  Interactive checklist held in page memory only (no storage — vow-safe).
-  Zero external code. Stack-validated.
+ XPLAINSIGHT — GRADUATION (S17). Dream-list #6, the last philosophical piece:
+ a school whose diploma is catching the teacher. The final exam turns every
+ method this project taught back on the project itself. No paid course can
+ offer this exam, because their business ends the day the student stops
+ needing them. Ours is SUPPOSED to end that day.
+ Interactive checklist held in page memory only (no storage — vow-safe).
+ Zero external code. Stack-validated.
 -->
 <style>
-  :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
-    --muted:#99A1AB;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
-    --warn:#C9A227;--define:#A78BFA;}
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;-webkit-text-size-adjust:100%}
-  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
-  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px}
-  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
-  .sub b,.card b,.task b{color:var(--ink)}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
-  .card p{font-size:.88rem;margin:8px 0}
-  .task{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0;font-size:.87rem;cursor:pointer}
-  .task input{margin-top:3px;accent-color:var(--up);width:18px;height:18px;flex:none}
-  .task.done{border-color:rgba(95,191,143,.4);background:rgba(95,191,143,.05)}
-  .diploma{display:none;border:1px solid var(--up);background:rgba(95,191,143,.08);border-radius:12px;padding:16px;margin:14px 0;font-size:.9rem}
-  .diploma.show{display:block}
-  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
-  .mirror b{color:var(--ink)}
-  .wrap>*{animation:fadeUp .45s ease both}
-  .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+ :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+ --muted:#99A1AB;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+ --warn:#C9A227;--define:#A78BFA;}
+ *{box-sizing:border-box}
+ html,body{margin:0;background:var(--bg);color:var(--ink);
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;-webkit-text-size-adjust:100%}
+ .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+ h1{font-size:1.3rem;font-weight:680;margin:0 0 6px}
+ .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+ .sub b,.card b,.task b{color:var(--ink)}
+ .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+ .card p{font-size:.88rem;margin:8px 0}
+ .task{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0;font-size:.87rem;cursor:pointer}
+ .task input{margin-top:3px;accent-color:var(--up);width:18px;height:18px;flex:none}
+ .task.done{border-color:rgba(95,191,143,.4);background:rgba(95,191,143,.05)}
+ .diploma{display:none;border:1px solid var(--up);background:rgba(95,191,143,.08);border-radius:12px;padding:16px;margin:14px 0;font-size:.9rem}
+ .diploma.show{display:block}
+ .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
+ .mirror b{color:var(--ink)}
+ .wrap>*{animation:fadeUp .45s ease both}
+ .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
+ @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+ @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
 
-  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
-  /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
-  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
-  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
-  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
-  .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
-  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
-  details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
-    background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
-    box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
-  details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
-    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
-  details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
+ /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
+ .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
+ .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+ .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
+ .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
+ .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
+ details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
+ background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
+ box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
+ details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
+ transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
+ details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
 </style>
-  <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
+ <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
 <body>
 <div style="position:sticky;top:0;z-index:40;background:rgba(14,17,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)"><div style="max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:8px"><a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#7FB0E8" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="#5FBF8F" stroke-width="2.2" stroke-linecap="round"/></svg>Xplainsight</a><span style="margin-left:auto;font-size:.7rem;color:var(--faint)">measuring history, not selling predictions</span></div></div>
 
 <div class="wrap">
-  <h1>Graduation — the final exam is auditing us</h1>
-  <p class="sub">Every page on this project taught you a method for checking someone else's claims. The final exam is turning all of it on <b>this project itself</b> — because a tool that teaches skepticism and exempts itself is selling something. Complete the audit below (your checks live only on this page and vanish when you close it — like everything here). <b>Pass condition: you find at least one real weakness. There is always at least one.</b></p>
+ <h1>Graduation — the final exam is auditing us</h1>
+ <p class="sub">Every page on this project taught you a method for checking someone else's claims. The final exam is turning all of it on <b>this project itself</b> — because a tool that teaches skepticism and exempts itself is selling something. Complete the audit below (your checks live only on this page and vanish when you close it — like everything here). <b>Pass condition: you find at least one real weakness. There is always at least one.</b></p>
 
-  <div class="card"><p><b>Why no paid course can assign this exam:</b> their business depends on you continuing to need them, so the course can never end with "now verify that we were honest, then leave." Ours can, because free-in-both-directions means our project succeeds exactly when you stop needing it. This page is the off-ramp, built on purpose.</p></div>
+ <div class="card"><p><b>Why no paid course can assign this exam:</b> their business depends on you continuing to need them, so the course can never end with "now verify that we were honest, then leave." Ours can, because free-in-both-directions means our project succeeds exactly when you stop needing it. This page is the off-ramp, built on purpose.</p></div>
 
-  <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>1. Run the survivorship filter on us.</b> Our bookshelf sorts authors by "did a scorekeeper check this?" Ask it of Xplainsight: who independently checked OUR claims? (Honest answer: mostly nobody yet — one builder, one AI, and your audits. That's a real weakness; the open-source vow exists because of it. If you just thought "wait, the AI helping build the skeptic's tool could itself be confidently wrong" — correct, it was, at least six documented times, caught by the builder — a corrected number is itself proof this list stays honest, not proof the corrections stopped. Now you're doing the exam.)</span></div>
-  <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>2. Grade one of our claims with the needle.</b> Pick any confident sentence on any of our pages and grade it yourself: FACT-BACKED → UNSUPPORTED. Check whether we cited a source, whether the source says what we say it says, and whether we showed the counter-evidence. Where we wrote "roughly" or "about," check whether the vagueness hides anything.</span></div>
-  <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>3. Follow OUR money.</b> The bookshelf's test: where does the seller's money come from — using the method or selling it? Apply it here: this tool is free, sells nothing, takes no keys, holds no coins. But ALSO ask the harder version: what does the builder get? (Honest answer: yes — genuine personal satisfaction, building something real and getting to be right about it. That's a real incentive, not a neutral one. No incentive is zero, including this one.) Decide for yourself whether that incentive could bend the content, and where you'd look for the bend.</span></div>
-  <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>4. Check the pipes yourself.</b> Open your browser's network tab on the wallet board and verify with your own eyes: every request goes to the public APIs we named and nowhere else; nothing is sent when you close it. Trust was never the ask — checking was.</span></div>
-  <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>5. Find the keyhole's edge.</b> Every gauge here reads a slice: ~101 wallets from one list, a weekly lagged government report, one exchange's data. Name one conclusion the tool could tempt you toward that its slice cannot actually support. (There are several. The sample warning boxes name some — find one they missed.)</span></div>
-  <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>6. Catch the framing.</b> We argue both sides — but WE chose which side got the last word on each page, and order is influence. Find one page where you'd have ordered the arguments differently, and notice that noticing this is the most advanced skill on the site.</span></div>
+ <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>1. Run the survivorship filter on us.</b> Our bookshelf sorts authors by "did a scorekeeper check this?" Ask it of Xplainsight: who independently checked OUR claims? (Honest answer: mostly nobody yet — one builder, one AI, and your audits. That's a real weakness; the open-source vow exists because of it. If you just thought "wait, the AI helping build the skeptic's tool could itself be confidently wrong" — correct, it was, at least six documented times, caught by the builder — a corrected number is itself proof this list stays honest, not proof the corrections stopped. Now you're doing the exam.)</span></div>
+ <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>2. Grade one of our claims with the needle.</b> Pick any confident sentence on any of our pages and grade it yourself: FACT-BACKED → UNSUPPORTED. Check whether we cited a source, whether the source says what we say it says, and whether we showed the counter-evidence. Where we wrote "roughly" or "about," check whether the vagueness hides anything.</span></div>
+ <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>3. Follow OUR money.</b> The bookshelf's test: where does the seller's money come from — using the method or selling it? Apply it here: this tool is free, sells nothing, takes no keys, holds no coins. But ALSO ask the harder version: what does the builder get? (Honest answer: yes — genuine personal satisfaction, building something real and getting to be right about it. That's a real incentive, not a neutral one. No incentive is zero, including this one.) Decide for yourself whether that incentive could bend the content, and where you'd look for the bend.</span></div>
+ <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>4. Check the pipes yourself.</b> Open your browser's network tab on the wallet board and verify with your own eyes: every request goes to the public APIs we named and nowhere else; nothing is sent when you close it. Trust was never the ask — checking was.</span></div>
+ <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>5. Find the keyhole's edge.</b> Every gauge here reads a slice: ~101 wallets from one list, a weekly lagged government report, one exchange's data. Name one conclusion the tool could tempt you toward that its slice cannot actually support. (There are several. The sample warning boxes name some — find one they missed.)</span></div>
+ <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>6. Catch the framing.</b> We argue both sides — but WE chose which side got the last word on each page, and order is influence. Find one page where you'd have ordered the arguments differently, and notice that noticing this is the most advanced skill on the site.</span></div>
 
-  <div class="diploma" id="dip"><b>🎓 That's the diploma.</b> Not a certificate — a habit: you just audited the auditor, followed the money of the people warning you about money, and looked for the edge of a tool that told you where its edges were. Nobody can sell you a secret again without you noticing the shape of the pitch. This project succeeded the moment you stopped needing it — which was the design. Take the habit; leave the tool; come back only if it's useful.</div>
+ <div class="diploma" id="dip"><b> That's the diploma.</b> Not a certificate — a habit: you just audited the auditor, followed the money of the people warning you about money, and looked for the edge of a tool that told you where its edges were. Nobody can sell you a secret again without you noticing the shape of the pitch. This project succeeded the moment you stopped needing it — which was the design. Take the habit; leave the tool; come back only if it's useful.</div>
 
-  <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror"><b>The mirror, one last time:</b> if this page felt like it was performing humility to win your trust — good catch, grade that too. The exam has no answer key, because the skill is living without one.</div></details>
+ <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650"> The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror"><b>The mirror, one last time:</b> if this page felt like it was performing humility to win your trust — good catch, grade that too. The exam has no answer key, because the skill is living without one.</div></details>
 </div>
 <script>
 function tg(el){
-  const c=el.querySelector("input");
-  if(event.target!==c) c.checked=!c.checked;
-  el.classList.toggle("done",c.checked);
-  const all=[...document.querySelectorAll(".task input")];
-  document.getElementById("dip").classList.toggle("show",all.every(x=>x.checked));
+ const c=el.querySelector("input");
+ if(event.target!==c) c.checked=!c.checked;
+ el.classList.toggle("done",c.checked);
+ const all=[...document.querySelectorAll(".task input")];
+ document.getElementById("dip").classList.toggle("show",all.every(x=>x.checked));
 }
 </script>
 
-<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">← Getting help</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: The research desk 🧪 →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)">🗺 All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">The behavior room</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test 🧪</a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test 🧪</a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The whale board 🧪</a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company 🧪</a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Who called it</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">What we've learned</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">The research desk 🧪</a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-needle-widget-2.html" style="color:var(--accent);text-decoration:none">The needle widget</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
-<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:"  ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
+<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">← Getting help</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: Practice reading the market →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)"> All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">How your mind works against you</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test </a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test </a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The risk board </a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company </a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Predictions, graded</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">Our findings</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">Practice reading the market </a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
+<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:" ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
 <script>(function(){var sel=".keyhole,.warnbox,.filterbox,.counter,.rulebox,.lens";document.querySelectorAll(sel).forEach(function(el){if(el.closest("details")||el.querySelector("details"))return;var b=el.querySelector("b");var label=b?b.textContent.replace(/[\s:—–-]+$/,""):el.textContent.trim().slice(0,60)+"…";if(el.textContent.trim().length<160)return;var d=document.createElement("details");d.className="psfold";var s=document.createElement("summary");s.textContent=label;d.appendChild(s);var inner=document.createElement("div");inner.innerHTML=el.innerHTML;d.appendChild(inner);el.innerHTML="";el.appendChild(d);});})();</script>
 </body>
 </html>

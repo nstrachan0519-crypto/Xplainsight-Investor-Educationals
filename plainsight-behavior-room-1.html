@@ -3,89 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xplainsight — the behavior room</title>
+<title>Xplainsight — how your mind works against you</title>
 <!--
-  XPLAINSIGHT — THE BEHAVIOR ROOM v1 (S19, Room B). The engine layer: WHY the
-  loss statistics cited across this app keep coming out the same. Six engines,
-  each tied to evidence already cited elsewhere in the app. Mind the Gap cited
-  WITH its academic dispute disclosed (same discipline as SPIVA). GAMIFICATION
-  section highlighted per the builder's explicit instruction. ELI5 + tap-to-define.
+ XPLAINSIGHT — THE BEHAVIOR ROOM v1 (S19, Room B). The engine layer: WHY the
+ loss statistics cited across this app keep coming out the same. Six engines,
+ each tied to evidence already cited elsewhere in the app. Mind the Gap cited
+ WITH its academic dispute disclosed (same discipline as SPIVA). GAMIFICATION
+ section highlighted per the builder's explicit instruction. ELI5 + tap-to-define.
 -->
 <style>
-  :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
-    --muted:#99A1AB;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
-    --warn:#C9A227;--define:#A78BFA;}
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;-webkit-text-size-adjust:100%}
-  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
-  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px}
-  h2{font-size:1.05rem;font-weight:650;margin:26px 0 4px}
-  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
-  .sub b,.card b,.eng b{color:var(--ink)}
-  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
-  .term:active{opacity:.6}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
-  .card p{font-size:.88rem;margin:8px 0}
-  .eng{border-left:3px solid var(--down);background:rgba(224,144,108,.05);border-radius:9px;padding:10px 13px;margin:8px 0;font-size:.87rem}
-  .eng .n{color:var(--down);font-weight:750}
-  .gamebox{border:2px solid var(--warn);background:rgba(201,162,39,.1);border-radius:12px;padding:14px 16px;margin:14px 0;font-size:.9rem}
-  .gamebox .glabel{display:inline-block;background:var(--warn);color:#1a1405;font-weight:850;letter-spacing:.06em;padding:2px 10px;border-radius:6px;font-size:.8rem;margin-bottom:8px}
-  .gamebox b{color:var(--warn)}
-  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
-  .mirror b{color:var(--ink)}
-  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
-    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
-    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
-  #deftip.show{display:block}
-  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
-  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
-  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+ :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+ --muted:#99A1AB;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+ --warn:#C9A227;--define:#A78BFA;}
+ *{box-sizing:border-box}
+ html,body{margin:0;background:var(--bg);color:var(--ink);
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;-webkit-text-size-adjust:100%}
+ .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+ h1{font-size:1.3rem;font-weight:680;margin:0 0 6px}
+ h2{font-size:1.05rem;font-weight:650;margin:26px 0 4px}
+ .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+ .sub b,.card b,.eng b{color:var(--ink)}
+ .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+ .term:active{opacity:.6}
+ .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+ .card p{font-size:.88rem;margin:8px 0}
+ .eng{border-left:3px solid var(--down);background:rgba(224,144,108,.05);border-radius:9px;padding:10px 13px;margin:8px 0;font-size:.87rem}
+ .eng .n{color:var(--down);font-weight:750}
+ .gamebox{border:2px solid var(--warn);background:rgba(201,162,39,.1);border-radius:12px;padding:14px 16px;margin:14px 0;font-size:.9rem}
+ .gamebox .glabel{display:inline-block;background:var(--warn);color:#1a1405;font-weight:850;letter-spacing:.06em;padding:2px 10px;border-radius:6px;font-size:.8rem;margin-bottom:8px}
+ .gamebox b{color:var(--warn)}
+ .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
+ .mirror b{color:var(--ink)}
+ #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+ border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+ box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+ #deftip.show{display:block}
+ #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+ #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+ #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
 
-  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
-  /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
-  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
-  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
-  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
-  .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
-  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
-  details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
-    background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
-    box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
-  details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
-    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
-  details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
+ /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
+ .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
+ .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+ .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
+ .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
+ .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
+ details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
+ background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
+ box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
+ details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
+ transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
+ details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
 </style>
-  <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
+ <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
 <body>
 <div class="wrap">
-  <h1>🧠 The behavior room</h1>
-  <p class="sub">Every painful number in this app — the 93%, the day-trader studies, the wrecks in the living museum — has the same engine underneath: <b>a human brain doing exactly what human brains do.</b> This room names the six engines, shows the receipt for each, and then shows you who profits from keeping them running. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+ <h1> How your mind works against you</h1>
+ <p class="sub">Every painful number in this app — the 93%, the day-trader studies, the wrecks in the living museum — has the same engine underneath: <b>a human brain doing exactly what human brains do.</b> This room names the six engines, shows the receipt for each, and then shows you who profits from keeping them running. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
 
-  <div class="card"><p><b>The receipt for the whole room — and it's a strange one:</b> the funds people invest in often earn <b>more</b> than the investors in them. How is that possible? A fund just sits there and grows. But people tend to buy in <i>after</i> it's been climbing, sell in fear when it drops, then buy back later — and those ins and outs quietly cost them. Every year a research firm called Morningstar measures this, in a study nicknamed "Mind the Gap." Over the ten years ending 2024, the funds earned about <b>8.2% a year</b> — but the average investor in them earned only about <b>7.0% a year</b>. That missing <b>1.2% each year</b> wasn't bad luck or bad picks. It was the buying and selling. Same funds, worse result, because of timing<sup><a href='plainsight-citations-1.html#c28' style='color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700'>[28]</a></sup>. Same funds. The difference wasn't the picks — it was the <b>ins and outs</b>. Honest note, our standard practice: the gap itself is measured fact; academics dispute how much of it is "bad timing" versus mechanical factors — the dispute is on our citations page, not hidden. Either way the lesson stands: <b>the investor's own hands are a cost line.</b></p></div>
+ <div class="card"><p><b>The receipt for the whole room — and it's a strange one:</b> the funds people invest in often earn <b>more</b> than the investors in them. How is that possible? A fund just sits there and grows. But people tend to buy in <i>after</i> it's been climbing, sell in fear when it drops, then buy back later — and those ins and outs quietly cost them. Every year a research firm called Morningstar measures this, in a study nicknamed "Mind the Gap." Over the ten years ending 2024, the funds earned about <b>8.2% a year</b> — but the average investor in them earned only about <b>7.0% a year</b>. That missing <b>1.2% each year</b> wasn't bad luck or bad picks. It was the buying and selling. Same funds, worse result, because of timing<sup><a href='plainsight-citations-1.html#c28' style='color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700'>[28]</a></sup>. Same funds. The difference wasn't the picks — it was the <b>ins and outs</b>. Honest note, our standard practice: the gap itself is measured fact; academics dispute how much of it is "bad timing" versus mechanical factors — the dispute is on our citations page, not hidden. Either way the lesson stands: <b>the investor's own hands are a cost line.</b></p></div>
 
-  <h2>The six engines</h2>
-  <div class="eng"><span class="n">1 · Loss hurts double.</span> Losing $100 feels roughly twice as bad as winning $100 feels good (<span class="term" data-def="loss aversion">loss aversion</span>). So people sell winners too early (lock the good feeling) and cling to losers (avoid making the pain "real") — the exact backwards pattern the win-rate-vs-profit scorecard on our wallet board measures in the wild.</div>
-  <div class="eng"><span class="n">2 · Confidence outruns skill.</span> Most drivers rate themselves above average; most traders do too (<span class="term" data-def="overconfidence">overconfidence</span>). The receipt: in the whole-market day-trading study on our bookshelf, the MOST active traders — the most confident — did the worst. The flight simulator exists to measure your own version of this, safely.</div>
-  <div class="eng"><span class="n">3 · Recent = forever.</span> Whatever just happened feels like the new normal (<span class="term" data-def="recency">recency bias</span>). After a rise, risk feels gone; after a crash, recovery feels impossible. The whole-generation disasters on our Case for Active page are this same "recent past feels permanent" mistake — but with a bill the size of someone's entire lifetime of savings.</div>
-  <div class="eng"><span class="n">4 · The fear of missing out.</span> Watching neighbors get rich is one of the most painful feelings money produces — and the most expensive, because <b>FOMO buys tops</b>: the crowd arrives after the rise, which is precisely what central-bank researchers found retail crypto buyers doing in our field-guide evidence. Every bubble in the living museum ran on it.</div>
-  <div class="eng"><span class="n">5 · Throwing good after bad.</span> "I've lost too much to quit now" (<span class="term" data-def="sunk cost">sunk cost</span>). The money already lost is gone whatever you do next — but brains treat quitting as losing it TWICE. This engine turns small wrecks into total ones; you can watch it in the museum's leverage spirals.</div>
-  <div class="eng"><span class="n">6 · The herd feels safe.</span> Copying the crowd was great survival strategy for ten thousand years (<span class="term" data-def="herding">herding</span>) — in markets it means buying what's already expensive because everyone is, and selling what's cheap because everyone is. Our positioning gauges exist to make the herd VISIBLE, because you can't decline to follow what you can't see.</div>
+ <h2>The six engines</h2>
+ <div class="eng"><span class="n">1 · Loss hurts double.</span> Losing $100 feels roughly twice as bad as winning $100 feels good (<span class="term" data-def="loss aversion">loss aversion</span>). So people sell winners too early (lock the good feeling) and cling to losers (avoid making the pain "real") — the exact backwards pattern the win-rate-vs-profit scorecard on our wallet board measures in the wild.</div>
+ <div class="eng"><span class="n">2 · Confidence outruns skill.</span> Most drivers rate themselves above average; most traders do too (<span class="term" data-def="overconfidence">overconfidence</span>). The receipt: in the whole-market day-trading study on our bookshelf, the MOST active traders — the most confident — did the worst. The flight simulator exists to measure your own version of this, safely.</div>
+ <div class="eng"><span class="n">3 · Recent = forever.</span> Whatever just happened feels like the new normal (<span class="term" data-def="recency">recency bias</span>). After a rise, risk feels gone; after a crash, recovery feels impossible. The whole-generation disasters on our Case for Active page are this same "recent past feels permanent" mistake — but with a bill the size of someone's entire lifetime of savings.</div>
+ <div class="eng"><span class="n">4 · The fear of missing out.</span> Watching neighbors get rich is one of the most painful feelings money produces — and the most expensive, because <b>FOMO buys tops</b>: the crowd arrives after the rise, which is precisely what central-bank researchers found retail crypto buyers doing in our field-guide evidence. Every bubble in the living museum ran on it.</div>
+ <div class="eng"><span class="n">5 · Throwing good after bad.</span> "I've lost too much to quit now" (<span class="term" data-def="sunk cost">sunk cost</span>). The money already lost is gone whatever you do next — but brains treat quitting as losing it TWICE. This engine turns small wrecks into total ones; you can watch it in the museum's leverage spirals.</div>
+ <div class="eng"><span class="n">6 · The herd feels safe.</span> Copying the crowd was great survival strategy for ten thousand years (<span class="term" data-def="herding">herding</span>) — in markets it means buying what's already expensive because everyone is, and selling what's cheap because everyone is. Our positioning gauges exist to make the herd VISIBLE, because you can't decline to follow what you can't see.</div>
 
-  <h2>Who profits from your engines</h2>
-  <div class="card"><p><b>Financial media earns attention, not accuracy.</b> A channel that honestly said "buy everything cheaply, automate it, log off" would say it once and die of silence. Urgency, drama, and "act NOW" aren't a personality flaw of finance TV — they're its business model. Judge any financial content by asking: <b>what does this person earn if I act?</b></p>
-  <p><b>Finfluencers</b> often earn from course sales and broker sign-up links — meaning they're frequently paid per TRADE you make, not per dollar you keep. Our candle test's "why people read candlesticks" card showed this pattern; here it is in general form. And remember the bookshelf's filter: on social media, <b>only the winners post.</b> Nobody screenshots the liquidation.</p></div>
+ <h2>Who profits from your engines</h2>
+ <div class="card"><p><b>Financial media earns attention, not accuracy.</b> A channel that honestly said "buy everything cheaply, automate it, log off" would say it once and die of silence. Urgency, drama, and "act NOW" aren't a personality flaw of finance TV — they're its business model. Judge any financial content by asking: <b>what does this person earn if I act?</b></p>
+ <p><b>Finfluencers</b> often earn from course sales and broker sign-up links — meaning they're frequently paid per TRADE you make, not per dollar you keep. Our candle test's "why people read candlesticks" card showed this pattern; here it is in general form. And remember the bookshelf's filter: on social media, <b>only the winners post.</b> Nobody screenshots the liquidation.</p></div>
 
-  <div class="gamebox">
-    <span class="glabel">★ GAMIFICATION ★</span><br>
-    <b>Your trading app is engineered like a slot machine — this is the one place where the app's *design* is itself a financial risk.</b> Confetti when you trade. Streaks to keep alive. Push alerts about movers. Bright green flashes. One-tap trades with the friction sanded off. None of that is decoration: every one of those features exists to <b>increase how OFTEN you trade</b> — and trading frequency is among the best-documented destroyers of returns in all of finance (the most active traders did worst, in study after study on this site). Read that pairing again: <b>the app profits from the exact behavior the evidence says costs you the most.</b> The confetti is not celebrating your win; it's training your thumb. The honest defense is simple and boring: turn off the push alerts, delete the streak from your mind, and make the app WAIT for you — on a schedule you chose, not a ping it chose.
-  </div>
+ <div class="gamebox">
+ <span class="glabel">★ GAMIFICATION ★</span><br>
+ <b>Your trading app is engineered like a slot machine — this is the one place where the app's *design* is itself a financial risk.</b> Confetti when you trade. Streaks to keep alive. Push alerts about movers. Bright green flashes. One-tap trades with the friction sanded off. None of that is decoration: every one of those features exists to <b>increase how OFTEN you trade</b> — and trading frequency is among the best-documented destroyers of returns in all of finance (the most active traders did worst, in study after study on this site). Read that pairing again: <b>the app profits from the exact behavior the evidence says costs you the most.</b> The confetti is not celebrating your win; it's training your thumb. The honest defense is simple and boring: turn off the push alerts, delete the streak from your mind, and make the app WAIT for you — on a schedule you chose, not a ping it chose.
+ </div>
 
-  <div class="card"><p><b>One more honest mirror — about our own simulator:</b> practicing reads with nothing at stake trains your reasoning, but it cannot train your fear, because no fear circuit fires when nothing is real. Paper courage is real courage's cheaper cousin. That's not a reason to skip practice — it's the reason engine #1 still surprises people who practiced.</p></div>
+ <div class="card"><p><b>One more honest mirror — about our own simulator:</b> practicing reads with nothing at stake trains your reasoning, but it cannot train your fear, because no fear circuit fires when nothing is real. Paper courage is real courage's cheaper cousin. That's not a reason to skip practice — it's the reason engine #1 still surprises people who practiced.</p></div>
 
-  <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror"><b>The mirror, as always:</b> these six engines aren't flaws in you — they're standard equipment in everyone, including every professional in every wreck this app documents. The difference between the wrecked and the walking isn't better wiring; it's <b>systems that don't ask the wiring to behave</b>: automation, waiting periods, written plans, and knowing which game you're playing before it starts (the four words, in the Start Here room). Nothing here tells you what to do — it shows you the machinery, because machinery you can see is machinery you can step around.</div></details>
+ <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650"> The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror"><b>The mirror, as always:</b> these six engines aren't flaws in you — they're standard equipment in everyone, including every professional in every wreck this app documents. The difference between the wrecked and the walking isn't better wiring; it's <b>systems that don't ask the wiring to behave</b>: automation, waiting periods, written plans, and knowing which game you're playing before it starts (the four words, in the Start Here room). Nothing here tells you what to do — it shows you the machinery, because machinery you can see is machinery you can step around.</div></details>
 </div>
 
 <div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
@@ -106,6 +106,6 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(
 $("deftip").querySelector(".x").onclick=hideDef;
 </script>
 
-<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">← Start here</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: The counterfeit gallery →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)">🗺 All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">The behavior room</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test 🧪</a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test 🧪</a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The whale board 🧪</a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company 🧪</a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Who called it</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">What we've learned</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">The research desk 🧪</a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-needle-widget-2.html" style="color:var(--accent);text-decoration:none">The needle widget</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
+<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">← Start here</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: The counterfeit gallery →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)"> All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">How your mind works against you</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test </a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test </a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The risk board </a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company </a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Predictions, graded</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">Our findings</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">Practice reading the market </a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
 </body>
 </html>

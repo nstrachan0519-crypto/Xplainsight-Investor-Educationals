@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xplainsight — the research desk: your reasoning gets graded, not your luck</title>
+<!--
+  XPLAINSIGHT — THE FLIGHT SIMULATOR v1 (S16). Dream-list build #3.
+  Pilots get simulators before passengers; traders get real money and a casino.
+  This is a market simulator that costs nothing to be wrong in.
+  ARCHITECTURE: the commit-and-calibrate loop locked in LOG S8 —
+    snapshot → user commits a FROZEN read before seeing reality →
+    reality resolves → scored on CALIBRATION, never on being right.
+  With historical data, reality already resolved, so the loop runs instantly,
+  and the anti-herd wall holds by construction (strictly past-tense; CORE §3).
+  DATA: CoinGecko free API (display-permitted with attribution — Rule 10 cleared
+  in a prior session). One fetch per round: 365 daily prices for a randomly
+  chosen major coin. The market is ANONYMIZED — no name, no dates, prices
+  normalized to 100 at the cutoff — so memory can't cheat. Revealed after commit.
+  PRE-REGISTERED RESOLUTION RULE (written before any round is played, printed
+  on the face): over the hidden 30 days, close-to-close: UP = +3% or more,
+  DOWN = -3% or less, SIDEWAYS = in between.
+  Rounds are held in page memory only — close the tab, they're gone (no storage,
+  no account; vow-safe). Dark-on-failure. Zero external code.
+-->
+<style>
+  :root{--bg:#0E1116;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+    --muted:#99A1AB;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --warn:#C9A227;--define:#A78BFA;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+  .sub b,.card b{color:var(--ink);font-weight:620}
+  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+  .term:active{opacity:.6}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+  .card p{font-size:.88rem;margin:8px 0}
+  .bigbtn{width:100%;background:var(--up);color:#06120c;border:0;border-radius:10px;padding:14px;font-size:1rem;font-weight:680;cursor:pointer;margin:6px 0;box-shadow:0 3px 0 rgba(0,0,0,.28);transition:transform .08s}
+  .bigbtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+  .bigbtn:disabled{opacity:.4;cursor:default}
+  svg{width:100%;height:auto;display:block;background:var(--panel2);border:1px solid var(--line);border-radius:10px}
+  .rulebox{border:1px solid var(--line);border-left:3px solid var(--define);background:rgba(167,139,250,.06);border-radius:9px;padding:10px 13px;margin:10px 0;font-size:.82rem;color:var(--muted)}
+  .rulebox b{color:var(--ink)}
+  .choices{display:flex;gap:8px;margin:10px 0}
+  .choice{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:12px 6px;font-size:.9rem;font-weight:640;cursor:pointer;text-align:center}
+  .choice.sel-up{background:rgba(95,191,143,.2);border-color:var(--up);color:var(--up)}
+  .choice.sel-down{background:rgba(224,144,108,.2);border-color:var(--down);color:var(--down)}
+  .choice.sel-flat{background:rgba(127,176,232,.2);border-color:var(--accent);color:var(--accent)}
+  .confrow{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:.86rem}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .confval{font-weight:680;min-width:52px;text-align:right}
+  .result{border-radius:10px;padding:12px 14px;margin:10px 0;font-size:.9rem;border:1px solid var(--line)}
+  .result.hit{border-color:rgba(95,191,143,.4);background:rgba(95,191,143,.07)}
+  .result.miss{border-color:rgba(224,144,108,.4);background:rgba(224,144,108,.07)}
+  .tally{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0;font-size:.88rem}
+  .tally b{color:var(--ink)}
+  .stat{font-size:.75rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .stat.bad{color:var(--warn);border-color:rgba(201,162,39,.4)}
+  .attrib{font-size:.7rem;color:var(--faint);margin-top:6px}
+  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
+  .mirror b{color:var(--ink)}
+  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+  #deftip.show{display:block}
+  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+  .wrap>*{animation:fadeUp .45s ease both}
+  .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+</style>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
+</head>
+<body>
+<div style="position:sticky;top:0;z-index:40;background:rgba(14,17,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)"><div style="max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:8px"><a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#7FB0E8" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="#5FBF8F" stroke-width="2.2" stroke-linecap="round"/></svg>Xplainsight</a><span style="margin-left:auto;font-size:.7rem;color:var(--faint)">measuring history, not selling predictions</span></div></div>
+
+<div class="wrap">
+  <h1>The research desk</h1>
+  <p class="sub">Real investors don't guess at squiggles — they <b>observe, request evidence, form a thesis, state their confidence, then commit</b>. This desk makes you practice exactly that, on real dated market history with real prices on the axes. You are graded on two things only: <span class="term" data-def="calibration">calibration</span> (does your sureness match your hit rate) and <b>process</b> (did you look at the evidence before deciding). Being right is not one of the grades — a good decision can lose and a bad one can win, and this desk never confuses the two.</p>
+
+  <div class="rulebox"><b>The resolution rule, written before you play (so it can't bend afterward):</b> over the hidden 30 days, comparing the last shown price to the final price — <b>UP</b> / <b>DOWN</b> means it moved past that market's pre-set cutoff · <b>SIDEWAYS</b> means it stayed inside. Cutoffs are fixed per market in advance, because a "big move" differs by market: <b>crypto ±10% (30 days) · metals ±3% (30 days) · currencies ±1.5% (30 days) · stocks ±10% (12 months) · rates ±10% (12 months)</b>. Same rule for every round, forever.</div>
+
+  <div class="card">
+    <p style="font-size:.88rem;margin:4px 0"><b>Pick your market</b> — crypto, metals, and currencies play 30-day windows from live data; stocks and rates play 12-month windows drawn from up to 150 YEARS of public-domain history (your window might be 1929, 1966, or last year — that's the point):</p>
+    <div class="choices" id="mktRow"></div>
+  </div>
+
+  <div class="card" id="game">
+    <div id="ident" style="display:none;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;padding:8px 11px;margin-bottom:10px;font-size:.85rem"></div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>Round <span id="roundNum">1</span></b><span class="stat" id="gstat">tap start</span></div>
+    <div id="chartbox" style="margin:10px 0"><svg role="img" aria-label="data visualization — values described in adjacent text" id="chart" viewBox="0 0 600 260" preserveAspectRatio="none"></svg>
+      <p class="attrib">Real daily prices, named and dated — real price axis, real dates on the chart. Data: CoinGecko (crypto; metals via 1:1 metal-backed tokens), Frankfurter/ECB (currencies), and public-domain (PDDL) datasets — the Shiller S&P 500 series and Federal Reserve H.15 yields (stocks &amp; rates, monthly).</p></div>
+    <div id="evPanel" style="display:none;margin:10px 0">
+      <div style="font-size:.84rem;margin-bottom:6px"><b>Step 1 · Request your evidence</b> <span style="color:var(--muted)">— real desks pull the numbers before they decide. Each button computes from the chart you see; what you don't request gets named at the reveal.</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        <button class="choice" id="evTrend" style="font-size:.76rem;padding:9px 6px">📈 Trend read</button>
+        <button class="choice" id="evVol" style="font-size:.76rem;padding:9px 6px">🌊 Swings &amp; volatility</button>
+        <button class="choice" id="evDD" style="font-size:.76rem;padding:9px 6px">🔻 Drawdown map</button>
+        <button class="choice" id="evRange" style="font-size:.76rem;padding:9px 6px">📍 Where in its range</button>
+      </div>
+      <div id="evOut" style="font-size:.8rem;color:var(--muted)"></div>
+      <div style="font-size:.84rem;margin:12px 0 4px"><b>Step 2 · Write your thesis</b> <span style="color:var(--muted)">— one honest sentence: what happens next, and WHY. It gets echoed back at the reveal, where you grade your own reasoning.</span></div>
+      <textarea id="thesis" rows="2" placeholder="e.g. Steady uptrend, shallow dips, sitting near its high — I think momentum carries it up." style="width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:9px 11px;font-size:.85rem;font-family:inherit"></textarea>
+    </div>
+    <div id="commitUI" style="display:none">
+      <div style="font-size:.84rem;margin:2px 0 6px"><b>Step 3 · Direction and confidence, then commit</b></div>
+      <p style="font-size:.88rem;margin:6px 0"><b>Your read:</b> what did the hidden window do? (30 days on daily markets; 12 months on the long-history ones)</p>
+      <div class="choices">
+        <button class="choice" id="cUp">UP<br><span style="font-size:.7rem;font-weight:500">+3% or more</span></button>
+        <button class="choice" id="cFlat">SIDEWAYS<br><span style="font-size:.7rem;font-weight:500">within ±3%</span></button>
+        <button class="choice" id="cDown">DOWN<br><span style="font-size:.7rem;font-weight:500">−3% or more</span></button>
+      </div>
+      <div class="confrow"><span>How sure are you?</span><input type="range" id="conf" min="34" max="99" value="50"><span class="confval" id="confV">50%</span></div>
+      <p class="attrib">34% = barely better than the three-way coin flip · 99% = certain. Be honest — the grade is about whether your sureness matches your hit rate.</p>
+      <button class="bigbtn" id="commit" disabled>Commit my read (frozen before the reveal)</button>
+    </div>
+    <div id="resultBox"></div>
+    <button class="bigbtn" id="start">Open the desk — pull a real, named market</button>
+  </div>
+
+  <div class="tally" id="tally" style="display:none"></div>
+
+  <div class="card">
+    <p><b>What this teaches (the honest version):</b> across many rounds, most people's direction-reads land near the <b>random baseline (~33%)</b> — that's not an insult, it's the finding from every scorekeeper study in our field guide: short-run direction is close to a coin flip, even for professionals. The skill this simulator actually trains is the rarer one: <b>knowing how sure to be.</b> If you say 80% and hit 40%, the market didn't beat you — your confidence did. And remember what the simulator leaves out: in real trading, every round also subtracts <b>fees</b>, and leverage turns wrong-but-recoverable into wiped-out.</p>
+  </div>
+
+  <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror"><b>The mirror, as always:</b> every window here is finished history — nothing on this page is a prediction, a signal, or advice about any market now. Your rounds live only on this page and vanish when you close it: no account, no storage, nothing sent anywhere. It's a gym, not a broker.</div></details>
+</div>
+
+<div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const GLOSSARY={
+  "calibration":"Whether your sureness matches your results. If everything you call '80% sure' comes true about 80% of the time, you're well-calibrated. If it comes true 45% of the time, you're overconfident — the most expensive habit in markets. Calibration is graded across many rounds, never on one.",
+  "__demo":"Just like this: tap any underlined word and a plain meaning pops up."
+};
+function showDef(t){const b=GLOSSARY[t.toLowerCase()];if(!b)return;$("dt-w").textContent=t;$("dt-b").textContent=b;$("deftip").classList.add("show");}
+function hideDef(){$("deftip").classList.remove("show");}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(t){showDef(t.getAttribute("data-def"));return;}if(!e.target.closest("#deftip"))hideDef();});
+$("deftip").querySelector(".x").onclick=hideDef;
+
+/* ---- MARKET MODULES (v2): each market coded separately, one adapter each.
+   crypto: CoinGecko (pattern VERIFIED live in v1 era). Others: Stooq public
+   CSV (free, keyless) — new: first live pull is the proof; if a
+   module fails it goes dark and says why (a 0-result run IS the CORS finding).
+   PRE-REGISTERED THRESHOLDS (printed in UI): a "big move" differs per market,
+   so UP/DOWN cutoffs are fixed per module, in advance, same for every round. ---- */
+const MARKETS=[
+  {key:"crypto", label:"Crypto", thresh:10, src:"CoinGecko",
+   pool:[["bitcoin","BTC"],["ethereum","ETH"],["solana","SOL"],["dogecoin","DOGE"],["cardano","ADA"],
+     ["litecoin","LTC"],["chainlink","LINK"],["ripple","XRP"],["polkadot","DOT"],["avalanche-2","AVAX"]],
+   fetch:async function(force){ return cgFetch(this.pool,force); }},
+  {key:"gold", label:"Metals", thresh:3, src:"CoinGecko (tokens 1:1 backed by the physical metal)",
+   pool:[["pax-gold","Gold (via PAXG)"],["kinesis-silver","Silver (via KAG)"]],
+   fetch:async function(force){ return cgFetch(this.pool,force); }},
+  {key:"forex", label:"Currencies", thresh:1.5, src:"Frankfurter (European Central Bank rates)",
+   pool:[["USD","EUR/USD"],["GBP","EUR/GBP"],["JPY","EUR/JPY"],["CHF","EUR/CHF"],["AUD","EUR/AUD"]],
+   fetch:async function(force){
+     const [ccy,tick]=(force&&this.pool.find(p=>p[1]===force[1]))||this.pool[Math.floor(Math.random()*this.pool.length)];
+     const end=new Date(), start=new Date(Date.now()-370*864e5);
+     const iso=x=>x.toISOString().slice(0,10);
+     // S20 reroute: Frankfurter moved hosts (.app → .dev/v1). Try both; dark only if both fail.
+     let j=null, lastErr="";
+     for(const url of [`https://api.frankfurter.dev/v1/${iso(start)}..${iso(end)}?base=EUR&symbols=${ccy}`,
+                       `https://api.frankfurter.app/${iso(start)}..${iso(end)}?from=EUR&to=${ccy}`]){
+       try{ const r=await fetch(url,{cache:"no-store"}); if(!r.ok){lastErr="HTTP "+r.status;continue;} j=await r.json(); break; }
+       catch(e){ lastErr=e.message||"fetch failed"; }
+     }
+     if(!j) throw new Error(lastErr||"both Frankfurter hosts unreachable");
+     const days=Object.keys(j.rates||{}).sort();
+     const prices=days.map(k=>({t:Date.parse(k), v:Number(j.rates[k][ccy])})).filter(p=>isFinite(p.v));
+     return {tick, prices};
+   }},
+  {key:"stocks", label:"Stocks (150 yrs, monthly)", thresh:10, show:60, hide:12, unit:"months",
+   src:"Shiller S&P 500 series, public domain (PDDL)<sup><a href='plainsight-citations-1.html#c23' style='color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700'>[23]</a></sup>",
+   urls:["https://raw.githubusercontent.com/datasets/s-and-p-500/main/data/data.csv",
+         "https://raw.githubusercontent.com/datasets/s-and-p-500/master/data/data.csv"],
+   col:"SP500",
+   fetch:async function(){ return csvFetch(this,"S&P 500"); }},
+  {key:"rates", label:"Rates (10-yr yield, monthly)", thresh:10, show:60, hide:12, unit:"months",
+   src:"Federal Reserve H.15 series, public domain (PDDL)<sup><a href='plainsight-citations-1.html#c24' style='color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700'>[24]</a></sup>",
+   urls:["https://raw.githubusercontent.com/datasets/bond-yields-us-10y/main/data/monthly.csv",
+         "https://raw.githubusercontent.com/datasets/bond-yields-us-10y/master/data/monthly.csv"],
+   col:"Rate",
+   fetch:async function(){ return csvFetch(this,"US 10-yr Treasury yield"); }}
+];
+let MARKET=MARKETS[0];
+
+async function cgFetch(pool,force){
+  const [id,tick]=(force&&pool.find(p=>p[1]===force[1]))||pool[Math.floor(Math.random()*pool.length)];
+  const r=await fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=365&interval=daily&_cb=${Date.now()}`,{cache:"no-store"});
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const j=await r.json();
+  return {tick, prices:(j.prices||[]).map(p=>({t:p[0],v:p[1]})).filter(p=>isFinite(p.v))};
+}
+
+async function csvFetch(mkt,tick){
+  let txt=null, err=null;
+  for(const u of mkt.urls){
+    try{ const r=await fetch(u,{cache:"no-store"}); if(r.ok){ txt=await r.text(); break; } err="HTTP "+r.status; }
+    catch(e){ err=e.message; }
+  }
+  if(!txt) throw new Error(err||"unreachable");
+  const lines=txt.trim().split(/\r?\n/), head=lines[0].split(",");
+  const di=head.findIndex(h=>/date/i.test(h));
+  let vi=head.findIndex(h=>h.trim().toLowerCase()===mkt.col.toLowerCase());
+  if(vi<0) vi=head.findIndex(h=>new RegExp(mkt.col,"i").test(h));
+  if(di<0||vi<0) throw new Error("unexpected CSV shape ("+head.slice(0,4).join(",")+"…)");
+  const prices=[];
+  for(let i=1;i<lines.length;i++){
+    const c=lines[i].split(",");
+    const t=Date.parse(c[di]), v=Number(c[vi]);
+    if(isFinite(t)&&isFinite(v)&&v>0) prices.push({t,v});
+  }
+  return {tick, prices};
+}
+const SHOW=90, HIDE=30; // window sizes unchanged; threshold per-market (MARKET.thresh)
+
+let round=1, rounds=[];           // rounds: {pick, conf, outcome, hit}
+let cur=null;                     // current round state
+let picked=null;
+
+function setG(t,c){const s=$("gstat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
+
+async function startRound(){
+  $("start").disabled=true; setG("pulling real "+MARKET.label.toLowerCase()+" history…");
+  $("resultBox").innerHTML=""; $("commitUI").style.display="none";
+  if(MARKET.parked){
+    setG("no free source your phone can reach exists for this market yet — dark rather than faked. Know one? Use the feedback box on the home page.","bad");
+    $("start").disabled=false; return;
+  }
+  let got;
+  try{ got=await MARKET.fetch(); }
+  catch(e){
+    setG("couldn't reach "+MARKET.src+" ("+(e.message||"fetch failed")+") — dark, nothing made up. If this repeats, try again later — the source may be busy.","bad");
+    $("start").disabled=false; return;
+  }
+  const prices=got.prices;
+  const SHOWN=MARKET.show||SHOW, HIDDEN=MARKET.hide||HIDE, UNIT=MARKET.unit||"days";
+  if(!prices||prices.length<SHOWN+HIDDEN+10){ setG("history too short — try again","bad"); $("start").disabled=false; return; }
+  const maxCut=prices.length-HIDDEN-1, minCut=SHOWN;
+  const cut=minCut+Math.floor(Math.random()*(maxCut-minCut+1));
+  const shown=prices.slice(cut-SHOWN,cut+1), hidden=prices.slice(cut+1,cut+1+HIDDEN);
+  const base=shown[shown.length-1].v;
+  cur={tick:got.tick, n:SHOWN+HIDDEN+1, showN:SHOWN, unit:UNIT, shown:shown.map(p=>p.v/base*100), hidden:hidden.map(p=>p.v/base*100),
+       rawShown:shown.map(p=>p.v), rawHidden:hidden.map(p=>p.v),
+       dShow0:new Date(shown[0].t).toISOString().slice(0,10), dCut:new Date(shown[shown.length-1].t).toISOString().slice(0,10),
+       startDate:new Date(shown[0].t).toISOString().slice(0,10),
+       endDate:new Date(hidden[hidden.length-1].t).toISOString().slice(0,10), ev:{}, };
+  drawChart(cur.shown,null);
+  // identity is SHOWN — this is research, not a guessing game
+  $("ident").style.display="";
+  $("ident").innerHTML=`<b>${cur.tick}</b> · ${MARKET.label} · real history ${cur.dShow0} → ${cur.dCut} (via ${MARKET.src}) — your task: what did the NEXT ${cur.n-cur.showN-1} ${cur.unit} do?`;
+  $("evPanel").style.display=""; $("evOut").innerHTML=""; $("thesis").value="";
+  ["evTrend","evVol","evDD","evRange"].forEach(id=>$(id).className="choice");
+  picked=null; $("conf").value=50; $("confV").textContent="50%"; $("commit").disabled=true;
+  ["cUp","cFlat","cDown"].forEach(i=>$(i).className="choice");
+  // per-market pre-registered thresholds shown on the buttons themselves
+  $("cUp").innerHTML=`UP<br><span style="font-size:.7rem;font-weight:500">+${MARKET.thresh}% or more</span>`;
+  $("cDown").innerHTML=`DOWN<br><span style="font-size:.7rem;font-weight:500">−${MARKET.thresh}% or more</span>`;
+  $("cFlat").innerHTML=`SIDEWAYS<br><span style="font-size:.7rem;font-weight:500">within ±${MARKET.thresh}%</span>`;
+  $("commitUI").style.display=""; $("start").style.display="none";
+  setG("your read, then commit");
+}
+
+function fmtP(v){ if(v>=1000)return v.toLocaleString(undefined,{maximumFractionDigits:0}); if(v>=10)return v.toFixed(1); if(v>=0.1)return v.toFixed(3); return v.toPrecision(3); }
+function drawChart(shown,hidden){
+  // S20 rebuild: a chart you can actually READ — real price axis, real dates, gridlines.
+  const rawAll=(hidden?cur.rawShown.concat(cur.rawHidden):cur.rawShown);
+  const rMin=Math.min(...rawAll), rMax=Math.max(...rawAll);
+  const all=hidden?shown.concat(hidden):shown;
+  const min=Math.min(...all)*0.98, max=Math.max(...all)*1.02;
+  const ML=52, MB=20, W=600, H=260, PW=W-ML-6, PH=H-MB-6, n=(cur&&cur.n)||SHOW+HIDE+1;
+  const X=i=>ML+i/(n-1)*PW, Y=v=>6+(PH-(v-min)/(max-min)*PH);
+  let ax="";
+  [0,0.5,1].forEach(f=>{
+    const yv=min+(max-min)*f, ry=rMin+(rMax-rMin)*((yv-Math.min(...all))/(Math.max(...all)-Math.min(...all)||1));
+    const y=Y(yv);
+    ax+=`<line x1="${ML}" y1="${y.toFixed(1)}" x2="${W-6}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
+    ax+=`<text x="${ML-5}" y="${(y+4).toFixed(1)}" fill="var(--muted)" font-size="11" text-anchor="end">${fmtP(rMin+(rMax-rMin)*f)}</text>`;
+  });
+  const dEnd = hidden?cur.endDate:cur.dCut;
+  [[0,cur.dShow0,"start"],[cur.showN/(n-1),cur.dCut,"middle"],[1,dEnd,"end"]].forEach(([f,dt,anch])=>{
+    ax+=`<text x="${(ML+f*PW).toFixed(1)}" y="${H-4}" fill="var(--muted)" font-size="10.5" text-anchor="${anch}">${dt}</text>`;
+  });
+  let d1="M"+shown.map((v,i)=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" L");
+  let svg=ax+`<path d="${d1}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+  svg+=`<line x1="${X((cur&&cur.showN)||SHOW)}" y1="6" x2="${X((cur&&cur.showN)||SHOW)}" y2="${H-MB}" stroke="var(--faint)" stroke-dasharray="4 4"/>`;
+  if(hidden){
+    const SP=(cur&&cur.showN)||SHOW; let d2="M"+X(SP).toFixed(1)+","+Y(shown[SP]).toFixed(1)+" L"+hidden.map((v,i)=>X(SP+1+i).toFixed(1)+","+Y(v).toFixed(1)).join(" L");
+    const col=hidden[hidden.length-1]>=shown[SP]?"var(--up)":"var(--down)";
+    svg+=`<path d="${d2}" fill="none" stroke="${col}" stroke-width="2.5"/>`;
+  } else {
+    svg+=`<text x="${X((cur&&cur.showN)||SHOW)+8}" y="20" fill="var(--faint)" font-size="12">the hidden window →</text>`;
+  }
+  $("chart").innerHTML=svg;
+}
+
+function gateCommit(){ $("commit").disabled = !(picked && $("thesis").value.trim().length>=15); }
+function pick(which,btn,cls){ picked=which; ["cUp","cFlat","cDown"].forEach(i=>$(i).className="choice"); $(btn).classList.add(cls); gateCommit(); }
+$("cUp").onclick=()=>pick("UP","cUp","sel-up");
+$("cFlat").onclick=()=>pick("SIDEWAYS","cFlat","sel-flat");
+$("cDown").onclick=()=>pick("DOWN","cDown","sel-down");
+$("conf").oninput=e=>$("confV").textContent=e.target.value+"%";
+$("thesis").oninput=gateCommit;
+// ---- evidence engine: each computes from the SHOWN window on demand ----
+function _evLine(id,label,html){ cur.ev[id]=true; $(id).classList.add("sel-flat");
+  $("evOut").innerHTML += `<div style="border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:7px 10px;margin-top:6px"><b style="color:var(--ink)">${label}:</b> ${html}</div>`; }
+$("evTrend").onclick=()=>{ if(cur.ev.evTrend)return; const s=cur.shown;
+  const chg=(s[s.length-1]-s[0])/s[0]*100;
+  const half=(s[s.length-1]-s[Math.floor(s.length/2)])/s[Math.floor(s.length/2)]*100;
+  _evLine("evTrend","Trend read",`whole window ${chg>=0?"+":""}${chg.toFixed(1)}% · second half ${half>=0?"+":""}${half.toFixed(1)}% — ${Math.abs(chg)<3?"mostly chop":"a "+(chg>0?"rising":"falling")+" stretch"+(Math.sign(half)!==Math.sign(chg)&&Math.abs(half)>1?", but the recent half turned the other way":"")}. <span style="color:var(--faint)">Our Signal Test: trend rules earn mixed-to-moderate evidence — real sometimes, a law nowhere.</span>`);};
+$("evVol").onclick=()=>{ if(cur.ev.evVol)return; const s=cur.shown;
+  const rets=[]; for(let i=1;i<s.length;i++)rets.push((s[i]-s[i-1])/s[i-1]*100);
+  const m=rets.reduce((a,b)=>a+b,0)/rets.length;
+  const sd=Math.sqrt(rets.reduce((a,b)=>a+(b-m)*(b-m),0)/rets.length);
+  const big=rets.filter(r=>Math.abs(r)>2*sd).length;
+  _evLine("evVol","Swings & volatility",`typical bar move ±${sd.toFixed(1)}% · ${big} bar${big===1?"":"s"} jumped over twice that. <span style="color:var(--faint)">Wilder swings mean any single read is more luck-exposed — sureness should fall as swings rise.</span>`);};
+$("evDD").onclick=()=>{ if(cur.ev.evDD)return; const s=cur.shown;
+  let peak=s[0],dd=0,ddi=0; s.forEach((v,i)=>{ if(v>peak)peak=v; const f=(v-peak)/peak*100; if(f<dd){dd=f;ddi=i;} });
+  const rec=(s[s.length-1]-s[ddi])/s[ddi]*100;
+  _evLine("evDD","Drawdown map",`deepest fall inside: <b style="color:var(--down)">${dd.toFixed(1)}%</b>, and it has ${rec>1?"recovered "+rec.toFixed(1)+"% since":"not meaningfully recovered"}. <span style="color:var(--faint)">Dips only look like gifts after recovery — and recovery is exactly what's never guaranteed (our 9-market tests: little evidence).</span>`);};
+$("evRange").onclick=()=>{ if(cur.ev.evRange)return; const s=cur.shown;
+  const lo=Math.min(...s),hi=Math.max(...s),pos=(s[s.length-1]-lo)/(hi-lo)*100;
+  _evLine("evRange","Where in its range",`it now sits at the <b>${pos.toFixed(0)}th percentile</b> of this window's range (0 = the low, 100 = the high). <span style="color:var(--faint)">Near-high feels like strength to momentum readers and danger to mean-reverters — history refuses to settle which, and that disagreement is the honest state of the evidence.</span>`);};
+
+$("commit").onclick=()=>{
+  if(!picked||!cur) return;
+  const conf=Number($("conf").value);
+  // resolve by the pre-registered rule
+  const startV=cur.shown[cur.shown.length-1], endV=cur.hidden[cur.hidden.length-1];
+  const chg=(endV-startV)/startV*100;
+  const TH=MARKET.thresh;
+  const outcome=chg>=TH?"UP":chg<=-TH?"DOWN":"SIDEWAYS";
+  const hit=picked===outcome;
+  const evN=Object.keys(cur.ev).length;
+  const thesis=$("thesis").value.trim();
+  rounds.push({pick:picked,conf,outcome,hit,evN});
+  drawChart(cur.shown,cur.hidden);
+  $("commitUI").style.display="none"; $("evPanel").style.display="none"; $("ident").style.display="none";
+  $("resultBox").innerHTML=`<div class="result ${hit?'hit':'miss'}">
+    <b>${hit?"Hit":"Miss"}.</b> You committed <b>${picked}</b> at ${conf}% sure. Reality: the hidden ${cur.n-cur.showN-1<0?"":""}window (${(cur.n-cur.showN-1)} ${cur.unit}) moved <b>${chg>=0?"+":""}${chg.toFixed(1)}%</b> → <b>${outcome}</b> by this market's pre-set ±${TH}% rule.
+    <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${cur.tick}'s hidden window ran ${cur.dCut} → ${cur.endDate}. ${hit?"A hit proves the read <i>or</i> the luck — one round can't say which.":"A miss proves the read wrong <i>or</i> unlucky — one round can't say which."} Only your pattern across rounds means anything.</div>
+    <div style="border:1px solid var(--line);border-left:3px solid ${evN>=3?"var(--up)":evN>=1?"var(--warn)":"var(--down)"};border-radius:9px;padding:9px 12px;margin-top:8px;font-size:.82rem;color:var(--muted)"><b style="color:var(--ink)">Your process, graded:</b> you requested <b>${evN} of 4</b> evidence reads before committing${evN<4?" — ignored: "+["evTrend","evVol","evDD","evRange"].filter(k=>!cur.ev[k]).map(k=>({evTrend:"the trend read",evVol:"the swings",evDD:"the drawdown map",evRange:"range position"})[k]).join(", "):" — the full desk"}.
+      <div style="margin-top:5px"><b style="color:var(--ink)">Your thesis, echoed back:</b> <i>"${thesis}"</i> — now that you know the outcome, grade the REASONING yourself: was it sound and ${hit?"rewarded":"unlucky"}, or flawed and ${hit?"lucky":"exposed"}? A well-reasoned miss beats a badly-reasoned hit, every time — that's the whole desk.</div></div>
+    <div style="border:1px solid var(--line);border-left:3px solid var(--define);border-radius:9px;padding:9px 12px;margin-top:8px;font-size:.82rem;color:var(--muted)"><b style="color:var(--ink)">What this round teaches:</b> ${hit?"Right — but hold the celebration: guessing blind lands near <b>33%</b> here (three outcomes), so one hit can't tell reading from luck.":"Missed — in good company: most confident famous forecasts in our Who Called It room missed too. The miss isn't the lesson; what your confidence said <i>before</i> the reveal is."} The one skill this simulator grades is <b>calibration</b> — whether your ${conf}% sureness matches how often you're actually right. Watch the gap shrink (or not) across rounds. <span style="color:var(--faint)">Honest limit: nothing was at stake, so your fear never voted — real money adds a player this practice can't include.</span></div>
+  </div>`;
+  round++; $("roundNum").textContent=round;
+  $("start").textContent="Next round — pull another real market"; $("start").style.display=""; $("start").disabled=false;
+  setG("resolved");
+  renderTally();
+};
+
+function renderTally(){
+  if(!rounds.length) return;
+  const hits=rounds.filter(r=>r.hit).length, n=rounds.length;
+  const hr=hits/n*100, avgC=rounds.reduce((a,r)=>a+r.conf,0)/n, avgEv=rounds.reduce((a,r)=>a+(r.evN||0),0)/n;
+  const gap=avgC-hr;
+  let verdict;
+  if(n<5) verdict=`Too few rounds to grade calibration yet — play at least 5.`;
+  else if(gap>15) verdict=`<b style="color:var(--warn)">Overconfident:</b> you average ${avgC.toFixed(0)}% sure but hit ${hr.toFixed(0)}%. That ${gap.toFixed(0)}-point gap is the habit that costs real money — not the misses themselves.`;
+  else if(gap<-15) verdict=`<b style="color:var(--accent)">Underconfident:</b> you hit more than you claim. Rare, and safer than the opposite.`;
+  else verdict=`<b style="color:var(--up)">Well-calibrated so far:</b> your sureness roughly matches your results. That's the actual skill.`;
+  $("tally").style.display="";
+  $("tally").innerHTML=`<b>Your session:</b> ${n} round${n>1?"s":""} · hit ${hits} (${hr.toFixed(0)}%) · random baseline ≈ 33% · average sureness ${avgC.toFixed(0)}% · evidence used ${avgEv.toFixed(1)}/4 per round<br>${verdict}
+  <div style="font-size:.76rem;color:var(--faint);margin-top:6px">Lives only on this page — closing the tab clears it. No account, no storage.</div>`;
+}
+
+$("start").onclick=startRound;
+
+// market picker (v2): one button per module; switching allowed between rounds
+function renderMkts(){
+  $("mktRow").innerHTML=MARKETS.map((m,i)=>
+    `<button class="choice${m===MARKET?' sel-flat':''}" style="font-size:.8rem;padding:10px 4px" onclick="pickMkt(${i})">${m.label}</button>`).join("");
+}
+function pickMkt(i){ MARKET=MARKETS[i]; renderMkts(); setG(MARKET.label+" selected — start a round"); }
+
+
+renderMkts();
+</script>
+
+<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><b style="color:var(--ink)">Keep going:</b> <a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">Remaining markets — the education behind every market you just played</a> &nbsp;·&nbsp; <a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum of losses — when real money played these rounds</a> &nbsp;·&nbsp; <a href="index.html" style="color:var(--accent);text-decoration:none">Home — the whole map</a></div></div>
+<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:"  ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
+<script>(function(){var sel=".keyhole,.warnbox,.filterbox,.counter,.rulebox,.lens";document.querySelectorAll(sel).forEach(function(el){if(el.closest("details")||el.querySelector("details"))return;var b=el.querySelector("b");var label=b?b.textContent.replace(/[\s:—–-]+$/,""):el.textContent.trim().slice(0,60)+"…";if(el.textContent.trim().length<160)return;var d=document.createElement("details");d.className="psfold";var s=document.createElement("summary");s.textContent=label;d.appendChild(s);var inner=document.createElement("div");inner.innerHTML=el.innerHTML;d.appendChild(inner);el.innerHTML="";el.appendChild(d);});})();</script>
+</body>
+</html>

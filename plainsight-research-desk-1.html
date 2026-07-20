@@ -96,6 +96,7 @@
   <div class="card" id="game">
     <div id="ident" style="display:none;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;padding:8px 11px;margin-bottom:10px;font-size:.85rem"></div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>Round <span id="roundNum">1</span></b><span class="stat" id="gstat">tap start</span></div>
+    <div id="zoomRow" style="display:none;gap:6px;margin-bottom:6px"></div>
     <div id="chartbox" style="margin:10px 0"><svg role="img" aria-label="data visualization — values described in adjacent text" id="chart" viewBox="0 0 600 340" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:70vh;display:block;border:1px solid var(--line);border-radius:9px;background:var(--panel2)"></svg>
       <button id="expandChart" style="margin-top:6px;background:none;border:1px solid var(--line);border-radius:7px;padding:5px 10px;font-size:.74rem;color:var(--muted)">⤢ Bigger view</button>
       <p class="attrib">Real daily prices, named and dated — real price axis, real dates on the chart. Data: CoinGecko (crypto; metals via 1:1 metal-backed tokens), Frankfurter/ECB (currencies), and public-domain (PDDL) datasets — the Shiller S&P 500 series and Federal Reserve H.15 yields (stocks &amp; rates, monthly).</p></div>
@@ -232,6 +233,7 @@ let round=1, rounds=[];           // rounds: {pick, conf, outcome, hit}
 let cur=null;                     // current round state
 let picked=null;
 let revealed=false;               // has this round's hidden window been drawn yet?
+let zoomBucket=1;                 // 1=day/native, 7=week, 30=month — display-only, never touches grading math
 
 function setG(t,c){const s=$("gstat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
 
@@ -263,7 +265,8 @@ async function startRound(){
        dShow0:new Date(shown[0].t).toISOString().slice(0,10), dCut:new Date(shown[shown.length-1].t).toISOString().slice(0,10),
        startDate:new Date(shown[0].t).toISOString().slice(0,10),
        endDate:new Date(hidden[hidden.length-1].t).toISOString().slice(0,10), ev:{}, };
-  revealed=false;
+  revealed=false; zoomBucket=1;
+  renderZoomRow();
   drawChart(cur.shown,null);
   // identity is SHOWN — this is research, not a guessing game
   $("ident").style.display="";
@@ -297,11 +300,15 @@ function drawChart(shown,hidden){
     ax+=`<line x1="${ML}" y1="${y.toFixed(1)}" x2="${W-6}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
     ax+=`<text x="${ML-5}" y="${(y+4).toFixed(1)}" fill="var(--muted)" font-size="11" text-anchor="end">${fmtP(rMin+(rMax-rMin)*f)}</text>`;
   });
-  const dEnd = hidden?cur.endDate:cur.dCut;
-  [[0,cur.dShow0,"start"],[cur.showN/(n-1),cur.dCut,"middle"],[1,dEnd,"end"]].forEach(([f,dt,anch])=>{
+  const unitWord = (cur.unit==="months") ? "Month" : "Day";
+  const endN = hidden ? (n-1) : cur.showN;
+  [[0,unitWord+" 0","start"],[cur.showN/(n-1),unitWord+" "+cur.showN,"middle"],[1,unitWord+" "+endN,"end"]].forEach(([f,dt,anch])=>{
     ax+=`<text x="${(ML+f*PW).toFixed(1)}" y="${H-4}" fill="var(--muted)" font-size="10.5" text-anchor="${anch}">${dt}</text>`;
   });
-  let d1="M"+shown.map((v,i)=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" L");
+  const zb = (!hidden && zoomBucket>1) ? zoomBucket : 1; // zoom only applies pre-reveal, to the shown segment
+  let shownIdx=[]; for(let i=0;i<shown.length;i+=zb) shownIdx.push(i);
+  if(shownIdx[shownIdx.length-1]!==shown.length-1) shownIdx.push(shown.length-1);
+  let d1="M"+shownIdx.map(i=>X(i).toFixed(1)+","+Y(shown[i]).toFixed(1)).join(" L");
   let svg=ax+`<path d="${d1}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
   svg+=`<line x1="${X((cur&&cur.showN)||SHOW)}" y1="6" x2="${X((cur&&cur.showN)||SHOW)}" y2="${H-MB}" stroke="var(--faint)" stroke-dasharray="4 4"/>`;
   if(hidden){
@@ -361,7 +368,7 @@ $("commit").onclick=()=>{
   rounds.push({pick:picked,conf,outcome,hit,evN});
   revealed=true;
   drawChart(cur.shown,cur.hidden);
-  $("commitUI").style.display="none"; $("evPanel").style.display="none"; $("ident").style.display="none";
+  $("commitUI").style.display="none"; $("evPanel").style.display="none"; $("ident").style.display="none"; $("zoomRow").style.display="none";
   $("resultBox").innerHTML=`<div class="result ${hit?'hit':'miss'}">
     <b>${hit?"Hit":"Miss"}.</b> You committed <b>${picked}</b> at ${conf}% sure. Reality: the hidden ${cur.n-cur.showN-1<0?"":""}window (${(cur.n-cur.showN-1)} ${cur.unit}) moved <b>${chg>=0?"+":""}${chg.toFixed(1)}%</b> → <b>${outcome}</b> by this market's pre-set ±${TH}% rule.
     <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${cur.tick}'s hidden window ran ${cur.dCut} → ${cur.endDate}. ${hit?"A hit proves the read <i>or</i> the luck — one round can't say which.":"A miss proves the read wrong <i>or</i> unlucky — one round can't say which."} Only your pattern across rounds means anything.</div>
@@ -391,6 +398,19 @@ function renderTally(){
 }
 
 $("start").onclick=startRound;
+function renderZoomRow(){
+  const row=$("zoomRow");
+  if(!cur || cur.unit!=="days"){ row.style.display="none"; row.innerHTML=""; return; }
+  row.style.display="flex";
+  const opts=[["Day",1],["Week",7],["Month",30]];
+  row.innerHTML=opts.map(([label,b])=>
+    `<button class="choice${zoomBucket===b?' sel-flat':''}" style="font-size:.72rem;padding:6px 10px" data-zoom="${b}">${label} view</button>`).join("");
+  row.querySelectorAll("[data-zoom]").forEach(btn=>btn.onclick=()=>{
+    zoomBucket=Number(btn.getAttribute("data-zoom"));
+    renderZoomRow();
+    if(cur && !revealed) drawChart(cur.shown,null);
+  });
+}
 let _big=false;
 $("expandChart").onclick=()=>{
   _big=!_big;

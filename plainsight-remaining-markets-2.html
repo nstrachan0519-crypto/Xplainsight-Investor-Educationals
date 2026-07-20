@@ -25,7 +25,7 @@
      structures ("sophisticated and disciplined"); option selling harvests a
      real premium; Cboe-sponsored work disputes retail-proxy methodologies.
    - SPIVA correction applied project-wide this session: ~92% of US stock funds
-     underperformed benchmarks over the 20 years through 2025 (was ~94%).
+     underperformed <span class="term" data-def="benchmark">benchmarks</span> over the 20 years through 2025 (was ~94%).
   Stable textbook facts (REIT structure, FDIC limits, PPP/carry, home-bias
   literature, CPI mechanics) carried from training; framed with named critics.
   Every strategy argued FOR and AGAINST. Nothing prescribed.
@@ -33,7 +33,7 @@
 -->
 <style>
   :root{--bg:#0E1116;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
-    --muted:#8A9099;--faint:#838B94;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --muted:#8A9099;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
     --warn:#C9A227;--define:#A78BFA;}
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);
@@ -67,6 +67,8 @@
   .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
   @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
@@ -124,7 +126,7 @@
 
   <h2>🔥 Inflation — the force under every market</h2>
   <div class="card">
-    <p><b>What it actually is:</b> not "prices going up" — <b>money's buying power going down</b>. The distinction matters: your account balance never shows the leak, which is why inflation is the stealthiest force in finance. At 3% a year, money halves its buying power in ~24 years; at 7%, in ~10 (<span class="term" data-def="rule of 72">rule of 72</span>). Every "return" you ever see is nominal until you subtract it — the only return you can eat is the <b>real</b> one.</p>
+    <p><b>What it actually is:</b> not "prices going up" — <b>money's buying power going down</b>. The distinction matters: your account balance never shows the leak, which is why inflation is the stealthiest force in finance. At 3% a year, money halves its buying power in ~24 years; at 7%, in ~10 (<span class="term" data-def="rule of 72">rule of 72</span>). Every "return" you ever see is <span class="term" data-def="nominal">nominal</span> until you subtract it — the only return you can eat is the <b>real</b> one.</p>
     <p><b>How it touches every section above:</b> it's why cash leaks, why bonds' fixed coupons are its favorite prey (and why TIPS exist), why gold-believers believe, why rents and commodity spikes hedge it, why the Fed's fight against it (rates) is the ruler that re-prices everything — and why the single most important habit this whole compendium can teach is asking of every number: <b>"is that before or after inflation?"</b> Most of the impressive numbers in financial marketing are before. Most of real life is after.</p>
   </div>
 
@@ -136,6 +138,8 @@
 <script>
 const $=id=>document.getElementById(id);
 const GLOSSARY={
+  "benchmark":"The plain yardstick you measure against \u2014 usually just owning the whole market. Beating the benchmark means doing better than that simple do-nothing option; most funds don\u0027t.",
+  "nominal":"A number before you subtract inflation. If your money grew 5% but prices rose 3%, the 5% is nominal \u2014 the real gain (what you can actually buy more of) is closer to 2%.",
   "premium":"The price of an option — what the buyer pays the seller for the right the contract grants. For the buyer it's the maximum possible loss; for the seller it's the maximum possible gain. Everything else about options is a fight over whether that price was too high or too low.",
   "leverage (options)":"An option controls a big position with small money — $1,000 of premium might control $30,000 of stock. Gains and losses on the CONTROLLED amount land on your SMALL amount, so percentage swings are enormous in both directions. Same force as crypto leverage, wearing a contract.",
   "theta":"The daily melt. An option loses a little value every day just from time passing, because its deadline gets closer. Buyers bleed theta; sellers collect it. It's why 'I was right about the direction but still lost' is the most common options story — right, but not right SOON enough.",

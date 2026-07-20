@@ -21,7 +21,7 @@
 -->
 <style>
   :root{--bg:#0E1116;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
-    --muted:#8A9099;--faint:#838B94;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --muted:#8A9099;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
     --warn:#C9A227;--define:#A78BFA;}
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);
@@ -56,6 +56,8 @@
   .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
   @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
@@ -67,7 +69,7 @@
   <p class="sub">Every market museum celebrates winners. This one keeps the wreckage — the great documented blowups, each replayed through the same lens our live gauges use: <b>what the data showed at the time, what it couldn't show, and what the crowd did anyway.</b> Everything here already happened and already resolved — that's the rule. We teach the herd lesson only in the past tense, because reality has already graded the exam. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
 
   <div class="card">
-    <p><b>Why a living museum of losses exists:</b> the flat wallets on our live board are today's small wrecks. These are history's great ones — and they rhyme. Watch for the same five ingredients in every exhibit: <b>borrowed size</b> (<span class="term" data-def="leverage">leverage</span>), <b>a confident story</b>, <b>a crowd piling in</b>, <b>a trigger nobody modeled</b>, and <b>forced selling that feeds itself</b> (the <span class="term" data-def="doom loop">doom loop</span>). The costumes change — bonds, coins, exchanges. The machine doesn't.</p>
+    <p><b>Why a living museum of losses exists:</b> the flat wallets on our live board are today's small wrecks. These are history's great ones — and they rhyme. These wrecks come in <b>two families</b>, and telling them apart is half the lesson. <b>Family one — the leverage cascade:</b> borrowed size, a confident story, a crowd piling in, a trigger nobody modeled, and forced selling that feeds itself (the <span class="term" data-def="doom loop">doom loop</span>). LTCM, the crypto blowups, and the UK pension crisis are all this same machine in different costumes. <b>Family two — the unverifiable claim:</b> no leverage, no trigger, just numbers on paper nobody could independently check — Enron's fictional profits, Madoff's fake statements. The first family collapses under its own weight; the second was hollow from the start. Different machines, one shared warning: when you can't see the real numbers yourself, you're trusting a story.</p>
   </div>
 
   <!-- EXHIBIT 1: LTCM -->
@@ -80,6 +82,50 @@
     <p><b>The doom loop:</b> losses → margin calls → forced selling into a falling market → prices pushed further against the remaining positions → more margin calls. By mid-September: ~$600 million of capital against $100+ billion of positions — an effective leverage near <b>167-to-1</b>. The exact cascade our liquidation heatmap models, in government bonds, before crypto existed.</p>
     <div class="toll"><b>The toll:</b> $4.6 billion lost in under four months. The Federal Reserve gathered 14 banks to inject $3.6 billion<sup><a href="plainsight-citations-1.html#c13" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[13]</a></sup> — private money, but a rescue the Fed had to arrange because a fire-sale of the fund's positions threatened the whole financial system. (Source: Federal Reserve History; SEC-era estimates.)</div>
     <div class="lens"><b>Through our gauges (visible vs. invisible):</b> the leverage ratio was <b>knowable</b> — 28:1<sup><a href="plainsight-citations-1.html#c13" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[13]</a></sup> was in the fund's own reporting, the exact "real borrow vs. own money" number our board headlines. What was invisible: the assumption that markets stay orderly. Their models said a month like August 1998 was essentially impossible. The lesson our cushion teaches daily: the floor is real, the model of how far prices can move is a guess.</div>
+  </div>
+
+  <!-- EXHIBIT: MILKEN/DREXEL (1990) -->
+  <div class="exhibit">
+    <div class="ex-when">1990 · Bonds — the junk-bond king</div>
+    <div class="ex-title">Milken &amp; Drexel — the machine was legal, the shortcuts weren't</div>
+    <p><b>The story going in:</b> in the 1980s Michael Milken built a whole new market almost single-handedly: <span class="term" data-def="junk bond">junk bonds</span> — bonds from shaky companies that paid high interest because they might not pay you back. It let risky firms raise money and powered a decade of corporate takeovers. Milken was the highest-paid person on Wall Street; he was reportedly paid <b>$550 million in 1987 alone</b>, and his firm, Drexel Burnham Lambert, became one of the most powerful in America.</p>
+    <p><b>The honest complication (this exhibit is different):</b> unlike the others here, the <i>invention</i> wasn't the crime. Junk bonds were a real financial tool that still exists today, in a market now worth over a trillion dollars. What broke the law were the <b>shortcuts</b> around the machine — securities fraud. In April 1990, Milken pleaded guilty to <b>six felony securities-fraud charges</b>. Drexel went bankrupt the same year.</p>
+    <p><b>Where the record is disputed — named, not smoothed over:</b> sources genuinely disagree on the details, so we won't pick a number and pretend it's settled. His sentence is variously reported as ten years, later reduced to around two years for cooperation; his fines and settlements are reported anywhere from $600 million to over $1 billion; and he was pardoned by the U.S. President in 2020. Where the receipts conflict, we say so — that honesty is the exhibit's whole point.</p>
+    <div class="toll"><b>The toll:</b> Drexel — once the fifth-largest investment bank in the U.S. — gone. When Milken left, the junk-bond network he personally held together seized up, and a wave of over-leveraged 1980s takeovers unwound. <sup><a href="plainsight-citations-1.html#c33" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[33]</a></sup> (Sources conflict on precise figures; the guilty plea, the 1990 bankruptcy, and the six felony counts are the firm facts.)</div>
+    <div class="lens"><b>Through our gauges (visible vs. invisible):</b> this exhibit teaches a subtler lesson than the others: <b>a legitimate tool and a fraudulent operator can wear the same suit.</b> The junk-bond market was real and survived; the specific shortcuts were hidden and illegal. Our rule holds — the number that mattered (who really owed what to whom, on what terms) was obscured on purpose, and "obscured on purpose" is itself the warning our whole tool is built to surface.</div>
+  </div>
+
+  <!-- EXHIBIT: ENRON (2001) -->
+  <div class="exhibit">
+    <div class="ex-when">2001 · Stocks — the confident story with no receipts</div>
+    <div class="ex-title">Enron — America's "most innovative company," built on fiction</div>
+    <p><b>The story going in:</b> Enron was a Wall Street darling — an energy company reinvented as a high-tech trading powerhouse. <i>Fortune</i> magazine named it "America's Most Innovative Company" <b>six years running</b>. Its stock peaked at <b>$90.75 in August 2000</b>, a market value above $70 billion, and it was a staple in respectable retirement portfolios.</p>
+    <p><b>The structure underneath:</b> much of the profit was an accounting illusion. Two tricks did the heavy lifting: <span class="term" data-def="mark-to-market">mark-to-market accounting</span> let Enron book years of <i>projected</i> future profit as today's revenue — and never correct it when the profit failed to show up; and hidden side-companies (<span class="term" data-def="special purpose entity">special purpose entities</span>) were used to park billions in debt off the books, so Enron looked far richer and safer than it was.</p>
+    <p><b>The trigger and the collapse:</b> in 2001, journalists and analysts began asking a simple question nobody could answer clearly — <i>how exactly does Enron make money?</i> As scrutiny grew and executives resigned, confidence evaporated. In October 2001 Enron reported a surprise loss and a $1.2 billion hit to shareholder equity; the stock went into a death spiral, dropping <b>from around $15 to under $1 in weeks</b>. By the time it filed bankruptcy on <b>December 2, 2001</b>, shares that once traded near $91 were worth <b>26 cents</b>.</p>
+    <div class="toll"><b>The toll:</b> then the largest corporate bankruptcy in U.S. history (~$63.4 billion in assets). Thousands lost their jobs, and more than <b>$2 billion in employee pensions</b> — much of it held in Enron's own stock — was wiped out. Several executives went to prison. <sup><a href="plainsight-citations-1.html#c30" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[30]</a></sup> (Sources: SEC filings, public court records, contemporary reporting.)</div>
+    <div class="lens"><b>Through our gauges (visible vs. invisible):</b> the fraud was hidden, but the <b>warning sign</b> was in plain view for over a year — respected writers openly said they couldn't explain how the company earned its money. Our needle would have graded "Enron is worth $90 a share" as an <b>UNSUPPORTED CONCLUSION</b>: a confident story where the receipts couldn't be read. When nobody can explain the source of the money in plain words, that is the finding.</div>
+  </div>
+
+  <!-- EXHIBIT: MADOFF (2008) -->
+  <div class="exhibit">
+    <div class="ex-when">2008 · The purest fraud — fake receipts, for decades</div>
+    <div class="ex-title">Bernie Madoff — the statements were the whole lie</div>
+    <p><b>The story going in:</b> Bernie Madoff was Wall Street royalty — a former chairman of the NASDAQ stock exchange. His fund reported steady, gentle gains year after year, in good markets and bad. People <i>begged</i> to get in. His clients included banks, charities, universities, celebrities, and ordinary pension savers who often didn't even know their money had reached him.</p>
+    <p><b>The structure underneath — and why it's the museum's cleanest lesson:</b> there was no strategy. There were no trades. Back-office staff looked up <i>old</i> stock prices and typed up fake monthly statements showing gains that never happened. New investors' deposits were used to pay "returns" to earlier ones — the textbook <span class="term" data-def="ponzi scheme">Ponzi scheme</span>. No leverage, no doom loop, no market trigger. Just <b>numbers on paper that nobody could independently check.</b></p>
+    <p><b>The trigger:</b> the 2008 financial crisis. As panicked clients tried to withdraw about $7 billion at once, the fund simply didn't have it — because it had never really existed. In December 2008 Madoff confessed to his sons, who reported him; he was arrested on <b>December 11, 2008</b>.</p>
+    <div class="toll"><b>The toll:</b> client statements claimed about <b>$65 billion</b> — but that money was fiction; the actual cash investors had put in over the decades was around <b>$20 billion</b>. Madoff pleaded guilty to <b>11 federal felonies</b> and was sentenced to <b>150 years</b> in prison, where he died in 2021. Unusually for a fraud this size, a recovery effort has since returned <b>over 90%</b> of victims' real losses. <sup><a href="plainsight-citations-1.html#c31" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[31]</a></sup> (Sources: FBI and Department of Justice records.)</div>
+    <div class="lens"><b>Through our gauges (visible vs. invisible):</b> this is the exhibit that explains why our whole tool reads <b>public chains instead of trusting statements</b>. Madoff's statements were a <b>promise</b>; there was no independent <b>fact</b> underneath them anyone could verify. Our locked rule — a printed balance is a claim, an on-chain record is evidence — is the exact wall that this fraud walked straight through. "You can't check it yourself" is not a small inconvenience. It is the whole risk.</div>
+  </div>
+
+  <!-- EXHIBIT: UK GILT / LDI CRISIS (2022) -->
+  <div class="exhibit">
+    <div class="ex-when">2022 · Bonds — the LTCM machine, in pension funds</div>
+    <div class="ex-title">The UK gilt crisis — "safe" government bonds, a forced-selling spiral</div>
+    <p><b>The story going in:</b> UK pension funds — about the most cautious investors that exist — used a widely-recommended strategy called <span class="term" data-def="ldi">LDI</span> ("liability-driven investment") to match their long-term promises to retirees. To do it efficiently, many used <b>borrowing</b> against their government bonds (<span class="term" data-def="gilt">gilts</span>). Government bonds were the "safe" anchor of the whole system. Nobody pictured them as the danger.</p>
+    <p><b>The trigger nobody sized correctly:</b> on September 23, 2022, a surprise UK government budget spooked the bond market. Gilt yields <b>rose over 1 percentage point in four days</b> — a move so large and fast it was almost unheard of for government debt. Because the pension strategies were borrowed against those very bonds, the falling prices triggered demands for more collateral.</p>
+    <p><b>The doom loop (the same machine as Exhibit 1):</b> falling gilts → collateral calls → funds forced to sell gilts to raise cash → which pushed gilt prices <i>lower</i> → more collateral calls. The Bank of England later estimated this forced selling caused <b>about half</b> of the entire price crash. To stop a spiral that threatened pension funds nationwide, the central bank stepped in with emergency bond purchases, ending <b>October 14, 2022</b>.</p>
+    <div class="toll"><b>The toll:</b> a near-collapse of part of the UK pension system in days, halted only by an emergency central-bank rescue — in the "safest" asset there is, hitting the most conservative investors there are. <sup><a href="plainsight-citations-1.html#c32" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[32]</a></sup> (Sources: Bank of England, IMF, and UK Parliament reports.)</div>
+    <div class="lens"><b>Through our gauges (visible vs. invisible):</b> LTCM in 1998 and UK pensions in 2022 are the <b>same machine in different costumes</b>, 24 years apart — borrowed size, a "safe" bet, a trigger outside the model, and forced selling that feeds itself. The lesson our cushion gauge teaches daily: <b>"safe" is never the asset, it's the room-to-fall.</b> A government bond bought with borrowed money is not a safe holding — it is a leveraged one wearing a safe name.</div>
   </div>
 
   <!-- EXHIBIT 2: TERRA/LUNA -->
@@ -148,6 +194,12 @@
 <script>
 const $=id=>document.getElementById(id);
 const GLOSSARY={
+  "junk bond":"A bond (a loan you make to a company) from a shaky borrower that pays high interest because there's a real chance it won't pay you back. \"High-yield\" is the polite name; \"junk\" is the honest one. A legitimate tool \u2014 just a risky one.",
+  "mark-to-market":"An accounting method that books the expected future value of a deal as today's profit. Used honestly it's fine; used to record profits that never actually arrive \u2014 and never corrected when they don't \u2014 it turns a company's books into a wish list.",
+  "special purpose entity":"A separate side-company created to hold something off a firm's main books. Sometimes legitimate \u2014 but it can be used to hide debt, making the parent company look far richer and safer than it really is.",
+  "ponzi scheme":"A fraud with no real investment underneath: money from new investors is used to pay fake \"returns\" to earlier ones. It looks like a working fund until too many people ask for their money at once \u2014 then it collapses, because the money was never really there.",
+  "ldi":"\"Liability-driven investment\" \u2014 a strategy pension funds use to match their long-term promises to retirees. Cautious in intent, but often done with borrowing, which quietly adds the same fragility as any leveraged bet.",
+  "gilt":"A UK government bond \u2014 money lent to the British government. Treated as one of the \"safest\" assets in the world, which is exactly why the 2022 crisis, where they fell fast, was such a shock.",
   "leverage":"Betting bigger than your own money by borrowing-in-effect. 28-to-1 means $28 of bets for every $1 that's really yours — so a move of about 3.5% against you erases everything. More leverage = less room to be wrong.",
   "doom loop":"The self-feeding crash: losses force selling → the selling pushes prices further down → which causes more losses → which forces more selling. Nobody chooses it; the borrowed money does. It's the engine inside every exhibit here, and the thing our liquidation gauges try to make visible in advance.",
   "convergence trade":"A bet that two nearly-identical things priced slightly differently will drift back together. The gap is usually tiny and usually closes — so traders borrow heavily to make tiny gaps pay. The catch: 'usually closes' is not 'always closes,' and borrowed size means you may not survive the exception.",

@@ -31,7 +31,7 @@
 -->
 <style>
   :root{--bg:#0E1116;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
-    --muted:#8A9099;--faint:#838B94;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --muted:#8A9099;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
     --warn:#C9A227;--define:#A78BFA;}
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);
@@ -80,6 +80,8 @@
   #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
   #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
   #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
@@ -87,7 +89,14 @@
 <div class="wrap">
   <h1>The signal test</h1>
   <p class="sub">The famous chart signals people cite, sell, and swear by — put to the test against <b>up to 150 years of real market history, right now, on your phone.</b> No cherry-picked decade, no survivor examples: every time each signal ever fired, and what the next 12 months actually did, next to the <span class="term" data-def="base rate">base rate</span> it has to beat. The scoring rule is printed before any test runs, and it's the same for every signal, forever. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
-  <p class="sub" style="border-left:3px solid var(--accent);padding-left:10px"><b>Markets owe no one patterns.</b> Every famous signal earns its reputation here by surviving the same public, pre-registered test — or it doesn't. And one boundary holds throughout: this engine measures whether a pattern <b>historically repeated</b>; it cannot determine <b>why</b>. History shows what happened — never the reason.</p>
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0;font-size:.84rem"><b>The five questions this page answers — every test page asks the same five:</b>
+  <div style="display:flex;gap:8px;padding:4px 0"><span style="color:var(--accent);font-weight:700;white-space:nowrap">1 · What's being tested?</span><span>The most famous chart signals — trend rules, momentum, RSI, MACD, "buy the dip," and more.</span></div>
+  <div style="display:flex;gap:8px;padding:4px 0"><span style="color:var(--accent);font-weight:700;white-space:nowrap">2 · What do they claim?</span><span>Each claims that when it appears, the market does better (or worse) than normal afterward.</span></div>
+  <div style="display:flex;gap:8px;padding:4px 0"><span style="color:var(--accent);font-weight:700;white-space:nowrap">3 · How do we test it?</span><span>Seven pre-registered checks per signal — printed below before any data loads — against up to 150 years of history, and across 9 countries.</span></div>
+  <div style="display:flex;gap:8px;padding:4px 0"><span style="color:var(--accent);font-weight:700;white-space:nowrap">4 · What did history show?</span><span>Run the test and see — every verdict, win or lose, with the math behind each answer one tap away.</span></div>
+  <div style="display:flex;gap:8px;padding:4px 0"><span style="color:var(--accent);font-weight:700;white-space:nowrap">5 · What can't this tell you?</span><span>The future. History can show what repeated — never what will happen, and never why. That boundary holds on every page.</span></div>
+</div>
+<p class="sub" style="border-left:3px solid var(--accent);padding-left:10px"><b>Markets owe no one patterns.</b> Every famous signal earns its reputation here by surviving the same public, pre-registered test — or it doesn't. And one boundary holds throughout: this engine measures whether a pattern <b>historically repeated</b>; it cannot determine <b>why</b>. History shows what happened — never the reason.</p>
   <div class="card" style="font-size:.85rem"><b>Why only 11 signals, when thousands exist?</b> Because we don't try to cover them all — we couldn't, and a list that long would just be a new kind of noise. We test the most famous, most-cited ones properly, and we built the machine so YOU can test any other: the bring-your-own-CSV loader runs a claim you define through the same seven checks. The lesson was never "here are the signals that work." It's "here is how to check any signal, forever." That scales to thousands even though our list doesn't.</div>
   <div class="card" style="font-size:.85rem"><b>Where do these signals come from?</b> Every signal on this page is a calculation made from <b>past prices only</b> — no earnings, no news, no company information, nothing about the future. Indicators don't "see" anything; they rearrange what already happened into a pattern, and traders then believe the pattern means something. This page asks the only question that matters about that belief: <b>when the pattern appeared in history, did the market actually do better afterward?</b></div>
 

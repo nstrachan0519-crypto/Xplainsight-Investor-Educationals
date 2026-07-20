@@ -44,7 +44,7 @@ Pipes may go dark and say why; sample warnings are load-bearing; users are named
 2. Set the feedback address (home page placeholder).
 3. Add buy-and-hold deep dive's filename to home (it predates this manifest).
 4. Repo decision → issues-page feedback link + widget/graveyard ambitions unblock.
-5. FIVE-STAGE LAUNCH REVIEW: Nicholas personally clears READ → UNDERSTOOD → VERIFIED → APPROVED per page — the gate that exists precisely because an AI helped build a skeptic's tool. Nothing ships around it.
+5. FIVE-STAGE LAUNCH REVIEW: The builder personally clears READ → UNDERSTOOD → VERIFIED → APPROVED per page — the gate that exists precisely because an AI helped build a skeptic's tool. Nothing ships around it.
 
 ## S18 UPDATES
 - HOME v2: landing reorganized BY MARKET (crypto/stocks/bonds-rates/metals/currencies/everything-else/every-market); pages listed under every market they serve; simulator in all groups (it contains all markets); quick-start row on top.

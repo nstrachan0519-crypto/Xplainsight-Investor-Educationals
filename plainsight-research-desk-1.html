@@ -44,7 +44,7 @@
   svg{width:100%;height:auto;display:block;background:var(--panel2);border:1px solid var(--line);border-radius:10px}
   .rulebox{border:1px solid var(--line);border-left:3px solid var(--define);background:rgba(167,139,250,.06);border-radius:9px;padding:10px 13px;margin:10px 0;font-size:.82rem;color:var(--muted)}
   .rulebox b{color:var(--ink)}
-  .choices{display:flex;gap:8px;margin:10px 0}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
   .choice{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:12px 6px;font-size:.9rem;font-weight:640;cursor:pointer;text-align:center}
   .choice.sel-up{background:rgba(95,191,143,.2);border-color:var(--up);color:var(--up)}
   .choice.sel-down{background:rgba(224,144,108,.2);border-color:var(--down);color:var(--down)}
@@ -86,11 +86,16 @@
   <p class="sub">Real investors don't guess at squiggles — they <b>observe, request evidence, form a thesis, state their confidence, then commit</b>. This desk makes you practice exactly that, on real dated market history with real prices on the axes. You are graded on two things only: <span class="term" data-def="calibration">calibration</span> (does your sureness match your hit rate) and <b>process</b> (did you look at the evidence before deciding). Being right is not one of the grades — a good decision can lose and a bad one can win, and this desk never confuses the two.</p>
 
   <div style="border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:9px;padding:9px 12px;margin:10px 0;font-size:.82rem;color:var(--muted)"><b style="color:var(--ink)">An honest limit, up front:</b> this is a <b>close-price line chart</b>, not a full trading terminal. No candlesticks here on purpose — that specific claim gets its own dedicated, harder test on the <a href="plainsight-candle-test-1.html" style="color:var(--accent)">Candle Test</a> page. <b>Volume</b> is real and included for crypto &amp; metals (same data our funding gauges use) — but it doesn't meaningfully exist for currencies, stocks, or rates the way it does for a single exchange, so we say so rather than fake it. Real professional readers do use more inputs than this desk shows; what this desk trains is the <i>habit</i> — look before you decide — which transfers to any chart, however much data it has.</div>
-  <div class="rulebox"><b>The resolution rule, written before you play (so it can't bend afterward):</b> over the hidden 30 days, comparing the last shown price to the final price — <b>UP</b> / <b>DOWN</b> means it moved past that market's pre-set cutoff · <b>SIDEWAYS</b> means it stayed inside. Cutoffs are fixed per market in advance, because a "big move" differs by market: <b>crypto ±10% (30 days) · metals ±3% (30 days) · currencies ±1.5% (30 days) · stocks ±10% (12 months) · rates ±10% (12 months)</b>. Same rule for every round, forever.</div>
+  <div class="rulebox"><b>The resolution rule, written before you play (so it can't bend afterward):</b> over the hidden 30 days, comparing the last shown price to the final price — <b>UP</b> / <b>DOWN</b> means it moved past that market's pre-set cutoff · <b>SIDEWAYS</b> means it stayed inside. Cutoffs are fixed per market in advance, because a "big move" differs by market: <b>crypto ±10% (30 days) · metals ±3% (30 days) · currencies ±1.5% (30 days) · stocks ±10% (12 months) · rates ±10% (12 months) · your own file: set automatically from its detected bar size (minute ±0.8% · hourly ±2% · daily ±8-10% · monthly ±10%) and shown on the buttons before you commit</b>. Same rule for every round, forever.</div>
 
   <div class="card">
     <p style="font-size:.88rem;margin:4px 0"><b>Pick your market</b> — crypto, metals, and currencies play 30-day windows from live data; stocks and rates play 12-month windows drawn from up to 150 YEARS of public-domain history (your window might be 1929, 1966, or last year — that's the point):</p>
     <div class="choices" id="mktRow"></div>
+    <div id="customBox" style="display:none;margin-top:10px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;padding:9px 12px">
+      <p style="font-size:.82rem;margin:0 0 6px"><b>Load your own daily price history.</b> Needs a <b>Date</b> column and a <b>Close</b> (or Price/Value) column — Open/High/Low get used too if present. This file is read <b>on your device only</b> — never uploaded, never sent anywhere, gone when you close the tab. Same rule as every other file loader in this app.</p>
+      <input id="customfile" type="file" accept=".csv,text/csv" style="display:block;font-size:.82rem;color:var(--muted)">
+      <p id="customStat" style="font-size:.78rem;color:var(--muted);margin:6px 0 0"></p>
+    </div>
   </div>
 
   <div class="card" id="game">
@@ -194,7 +199,10 @@ const MARKETS=[
    urls:["https://raw.githubusercontent.com/datasets/bond-yields-us-10y/main/data/monthly.csv",
          "https://raw.githubusercontent.com/datasets/bond-yields-us-10y/master/data/monthly.csv"],
    col:"Rate",
-   fetch:async function(){ return csvFetch(this,"US 10-yr Treasury yield"); }}
+   fetch:async function(){ return csvFetch(this,"US 10-yr Treasury yield"); }},
+  {key:"custom", label:"Your own file 📄", thresh:10, show:90, hide:20, unit:"days",
+   src:"a file you loaded — never uploaded, read on your device only",
+   fetch:async function(){ if(!window._customData) throw new Error("load a CSV file first — tap \"Your own file 📄\" above"); return window._customData; }}
 ];
 let MARKET=MARKETS[0];
 
@@ -233,7 +241,8 @@ let round=1, rounds=[];           // rounds: {pick, conf, outcome, hit}
 let cur=null;                     // current round state
 let picked=null;
 let revealed=false;               // has this round's hidden window been drawn yet?
-let zoomBucket=1;                 // 1=day/native, 7=week, 30=month — display-only, never touches grading math
+let zoomBucket=1;                 // display-only bucketing — never touches grading math
+let chartMode="line";             // "line" | "candle" — candles only when the loaded file has OHLC
 
 function setG(t,c){const s=$("gstat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
 
@@ -260,12 +269,16 @@ async function startRound(){
   const base=shown[shown.length-1].v;
   let volShown=null;
   if(volumesAll && volumesAll.length===prices.length){ volShown=volumesAll.slice(cut-SHOWN,cut+1).map(p=>p.v); }
+  let ohlcS=null, ohlcH=null;
+  if(got.ohlc && got.ohlc.length===prices.length){
+    ohlcS=got.ohlc.slice(cut-SHOWN,cut+1); ohlcH=got.ohlc.slice(cut+1,cut+1+HIDDEN);
+  }
   cur={tick:got.tick, n:SHOWN+HIDDEN+1, showN:SHOWN, unit:UNIT, shown:shown.map(p=>p.v/base*100), hidden:hidden.map(p=>p.v/base*100),
-       rawShown:shown.map(p=>p.v), rawHidden:hidden.map(p=>p.v), volShown:volShown,
+       rawShown:shown.map(p=>p.v), rawHidden:hidden.map(p=>p.v), volShown:volShown, ohlcS:ohlcS, ohlcH:ohlcH,
        dShow0:new Date(shown[0].t).toISOString().slice(0,10), dCut:new Date(shown[shown.length-1].t).toISOString().slice(0,10),
        startDate:new Date(shown[0].t).toISOString().slice(0,10),
        endDate:new Date(hidden[hidden.length-1].t).toISOString().slice(0,10), ev:{}, };
-  revealed=false; zoomBucket=1;
+  revealed=false; zoomBucket=1; chartMode = cur.ohlcS ? "candle" : "line";
   renderZoomRow();
   drawChart(cur.shown,null);
   // identity is SHOWN — this is research, not a guessing game
@@ -284,39 +297,85 @@ async function startRound(){
 }
 
 function fmtP(v){ if(v>=1000)return v.toLocaleString(undefined,{maximumFractionDigits:0}); if(v>=10)return v.toFixed(1); if(v>=0.1)return v.toFixed(3); return v.toPrecision(3); }
+function _buckets(len, zb){ // index ranges [i0,i1] inclusive, honest OHLC-style aggregation windows
+  const out=[]; for(let i=0;i<len;i+=zb) out.push([i, Math.min(i+zb-1,len-1)]); return out;
+}
 function drawChart(shown,hidden){
-  // S20 rebuild: a chart you can actually READ — real price axis, real dates, gridlines.
-  const rawAll=(hidden?cur.rawShown.concat(cur.rawHidden):cur.rawShown);
-  const rMin=Math.min(...rawAll), rMax=Math.max(...rawAll);
-  const all=hidden?shown.concat(hidden):shown;
-  const min=Math.min(...all)*0.98, max=Math.max(...all)*1.02;
+  // S20: readable axes; S20b: candles + volume + intraday units + honest zoom aggregation.
+  const useC = chartMode==="candle" && cur && cur.ohlcS;             // candles possible only when file had OHLC
+  const rawShown=cur.rawShown, rawHidden=cur.rawHidden;
+  const rawAll = hidden ? rawShown.concat(rawHidden) : rawShown;
+  let rMin=Math.min(...rawAll), rMax=Math.max(...rawAll);
+  if(useC){ const src=hidden?cur.ohlcS.concat(cur.ohlcH||[]):cur.ohlcS;
+    for(const b of src){ if(b){ if(b.l<rMin)rMin=b.l; if(b.h>rMax)rMax=b.h; } } }
+  const pad=(rMax-rMin)*0.02||rMax*0.02; rMin-=pad; rMax+=pad;
   const vb=($("chart").getAttribute("viewBox")||"0 0 600 340").split(" ").map(Number);
-  const ML=52, MB=20, W=vb[2]||600, H=vb[3]||340, PW=W-ML-6, PH=H-MB-6, n=(cur&&cur.n)||SHOW+HIDE+1;
-  const X=i=>ML+i/(n-1)*PW, Y=v=>6+(PH-(v-min)/(max-min)*PH);
+  const ML=52, MB=20, W=vb[2]||600, H=vb[3]||340, PW=W-ML-6;
+  const hasVol = !!(cur && cur.volShown);
+  const VH = hasVol ? Math.round((H-MB-6)*0.18) : 0;                 // volume strip height
+  const PH=(H-MB-6)-VH-(hasVol?4:0);
+  const n=(cur&&cur.n)||SHOW+HIDE+1;
+  const X=i=>ML+i/(n-1)*PW, Y=v=>6+(PH-(v-rMin)/(rMax-rMin)*PH);
   let ax="";
   [0,0.5,1].forEach(f=>{
-    const yv=min+(max-min)*f, ry=rMin+(rMax-rMin)*((yv-Math.min(...all))/(Math.max(...all)-Math.min(...all)||1));
-    const y=Y(yv);
+    const rv=rMin+(rMax-rMin)*f, y=Y(rv);
     ax+=`<line x1="${ML}" y1="${y.toFixed(1)}" x2="${W-6}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
-    ax+=`<text x="${ML-5}" y="${(y+4).toFixed(1)}" fill="var(--muted)" font-size="11" text-anchor="end">${fmtP(rMin+(rMax-rMin)*f)}</text>`;
+    ax+=`<text x="${ML-5}" y="${(y+4).toFixed(1)}" fill="var(--muted)" font-size="11" text-anchor="end">${fmtP(rv)}</text>`;
   });
-  const unitWord = (cur.unit==="months") ? "Month" : "Day";
+  const UW={months:"Month", days:"Day", hours:"Hour", min:"Min"}[cur.unit]||"Bar";
   const endN = hidden ? (n-1) : cur.showN;
-  [[0,unitWord+" 0","start"],[cur.showN/(n-1),unitWord+" "+cur.showN,"middle"],[1,unitWord+" "+endN,"end"]].forEach(([f,dt,anch])=>{
+  [[0,UW+" 0","start"],[cur.showN/(n-1),UW+" "+cur.showN,"middle"],[1,UW+" "+endN,"end"]].forEach(([f,dt,anch])=>{
     ax+=`<text x="${(ML+f*PW).toFixed(1)}" y="${H-4}" fill="var(--muted)" font-size="10.5" text-anchor="${anch}">${dt}</text>`;
   });
-  const zb = (!hidden && zoomBucket>1) ? zoomBucket : 1; // zoom only applies pre-reveal, to the shown segment
-  let shownIdx=[]; for(let i=0;i<shown.length;i+=zb) shownIdx.push(i);
-  if(shownIdx[shownIdx.length-1]!==shown.length-1) shownIdx.push(shown.length-1);
-  let d1="M"+shownIdx.map(i=>X(i).toFixed(1)+","+Y(shown[i]).toFixed(1)).join(" L");
-  let svg=ax+`<path d="${d1}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
-  svg+=`<line x1="${X((cur&&cur.showN)||SHOW)}" y1="6" x2="${X((cur&&cur.showN)||SHOW)}" y2="${H-MB}" stroke="var(--faint)" stroke-dasharray="4 4"/>`;
-  if(hidden){
-    const SP=(cur&&cur.showN)||SHOW; let d2="M"+X(SP).toFixed(1)+","+Y(shown[SP]).toFixed(1)+" L"+hidden.map((v,i)=>X(SP+1+i).toFixed(1)+","+Y(v).toFixed(1)).join(" L");
-    const col=hidden[hidden.length-1]>=shown[SP]?"var(--up)":"var(--down)";
-    svg+=`<path d="${d2}" fill="none" stroke="${col}" stroke-width="2.5"/>`;
+  const zb = (!hidden && zoomBucket>1) ? zoomBucket : 1;             // zoom is pre-reveal only
+  const bks=_buckets(rawShown.length, zb);
+  let svg=ax;
+  // volume strip (real numbers, bucket-SUMMED on zoom — sums are the honest aggregation for volume)
+  if(hasVol){
+    const v=cur.volShown, vTop=6+PH+4, vMax=Math.max(...v)||1;
+    const bw=Math.max(1,(PW/(n-1))*zb*0.7);
+    for(const [i0,i1] of bks){
+      let s=0; for(let k=i0;k<=i1;k++) s+=v[k]||0;
+      const bh=Math.max(1,(s/(vMax*zb))*VH);
+      svg+=`<rect x="${(X(i0)-bw/2).toFixed(1)}" y="${(vTop+VH-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" fill="var(--faint)" opacity=".55"/>`;
+    }
+    svg+=`<text x="${ML-5}" y="${(vTop+10)}" fill="var(--faint)" font-size="9" text-anchor="end">vol</text>`;
+  }
+  if(useC){
+    // candles, honestly aggregated per zoom bucket: open=first open, close=last close, high=max, low=min
+    const cw=Math.max(1.4,(PW/(n-1))*zb*0.62);
+    for(const [i0,i1] of bks){
+      let o=cur.ohlcS[i0]?cur.ohlcS[i0].o:rawShown[i0], c=cur.ohlcS[i1]?cur.ohlcS[i1].c:rawShown[i1];
+      let hh=-Infinity, ll=Infinity;
+      for(let k=i0;k<=i1;k++){ const b=cur.ohlcS[k]; const bh=b?b.h:rawShown[k], bl=b?b.l:rawShown[k];
+        if(bh>hh)hh=bh; if(bl<ll)ll=bl; }
+      const up=c>=o, col=up?"var(--up)":"var(--down)", xc=X((i0+i1)/2);
+      svg+=`<line x1="${xc.toFixed(1)}" y1="${Y(hh).toFixed(1)}" x2="${xc.toFixed(1)}" y2="${Y(ll).toFixed(1)}" stroke="${col}" stroke-width="1"/>`;
+      const yTop=Y(Math.max(o,c)), yBot=Y(Math.min(o,c));
+      svg+=`<rect x="${(xc-cw/2).toFixed(1)}" y="${yTop.toFixed(1)}" width="${cw.toFixed(1)}" height="${Math.max(1,(yBot-yTop)).toFixed(1)}" fill="${col}"/>`;
+    }
   } else {
-    svg+=`<text x="${X((cur&&cur.showN)||SHOW)+8}" y="20" fill="var(--faint)" font-size="12">the hidden window →</text>`;
+    const pts=bks.map(([i0,i1])=>[ (i0+i1)/2, rawShown[i1] ]);
+    if(pts[pts.length-1][0]!==rawShown.length-1) pts.push([rawShown.length-1, rawShown[rawShown.length-1]]);
+    const d1="M"+pts.map(([i,v])=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" L");
+    svg+=`<path d="${d1}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+  }
+  svg+=`<line x1="${X(cur.showN)}" y1="6" x2="${X(cur.showN)}" y2="${6+PH}" stroke="var(--faint)" stroke-dasharray="4 4"/>`;
+  if(hidden){
+    const SP=cur.showN;
+    if(useC && cur.ohlcH){
+      const cw=Math.max(1.4,(PW/(n-1))*0.62);
+      cur.ohlcH.forEach((b,i)=>{ if(!b)return; const xc=X(SP+1+i), up=b.c>=b.o, col=up?"var(--up)":"var(--down)";
+        svg+=`<line x1="${xc.toFixed(1)}" y1="${Y(b.h).toFixed(1)}" x2="${xc.toFixed(1)}" y2="${Y(b.l).toFixed(1)}" stroke="${col}" stroke-width="1"/>`;
+        const yT=Y(Math.max(b.o,b.c)), yB=Y(Math.min(b.o,b.c));
+        svg+=`<rect x="${(xc-cw/2).toFixed(1)}" y="${yT.toFixed(1)}" width="${cw.toFixed(1)}" height="${Math.max(1,(yB-yT)).toFixed(1)}" fill="${col}"/>`; });
+    } else {
+      let d2="M"+X(SP).toFixed(1)+","+Y(rawShown[SP]).toFixed(1)+" L"+rawHidden.map((v,i)=>X(SP+1+i).toFixed(1)+","+Y(v).toFixed(1)).join(" L");
+      const col=rawHidden[rawHidden.length-1]>=rawShown[SP]?"var(--up)":"var(--down)";
+      svg+=`<path d="${d2}" fill="none" stroke="${col}" stroke-width="2.5"/>`;
+    }
+  } else {
+    svg+=`<text x="${X(cur.showN)+8}" y="20" fill="var(--faint)" font-size="12">the hidden window →</text>`;
   }
   $("chart").innerHTML=svg;
 }
@@ -349,7 +408,7 @@ $("evRange").onclick=()=>{ if(cur.ev.evRange)return; const s=cur.shown;
   const lo=Math.min(...s),hi=Math.max(...s),pos=(s[s.length-1]-lo)/(hi-lo)*100;
   _evLine("evRange","Where in its range",`it now sits at the <b>${pos.toFixed(0)}th percentile</b> of this window's range (0 = the low, 100 = the high). <span style="color:var(--faint)">Near-high feels like strength to momentum readers and danger to mean-reverters — history refuses to settle which, and that disagreement is the honest state of the evidence.</span>`);};
 $("evVolu").onclick=()=>{ if(cur.ev.evVolu)return;
-  if(!cur.volShown){ _evLine("evVolu","Volume",`<b>not meaningfully available for ${MARKET.label.toLowerCase()}.</b> ${MARKET.key==="forex"?"Currencies trade across many venues at once with no single tape — there is no one \"volume\" number that means what it does on an exchange.":"This dataset is a monthly index level, not exchange trades — no per-day volume exists to show."} <span style="color:var(--faint)">Where it genuinely exists (crypto, metals) this desk shows the real number — we don't invent one here.</span>`);
+  if(!cur.volShown){ _evLine("evVolu","Volume",`<b>not meaningfully available for ${MARKET.label.toLowerCase()}.</b> ${MARKET.key==="forex"?"Currencies trade across many venues at once with no single tape — there is no one \"volume\" number that means what it does on an exchange.":MARKET.key==="custom"?"your file didn't include a Volume column — nothing was invented in its place.":"This dataset is a monthly index level, not exchange trades — no per-day volume exists to show."} <span style="color:var(--faint)">Where it genuinely exists (crypto, metals, or your own file if it has a Volume column) this desk shows the real number — we don't invent one here.</span>`);
     return; }
   const v=cur.volShown, avg=v.reduce((a,b)=>a+b,0)/v.length, last=v[v.length-1], spike=last/avg;
   _evLine("evVolu","Volume — real, from the same feed",`average daily volume this window: <b>$${(avg/1e6).toFixed(1)}M</b>; the most recent day: <b>$${(last/1e6).toFixed(1)}M</b> (${spike>=1.5?"well above":spike<=0.6?"well below":"close to"} average). <span style="color:var(--faint)">A move on heavy volume is generally read as more "real" (more participants agreeing) than the same move on thin volume — one of the few reads that needs volume specifically, which is why we show it here when we have it.</span>`);};
@@ -400,16 +459,25 @@ function renderTally(){
 $("start").onclick=startRound;
 function renderZoomRow(){
   const row=$("zoomRow");
-  if(!cur || cur.unit!=="days"){ row.style.display="none"; row.innerHTML=""; return; }
-  row.style.display="flex";
-  const opts=[["Day",1],["Week",7],["Month",30]];
-  row.innerHTML=opts.map(([label,b])=>
+  const ZOOMS={ min:[["Min",1],["Hour",60],["4-hour",240]],
+                hours:[["Hour",1],["Day",24],["Week",168]],
+                days:[["Day",1],["Week",7],["Month",30]] };
+  const opts=cur ? ZOOMS[cur.unit] : null;
+  const canCandle = cur && cur.ohlcS;
+  if(!cur || (!opts && !canCandle)){ row.style.display="none"; row.innerHTML=""; return; }
+  row.style.display="flex"; row.style.flexWrap="wrap";
+  let html="";
+  if(opts) html+=opts.map(([label,b])=>
     `<button class="choice${zoomBucket===b?' sel-flat':''}" style="font-size:.72rem;padding:6px 10px" data-zoom="${b}">${label} view</button>`).join("");
+  if(canCandle) html+=`<button class="choice${chartMode==="candle"?' sel-flat':''}" style="font-size:.72rem;padding:6px 10px;margin-left:auto" data-cmode="1">🕯 ${chartMode==="candle"?"Candles ✓":"Candles"}</button>`;
+  row.innerHTML=html;
   row.querySelectorAll("[data-zoom]").forEach(btn=>btn.onclick=()=>{
     zoomBucket=Number(btn.getAttribute("data-zoom"));
     renderZoomRow();
     if(cur && !revealed) drawChart(cur.shown,null);
   });
+  const cb=row.querySelector("[data-cmode]");
+  if(cb) cb.onclick=()=>{ chartMode = chartMode==="candle" ? "line" : "candle"; renderZoomRow(); if(cur) drawChart(cur.shown, revealed?cur.hidden:null); };
 }
 let _big=false;
 $("expandChart").onclick=()=>{
@@ -422,10 +490,86 @@ $("expandChart").onclick=()=>{
 
 // market picker (v2): one button per module; switching allowed between rounds
 function renderMkts(){
-  $("mktRow").innerHTML=MARKETS.map((m,i)=>
-    `<button class="choice${m===MARKET?' sel-flat':''}" style="font-size:.8rem;padding:10px 4px" onclick="pickMkt(${i})">${m.label}</button>`).join("");
+  const std=MARKETS.filter(m=>m.key!=="custom");
+  const ci=MARKETS.findIndex(m=>m.key==="custom");
+  $("mktRow").innerHTML=std.map(m=>
+    `<button class="choice${m===MARKET?' sel-flat':''}" style="font-size:.8rem;padding:10px 4px" onclick="pickMkt(${MARKETS.indexOf(m)})">${m.label}</button>`).join("")
+   +`<button class="choice${MARKETS[ci]===MARKET?' sel-flat':''}" style="font-size:.85rem;padding:12px 8px;flex-basis:100%;margin-top:2px" onclick="pickMkt(${ci})">📄 Your own file — load any price history and practice on it</button>`;
 }
-function pickMkt(i){ MARKET=MARKETS[i]; renderMkts(); setG(MARKET.label+" selected — start a round"); }
+function pickMkt(i){
+  MARKET=MARKETS[i]; renderMkts();
+  const isCustom = MARKET.key==="custom";
+  $("customBox").style.display = isCustom ? "" : "none";
+  if(isCustom && !window._customData){
+    setG("pick a CSV file above to begin","bad"); $("start").disabled=true;
+  } else {
+    setG(MARKET.label+" selected — start a round"); $("start").disabled=false;
+  }
+}
+function _rdParseCSV(text){
+  const lines=text.trim().split(/\r?\n/); const head=lines[0].split(",").map(h=>h.trim().toLowerCase());
+  const di=head.findIndex(h=>/date/.test(h)); let ci=head.findIndex(h=>h==="close");
+  if(ci<0)ci=head.findIndex(h=>/close|price|value/.test(h));
+  if(di<0||ci<0) throw new Error("need a Date column and a Close/Price column");
+  const vi=head.findIndex(h=>/volume/.test(h));
+  const oi=head.findIndex(h=>h==="open"), hi=head.findIndex(h=>h==="high"), li=head.findIndex(h=>h==="low");
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const c=lines[i].split(","); const dRaw=c[di], p=+c[ci];
+    const t=Date.parse(dRaw);
+    if(dRaw && isFinite(p) && p>0 && isFinite(t)){
+      const r={t,v:p};
+      if(vi>=0){ const vol=+c[vi]; if(isFinite(vol)&&vol>=0) r.vol=vol; }
+      if(oi>=0&&hi>=0&&li>=0){ const o=+c[oi],h=+c[hi],l=+c[li];
+        if(isFinite(o)&&isFinite(h)&&isFinite(l)&&l>0&&h>=l){ r.o=o;r.h=h;r.l=l; } }
+      rows.push(r);
+    }
+  }
+  rows.sort((a,b)=>a.t-b.t);
+  if(rows.length<40) throw new Error("only "+rows.length+" valid rows — need at least 40");
+  return rows;
+}
+function _rdDetectGranularity(rows){
+  const gaps=[]; for(let i=1;i<Math.min(rows.length,400);i++) gaps.push((rows[i].t-rows[i-1].t)/6e4); // minutes
+  gaps.sort((a,b)=>a-b); const medMin=gaps[gaps.length>>1]||43200;
+  if(medMin<=5)    return {unit:"min",   show:240, hide:60, thresh:0.8};   // minute bars: 4h shown, 1h hidden
+  if(medMin<=90)   return {unit:"hours", show:168, hide:42, thresh:2};     // hourly: ~1wk shown
+  const medDay=medMin/1440;
+  if(medDay<=4)  return {unit:"days", show:90, hide:20, thresh:8};
+  if(medDay<=10) return {unit:"days", show:182, hide:35, thresh:10};
+  return {unit:"months", show:60, hide:12, thresh:10};
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  const inp=$("customfile"); if(!inp) return;
+  inp.addEventListener("change", e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const rd=new FileReader();
+    rd.onload=()=>{
+      try{
+        const rows=_rdParseCSV(rd.result);
+        const g=_rdDetectGranularity(rows);
+        const cm=MARKETS.find(m=>m.key==="custom");
+        cm.unit=g.unit; cm.show=g.show; cm.hide=g.hide; cm.thresh=g.thresh;
+        const hasVol = rows.some(r=>r.vol!=null);
+        const hasOHLC = rows.some(r=>r.o!=null);
+        window._customData = {
+          tick:(f.name||"your file").replace(/\.csv$/i,""),
+          prices: rows.map(r=>({t:r.t,v:r.v})),
+          volumes: hasVol ? rows.map(r=>({t:r.t,v:r.vol||0})) : null,
+          ohlc: hasOHLC ? rows.map(r=> r.o!=null ? {o:r.o,h:r.h,l:r.l,c:r.v} : null) : null
+        };
+        const d0=new Date(rows[0].t).toISOString().slice(0,10), d1=new Date(rows[rows.length-1].t).toISOString().slice(0,10);
+        $("customStat").textContent=`loaded ${rows.length.toLocaleString()} rows (${d0} → ${d1}), detected ${({min:"minute",hours:"hourly",days:"daily",months:"monthly"})[g.unit]} data${hasVol?" + volume":""}${window._customData.ohlc?" + OHLC (candles available)":""} — ready.`;
+        if(MARKET.key==="custom"){ setG("file loaded — start a round"); $("start").disabled=false; }
+      }catch(err){
+        $("customStat").textContent="couldn't read that file: "+err.message+" — nothing was uploaded; it stayed on your device.";
+        window._customData=null;
+        if(MARKET.key==="custom") $("start").disabled=true;
+      }
+    };
+    rd.readAsText(f);
+  });
+});
 
 
 renderMkts();

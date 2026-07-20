@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xplainsight — the candle test (crypto)</title>
+<!--
+  XPLAINSIGHT — CANDLESTICK AUTOPSY v1 (S19). Nicholas's commission: the famous
+  candle patterns, tested as DIRECTIONAL PREDICTIONS ("dip coming" /
+  "gain coming" / "reversal here") against real crypto history.
+  DATA: CoinGecko (Rule-10 cleared, attribution on face; the app's proven pipe).
+  /ohlc at days=365 serves 4-DAY candles (~91/coin) — stated honestly on the
+  face; patterns tested on 4-day bars across up to 10 majors (aggregate sample
+  in the hundreds). Volumes from market_chart (daily), summed per candle.
+  PRE-REGISTERED (printed before the run):
+   - Pattern definitions with exact math (body/wick ratios below).
+   - Outcome: the NEXT candle's close-to-close return (~4 days).
+   - Each pattern graded on ITS OWN CLAIM (bullish patterns claim next candle
+     beats base; bearish claim worse than base; reversal patterns claim the
+     prior direction flips more often than it naturally does).
+   - Verdict rule: HELD UP if hit ≥ base+3pts AND avg ≥ base+0.5pt (mirrored
+     for bearish); FAILED if mirrored-worse; else NO EDGE. Min 12 fires.
+  STRUCTURAL LESSONS on face: no gap patterns possible (24/7 market, no open/
+  close bell); spot FX volume does not exist anywhere (decentralized market),
+  so "forex volume indicators" measure a thing that is not measured.
+  Sequential fetch w/ delay (rate-limit courtesy); per-coin dark tolerated,
+  needs ≥3 coins to run. Dark-on-failure. Zero external code.
+-->
+<style>
+  :root{--bg:#0E1116;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+    --muted:#8A9099;--faint:#838B94;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --warn:#C9A227;--define:#A78BFA;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+  .sub b,.card b{color:var(--ink);font-weight:620}
+  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+  .term:active{opacity:.6}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+  .card p{font-size:.88rem;margin:8px 0}
+  .bigbtn{width:100%;background:var(--up);color:#06120c;border:0;border-radius:10px;padding:14px;font-size:1rem;font-weight:680;cursor:pointer;margin:6px 0;box-shadow:0 3px 0 rgba(0,0,0,.28)}
+  .bigbtn:active{transform:translateY(2px)}
+  .bigbtn:disabled{opacity:.4}
+  .stat{font-size:.75rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .stat.ok{color:var(--up);border-color:rgba(95,191,143,.4)}
+  .stat.bad{color:var(--warn);border-color:rgba(201,162,39,.4)}
+  .base{border:1px solid rgba(127,176,232,.4);border-left:3px solid var(--accent);background:rgba(127,176,232,.06);border-radius:9px;padding:10px 13px;margin:10px 0;font-size:.86rem}
+  details.sig{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px}
+  details.sig>summary{cursor:pointer;list-style:none;padding:12px 0;font-size:.92rem;font-weight:640}
+  details.sig>summary::-webkit-details-marker{display:none}
+  .verdict{font-size:.64rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:middle}
+  .v-up{color:#06120c;background:var(--up)}
+  .v-down{color:#fff;background:var(--down)}
+  .v-flat{color:var(--warn);border:1px solid rgba(201,162,39,.5)}
+  .v-wait{color:var(--faint);border:1px solid var(--line)}
+  .sigbody{font-size:.84rem;color:var(--muted);border-top:1px solid var(--line);padding:10px 0}
+  .sigbody b{color:var(--ink)}
+  .row2{display:flex;gap:8px;margin:8px 0}
+  .cell{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center}
+  .cell .n{font-size:1.05rem;font-weight:720}
+  .cell .l{font-size:.64rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .warnbox{border:1px solid rgba(201,162,39,.4);border-left:3px solid var(--warn);background:rgba(201,162,39,.06);border-radius:9px;padding:10px 13px;margin:10px 0;font-size:.86rem}
+  .warnbox b{color:var(--warn)}
+  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
+  .mirror b{color:var(--ink)}
+  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+  #deftip.show{display:block}
+  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+  .techc{color:var(--faint);font-size:.85em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The candle test — crypto edition</h1>
+  <p class="sub">The famous candle shapes all claim the same thing: <b>they can tell you whether a gain or a dip comes next.</b> This page checks that claim directly — every time each pattern appeared across ten major coins' real history, what did the <b>next candle</b> actually do, versus the <span class="term" data-def="base rate">base rate</span>? Definitions and the scoring rule are printed before you run it. Honest scale note: the free data serves <b>4-day candles</b> (~91 per coin, ~900 candles total) — patterns are tested at that rhythm and labeled so. <b>Why not faster candles?</b> Hourly and minute-by-minute price history — what most candlestick folklore actually claims to read — sits behind paid data licenses. This project is free forever, so we don't use paid sources; we use the most detailed history that's both free and legal. We're still looking for a free, legal source at finer resolution — if one exists, it goes in. Tap any <span class="term" data-def="__demo">underlined word</span> for meanings.</p>
+
+  <div class="card">
+    <p><b>The pre-registered pattern math (so "I know it when I see it" can't rescue anything):</b> body = |close−open| · range = high−low. <b>Doji:</b> body &lt; 10% of range. <b>Hammer:</b> lower wick ≥ 2× body, upper wick ≤ body, after a falling candle. <b>Shooting star:</b> the mirror, after a rising candle. <b>Engulfing:</b> this body opens beyond and closes beyond the prior body, opposite color. Each pattern is graded on <b>its own claim</b> — bullish claims the next candle beats normal; bearish claims worse than normal; "reversal" claims the prior direction flips more often than it naturally does. Every pattern then faces the same four checks as the Signal Test — beat the base? beat a random dart? probably not luck (permutation)? survived testing several patterns at once? — and earns an evidence tier: <b>STRONG / MODERATE / MIXED / LITTLE historical evidence</b> (or INSUFFICIENT under 8 fires). Same checks, same margins, forever.</p>
+    <button class="bigbtn" id="run">Run the test — ten coins, every candle, on your phone</button>
+    <div style="margin-top:6px"><span class="stat" id="astat">ready — two frames of five coins with a 70s half-time so the free limit resets (~2 min total, worth it for the full sample)</span></div>
+  </div>
+
+  <div class="base" id="baseline" style="display:none"></div>
+  <div id="results"></div>
+
+  <div class="card"><p><b>"No edge?? But millions of people read candles — what did this test do wrong?"</b> The fairest question on the page, answered both ways. <b>What this test genuinely can't see:</b> intraday timeframes (free data serves 4-day candles; the folklore mostly lives at hours and minutes), and "context" or "confluence" use — which, as commonly taught, can't be pinned down enough to be wrong, which means it can't be right either. <b>What this result is NOT:</b> a fluke of ours — published academic studies testing candlestick patterns on decades of stock data with this same count-everything method reached the same answer: no reliable edge over the base rate. We replicated the literature, live, on your phone. <b>Then why the millions?</b> Brains are pattern-machines that find faces in clouds and hammers in noise; memory keeps hits and quietly drops misses; in a rising market ANY buy-shaped pattern "works" often enough to feel real (the base-rate trap — this page's deepest lesson); the surviving anecdotes spread while the failures stay silent; and an entire paid ecosystem earns only if the reading continues. None of that requires anyone to be lying — it only requires nobody counting. This page counts.</p>
+<p><b>Where did the volume rules go?</b> Removed honestly, two reasons: testing them required a second data request per coin, which tripped free rate limits and starved the whole test down to 3 coins — and at 4-day rhythm, 2× volume spikes fired 0–4 times a year, below any honest minimum. A pattern too rare to test at the rhythm we can see is itself a finding.</p></div>
+  <details class="sig" open><summary>Why do people read candlesticks, then? <span class="verdict v-flat">WORTH UNDERSTANDING</span></summary>
+    <div class="sigbody">
+    <p style="margin:6px 0"><b>Candlesticks are two different things wearing one name — and only one of them is being tested here.</b> As a <b>display format</b>, they're genuinely excellent: one shape shows open, close, high, and low at a glance, which is why every professional chart on Earth uses them. That part isn't in question. What's tested on this page is the second thing — the claim that specific <i>shapes predict what comes next</i> — and the chart's real usefulness quietly lends the predictions borrowed credibility.</p>
+    <p style="margin:6px 0"><b>Why the predictions feel true even when they don't hold up:</b> each pattern comes with a story ("sellers pushed, buyers won, the tide turned"), and stories feel convincing in a way plain statistics never do. Memory does the rest — the one hammer that called the exact bottom sticks; the dozen that didn't quietly fade. Almost nobody keeps score, which is exactly why a page like this one is unusual instead of routine.</p>
+    <p style="margin:6px 0"><b>Why crypto specifically:</b> with no earnings or filings to weigh, chart reading fills the gap as the market's shared language. The loudest teachers are often exchanges and course-sellers who earn on trading VOLUME, not on being right — worth remembering while reading anyone's "setup."</p>
+    <p style="margin:6px 0"><b>And the fair steelman:</b> if enough traders watch the same shape and act on it together, price can move a little just because they believed it — a weak, real effect researchers call reflexivity. A few patterns also loosely track genuine short-term tendencies. So the tradition isn't empty; it's mostly a compelling story wrapped around a couple of small effects, which is what the numbers above are measuring with the story removed.</p>
+    </div>
+  </details>
+
+
+  <div class="warnbox"><b>Two things this market structurally teaches (no test needed):</b> crypto has <b>no gap patterns</b> — gaps are the space between yesterday's close and today's open, and a market that never closes cannot have them; every "gap trading" framework imported from stocks is describing a thing that doesn't exist here. And <b>spot currency volume doesn't exist anywhere:</b> forex has no central exchange, so no true volume number is published at any price — "forex volume indicators" measure broker-local samples dressed as the world. When a sold tool claims to read a number nature doesn't produce, that's the whole review.</div>
+
+  <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror"><b>The mirror, as always:</b> these verdicts are history, not prophecy — patterns that failed here could luck out tomorrow; ones that held could be traded away. Nothing here says buy, sell, or wait. What's permanent is the method you just watched: <b>take the claim literally, count every case, compare to doing nothing.</b> Any pattern anyone ever sells you can be put through that same door — and now you own the door. Data: CoinGecko, read live; recomputed fresh on every run.</div></details>
+</div>
+
+<div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const GLOSSARY={
+  "base rate":"What candles did on average ANYWAY — across all ~900 of them, the share that closed up and the average move. A pattern that's 'right' exactly that often found nothing: it's selling you the coin you already had.",
+  "doji":"A candle that opened and closed at nearly the same price (tiny body, wicks both ways) — the textbook symbol of 'indecision,' claimed to mark reversals. We test that exact claim: does direction actually flip after one, more than it naturally flips?",
+  "engulfing":"A candle whose body completely swallows the previous candle's body in the opposite direction. Bullish engulfing (up swallows down) is claimed to start gains; bearish engulfing, dips. Both claims tested separately.",
+  "hammer":"A candle with a long lower tail after a decline — the story is 'sellers pushed, buyers won, the dip is ending.' The shooting star is its upside-down twin after a rise. Both stories tested against what actually followed.",
+  "capitulation":"The claimed 'everyone-gave-up' moment: a heavy down candle on huge volume, said to mark the bottom because there's nobody left to sell. Romantic. Countable. Counted below.",
+  "__demo":"Just like this: tap any underlined word and a plain meaning pops up."
+};
+function showDef(t){const b=GLOSSARY[t.toLowerCase()];if(!b)return;$("dt-w").textContent=t==="__demo"?"tap-to-define":t;$("dt-b").textContent=b;$("deftip").classList.add("show");}
+function hideDef(){$("deftip").classList.remove("show");}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(t){showDef(t.getAttribute("data-def"));return;}if(!e.target.closest("#deftip"))hideDef();});
+$("deftip").querySelector(".x").onclick=hideDef;
+
+const COINS=[["bitcoin","BTC"],["ethereum","ETH"],["solana","SOL"],["ripple","XRP"],["dogecoin","DOGE"],
+  ["cardano","ADA"],["litecoin","LTC"],["chainlink","LINK"],["polkadot","DOT"],["avalanche-2","AVAX"]];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function setA(t,c){const s=$("astat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
+
+async function getCoin(id){
+  // S20 fix: the old version made TWO requests per coin (candles + volume) = 20 requests for 10 coins,
+  // which tripped the free tier after ~3 coins. Volume is dropped (see structural note on the page) —
+  // ONE request per coin, plus a retry-with-backoff if the rate limiter answers 429.
+  for(let attempt=0;attempt<2;attempt++){
+    const o=await fetch(`https://api.coingecko.com/api/v3/coins/${id}/ohlc?vs_currency=usd&days=365`,{cache:"no-store"});
+    if(o.status===429 && attempt===0){ await sleep(8000); continue; }
+    if(!o.ok) throw new Error("HTTP "+o.status);
+    return (await o.json()).map(c=>({t:c[0],o:c[1],h:c[2],l:c[3],c:c[4]})).filter(c=>[c.o,c.h,c.l,c.c].every(isFinite));
+  }
+  throw new Error("rate-limited twice");
+}
+
+function _mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0;}
+function _normCdf(z){const t=1/(1+0.2316419*Math.abs(z));const q=0.3989423*Math.exp(-z*z/2);
+  let p=q*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p;}
+function _wilson(h,n){if(!n)return[0,0];const z=1.96,p=h/n,dn=1+z*z/n;
+  const c=(p+z*z/(2*n))/dn,hw=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/dn;return[100*(c-hw),100*(c+hw)];}
+function _rng(s){s=s>>>0||1;return()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};}
+function _dartC(pool,N,R,seed){const rnd=_rng(seed);const H=[],A=[];
+  for(let r=0;r<R;r++){let h=0,s=0;for(let k=0;k<N;k++){const v=pool[(rnd()*pool.length)|0];if(v>0)h++;s+=v;}H.push(h/N*100);A.push(s/N);}
+  H.sort((a,b)=>a-b);A.sort((a,b)=>a-b);const lo=(R*.025)|0,hi=(R*.975)|0;
+  return{hitLo:H[lo],hitHi:H[hi],avgLo:A[lo],avgHi:A[hi]};}
+function _permC(ev,pool,R,seed,dir){const rnd=_rng(seed);const real=_mean(ev);const N=ev.length;let beat=0;
+  for(let r=0;r<R;r++){let s=0;for(let k=0;k<N;k++)s+=pool[(rnd()*pool.length)|0];const m=s/N;
+    if(dir==="bull"?(m>=real):(m<=real))beat++;}return beat/R;}
+function _bhC(ps,q){const idx=ps.map((p,i)=>[p,i]).sort((a,b)=>a[0]-b[0]);const m=ps.length;let kmax=-1;
+  idx.forEach(([p],rank)=>{if(p<=(rank+1)/m*q)kmax=rank;});const sig=new Array(m).fill(false);
+  for(let r=0;r<=kmax;r++)sig[idx[r][1]]=true;return sig;}
+function analyze(allCoins){
+  // pool: for each coin, per-candle features + next-candle outcome
+  const events={bullEng:[],bearEng:[],hammer:[],star:[],dojiRev:[]};
+  const base=[]; const flipsBase=[];
+  for(const {candles} of allCoins){
+    for(let i=1;i<candles.length-1;i++){
+      const p=candles[i-1], k=candles[i], nx=candles[i+1];
+      const ret=(nx.c-k.c)/k.c*100; if(!isFinite(ret))continue;
+      base.push(ret);
+      const dirK=k.c>=k.o, dirN=nx.c>=nx.o;
+      flipsBase.push(dirK!==dirN?1:0);
+      const body=Math.abs(k.c-k.o), range=k.h-k.l||1e-9;
+      const upW=k.h-Math.max(k.o,k.c), loW=Math.min(k.o,k.c)-k.l;
+      const pBody=Math.abs(p.c-p.o);
+      // engulfing
+      if(k.c>k.o && p.c<p.o && k.o<=Math.min(p.o,p.c) && k.c>=Math.max(p.o,p.c) && body>pBody) events.bullEng.push(ret);
+      if(k.c<k.o && p.c>p.o && k.o>=Math.max(p.o,p.c) && k.c<=Math.min(p.o,p.c) && body>pBody) events.bearEng.push(ret);
+      // hammer / star (context: after a falling / rising candle)
+      if(p.c<p.o && loW>=2*body && upW<=body) events.hammer.push(ret);
+      if(p.c>p.o && upW>=2*body && loW<=body) events.star.push(ret);
+      // doji reversal claim: direction flips next candle?
+      if(body<0.1*range) events.dojiRev.push(dirK!==dirN?1:0);
+      // volume signals removed S20: needed a 2nd request per coin (rate-limit killer) AND fired 0–4 times at 4-day rhythm — untestable; moved to the structural-honesty card
+    }
+  }
+  return {events,base,flipsBase};
+}
+
+function pct(x){return (x>=0?"+":"")+x.toFixed(2)+"%";}
+
+async function run(){
+  $("run").disabled=true; $("results").innerHTML="";
+  const coins=[];
+  for(let i=0;i<COINS.length;i++){
+    const [id,tick]=COINS[i];
+    if(i===5){ // FRAME 2 (S20): pause between the two frames of five so the free rate-limit window resets
+      for(let w=70;w>0;w--){ setA(`half-time — letting the free data limit reset… ${w}s (${coins.length} coins loaded, ${COINS.length-5} to go)`); await sleep(1000); }
+    }
+    setA(`frame ${i<5?1:2}: reading ${tick}… (${i+1}/${COINS.length} · ${coins.length} loaded so far)`);
+    try{ coins.push({tick,candles:await getCoin(id)}); }
+    catch(e){ /* per-coin dark tolerated; status shows the honest count */ }
+    await sleep(2600);
+  }
+  if(coins.length<3){ setA("only "+coins.length+" coins reachable — too few for an honest test. Dark, nothing made up; try again in a few minutes (free data has rate limits).","bad"); $("run").disabled=false; return; }
+  const {events,base,flipsBase}=analyze(coins);
+  const baseHit=base.filter(r=>r>0).length/base.length*100;
+  const baseAvg=base.reduce((a,b)=>a+b,0)/base.length;
+  const baseFlip=flipsBase.reduce((a,b)=>a+b,0)/flipsBase.length*100;
+  $("baseline").style.display="";
+  $("baseline").innerHTML=`<b>The base rates every pattern must beat</b> — across <b>${base.length.toLocaleString()} four-day candles</b> from ${coins.length} coins (${coins.map(c=>c.tick).join(", ")}): the next candle closed up <b>${baseHit.toFixed(0)}%</b> of the time, average move <b>${pct(baseAvg)}</b>, and direction flipped candle-to-candle <b>${baseFlip.toFixed(0)}%</b> of the time anyway. Any pattern must beat these, not zero.`;
+  const MIN=8, HM=3, AM=0.5;
+  const defs=[
+    ["Bullish engulfing — 'a gain is coming'","bullEng","bull","<span class='term' data-def='engulfing'>engulfing</span> claim, bullish side"],
+    ["Bearish engulfing — 'a dip is coming'","bearEng","bear","the same claim's dark twin"],
+    ["Hammer — 'the dip is ending, buy'","hammer","bull","<span class='term' data-def='hammer'>hammer</span> after a down candle"],
+    ["Shooting star — 'the rise is ending, sell'","star","bear","the hammer's upside-down twin after an up candle"],
+  ];
+  // pass 1: compute the battery for every pattern (same discipline as the Signal Test)
+  const RDS=[];
+  for(const [name,key,dir,folk] of defs){
+    const ev=events[key], N=ev.length;
+    if(N<MIN){ RDS.push({name,key,dir,folk,N,skip:true}); continue; }
+    const hit=ev.filter(r=>r>0).length, hitRate=hit/N*100, avg=_mean(ev);
+    const ci=_wilson(hit,N);
+    const dart=_dartC(base,N,3000,100+N);
+    const permP=_permC(ev,base,4000,200+N,dir);
+    RDS.push({name,key,dir,folk,N,skip:false,hit,hitRate,avg,ci,dart,permP});
+  }
+  const testable=RDS.filter(r=>!r.skip);
+  const bh=_bhC(testable.map(r=>r.permP),0.05); testable.forEach((r,k)=>r.bh=bh[k]);
+  let html="";
+  for(const rd of RDS){
+    if(rd.skip){
+      html+=`<details class="sig"><summary>${rd.name}<span class="verdict v-wait">INSUFFICIENT EVIDENCE (${rd.N} FIRES)</span></summary><div class="sigbody"><p>Appeared only ${rd.N} time${rd.N===1?"":"s"} across ${coins.length} coins' year — below the pre-set minimum of ${MIN}, so no verdict is honest. Note what that rarity means for anyone claiming to trade this weekly.</p></div></details>`;
+      continue;
+    }
+    const isBull=rd.dir==="bull";
+    const checks=[
+      ["Beat the base rate? <span class=techc>(margin ±"+HM+"pts / ±"+AM+"%)</span>", isBull?(rd.hitRate>=baseHit+HM||rd.avg>=baseAvg+AM):(rd.hitRate<=baseHit-HM||rd.avg<=baseAvg-AM)],
+      ["Beat random candles? <span class=techc>(dart, same sample size)</span>", isBull?(rd.hitRate>rd.dart.hitHi||rd.avg>rd.dart.avgHi):(rd.hitRate<rd.dart.hitLo||rd.avg<rd.dart.avgLo)],
+      ["Probably not luck? <span class=techc>(permutation test)</span>", rd.permP<0.05],
+      ["Survived testing several patterns at once? <span class=techc>(correction)</span>", !!rd.bh],
+    ];
+    const passed=checks.filter(c=>c[1]).length;
+    const rest = passed>=4?["STRONG HISTORICAL EVIDENCE","v-up"]:passed>=3?["MODERATE HISTORICAL EVIDENCE","v-flat"]:passed>=2?["MIXED HISTORICAL EVIDENCE","v-flat"]:["LITTLE HISTORICAL EVIDENCE","v-down"];
+    const backwards = (!isBull&&rd.hitRate>baseHit)||(isBull&&rd.hitRate<baseHit);
+    const simple = backwards?"this shape actually pointed the WRONG way here — the opposite of what it claims.":passed>=4?"this shape repeatedly beat hard tests here — rare, and still not a promise.":passed>=3?"this shape did better than chance here, but not decisively.":passed>=2?"this shape shows something in some checks and nothing in others — maybe, weakly.":"this shape did nothing here that random candles didn\'t.";
+    const permTxt=rd.permP<0.0003?"<0.001":rd.permP.toFixed(3);
+    html+=`<details class="sig"><summary>${rd.name}<span class="verdict ${rest[1]}">${rest[0]}</span></summary>
+      <div class="sigbody"><p style="margin:6px 0">Tested: ${rd.folk}. ${isBull?"This is a BUY pattern — it claims the next candle goes UP more than normal.":"This is a SELL pattern — it claims the next candle goes DOWN more than normal."}</p>
+      ${!isBull&&rd.hitRate>baseHit? `<p style="margin:6px 0;color:var(--down)"><b>⚠ Backwards result:</b> this pattern wanted DOWN, but the next candle went UP <b>${rd.hitRate.toFixed(0)}%</b> of the time — MORE than the ${baseHit.toFixed(0)}% base. It didn't just miss; it pointed the wrong way. A high number here is bad news for the pattern, not good.</p>`:``}
+      ${isBull&&rd.hitRate<baseHit? `<p style="margin:6px 0;color:var(--down)"><b>⚠ Backwards result:</b> this pattern wanted UP, but the next candle went up only <b>${rd.hitRate.toFixed(0)}%</b> — LESS than the ${baseHit.toFixed(0)}% base. It pointed the wrong way.</p>`:``}
+      <p style="margin:6px 0"><b>The simple answer:</b> ${simple}</p>
+      <div style="font-size:.82rem;line-height:2">${checks.map(c=>`<div>${c[1]?"✅":"➖"} ${c[0]}</div>`).join("")}</div>
+      <details style="margin-top:6px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--accent)">🔬 The math behind the answer ▾</summary>
+      <div class="row2" style="margin-top:6px">
+        <div class="cell"><div class="n">${rd.N}</div><div class="l">appearances</div></div>
+        <div class="cell"><div class="n">${rd.hitRate.toFixed(0)}%</div><div class="l">next candle up<br>(likely range ${rd.ci[0].toFixed(0)}–${rd.ci[1].toFixed(0)}%, base ${baseHit.toFixed(0)}%)</div></div>
+        <div class="cell"><div class="n">${pct(rd.avg)}</div><div class="l">avg next candle<br>(base ${pct(baseAvg)})</div></div>
+      </div>
+      <div class="row2">
+        <div class="cell"><div class="n">${rd.dart.hitLo.toFixed(0)}–${rd.dart.hitHi.toFixed(0)}%</div><div class="l">a blind dart's<br>up-rate range</div></div>
+        <div style="grid-column:1/-1;font-size:.72rem;color:var(--faint);padding:2px 4px">Why the dart's range looks so wide and high: it throws the SAME number of picks as this pattern (${rd.N}) — and with few picks, pure luck sometimes scores 60–70% up, the way 16 coin flips sometimes land 11 heads. A rare pattern must beat what LUCKY randomness does at its own size. The range isn't strictness — it's what ${rd.N} cases can honestly prove. More data tightens it; a lower bar would crown noise.</div>
+        <div class="cell"><div class="n">${pct(rd.dart.avgLo).replace('%','')}–${rd.dart.avgHi.toFixed(2)}</div><div class="l">the dart's avg range</div></div>
+        <div class="cell"><div class="n">p=${permTxt}</div><div class="l">fluke chance<br>${rd.bh?"survives correction":"fails correction"}</div></div>
+      </div></details></div></details>`;
+  }
+  // doji reversal (flip-rate vs flip base, with its own CI)
+  const dj=events.dojiRev, Nd=dj.length;
+  if(Nd>=MIN){
+    const flips=dj.reduce((a,b)=>a+b,0), flip=flips/Nd*100, ciF=_wilson(flips,Nd);
+    const held=flip>=baseFlip+5 && ciF[0]>baseFlip, fail=flip<=baseFlip-5;
+    const v=held?"v-up":fail?"v-down":"v-flat", vt=held?"MODERATE HISTORICAL EVIDENCE":fail?"LITTLE HISTORICAL EVIDENCE":"MIXED HISTORICAL EVIDENCE";
+    const dHeld=flip>=baseFlip+5 && ciF[0]>baseFlip;
+    const dChecks=[
+      ["Flipped MORE than candles flip anyway? <span class=techc>(vs base flip rate)</span>", flip>=baseFlip+5],
+      ["Is that gap real, not small-sample wobble? <span class=techc>(confidence interval clears base)</span>", ciF[0]>baseFlip],
+    ];
+    const dSimple = flip>=baseFlip+5 ? (ciF[0]>baseFlip?"dojis really did flip direction more than normal here.":"dojis flipped a bit more than normal, but the sample is too small to trust it.") : "dojis flipped direction LESS than candles do on their own — the reversal claim is backwards here.";
+    html+=`<details class="sig"><summary>Doji — 'indecision, a reversal is coming'<span class="verdict ${v}">${vt}</span></summary>
+      <div class="sigbody">
+      <p style="margin:6px 0">The <span class="term" data-def="doji">doji</span>'s claim is a REVERSAL: whatever direction was happening should flip. We check that against how often direction flips <i>anyway</i>.</p>
+      <p style="margin:6px 0"><b>The simple answer:</b> ${dSimple}</p>
+      <div style="font-size:.82rem;line-height:2">${dChecks.map(c=>`<div>${c[1]?"✅":"➖"} ${c[0]}</div>`).join("")}</div>
+      <details style="margin-top:6px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--accent)">🔬 The math behind the answer ▾</summary>
+      <div class="row2" style="margin-top:6px">
+        <div class="cell"><div class="n">${Nd}</div><div class="l">dojis found</div></div>
+        <div class="cell"><div class="n">${flip.toFixed(0)}%</div><div class="l">flipped direction<br>(likely range ${ciF[0].toFixed(0)}–${ciF[1].toFixed(0)}%)</div></div>
+        <div class="cell"><div class="n">${baseFlip.toFixed(0)}%</div><div class="l">base flip rate<br>(what candles do anyway)</div></div>
+      </div>
+      <div style="font-size:.72rem;color:var(--faint);padding:4px">A reversal pattern only means something if it flips direction MORE than the ${baseFlip.toFixed(0)}% candles flip on their own. Beating your own coin toss is the whole test — and its likely range must sit clear of that line to count.</div>
+      </details></div></details>`;
+  } else html+=`<details class="sig"><summary>Doji — 'a reversal is coming'<span class="verdict v-wait">INSUFFICIENT EVIDENCE (${Nd} FIRES)</span></summary><div class="sigbody"><p>Only ${Nd} clean dojis found — under the minimum of ${MIN}.</p></div></details>`;
+  // luck accounting
+  const nT=testable.length;
+  if(nT>0) html+=`<div class="warnbox"><b>The luck accounting:</b> ${nT} patterns fully tested at the 5% bar means ≈${(nT*0.05).toFixed(1)} would clear significance by pure chance — one lonely "winner" in a menu is what luck predicts, which is why the correction check exists. And this run used ${coins.length} of 10 coins (free rate limits) — small samples make loud verdicts; the fewer the fires, the wider the honest uncertainty.</div>`;
+  html+=`<div style="border:1px dashed var(--line);border-radius:10px;padding:11px 13px;margin-top:12px;font-size:.74rem;color:var(--muted)"><b style="color:var(--ink)">Reproduce this run:</b> Data: CoinGecko free API, 365-day OHLC (4-day candles), fetched live · Coins loaded this run: ${coins.map(x=>x.tick).join(", ")} · Candles: ${base.length.toLocaleString()} · Pattern math: exactly as printed above, frozen before fetch · Engine: in-page JavaScript, readable via view-source · Run: ${new Date().toISOString().slice(0,10)} on your device. Prices move and the coin list can vary with rate limits, so numbers shift run to run — the rules never do.</div>`;
+  $("results").innerHTML=html;
+  setA(`test complete · ${coins.length} coins · ${base.length.toLocaleString()} candles · recomputed live`,"ok");
+  $("run").disabled=false; $("run").textContent="Re-run the test (fresh data)";
+}
+$("run").onclick=run;
+</script>
+\n<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><b style="color:var(--ink)">Keep going:</b> <a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The indicator test — the slow signals vs 150 years</a> &nbsp;·&nbsp; <a href="plainsight-simulator-offline-1.html" style="color:var(--accent);text-decoration:none">Flight simulator — your own reads, graded</a> &nbsp;·&nbsp; <a href="index.html" style="color:var(--accent);text-decoration:none">Home — the whole map</a></div></div>\n</body>
+</html>

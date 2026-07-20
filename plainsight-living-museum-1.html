@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xplainsight — the living museum of losses</title>
+<!--
+  XPLAINSIGHT — THE MUSEUM OF LOSSES (S16). Dream-list build #2 (after "You are the
+  data"). This is the first real content for the RETROSPECTIVE LEARNING LAYER locked
+  in CORE §3: the anti-herd lesson taught strictly PAST-TENSE — replaying herds that
+  already formed and resolved. No predictions, no live "what happens next" — reality
+  already answered, so no guardrail is at risk.
+  Frame: every market museum celebrates winners; the educational gold is in the
+  wreckage. Each exhibit is replayed through the gauge lens: what WAS visible in the
+  data at the time vs. what was invisible — the honest split.
+  Figures verified this session: LTCM (Federal Reserve History + contemporaneous SEC
+  estimates), Terra/Luna (Harvard Law/academic run analysis + contemporaneous
+  reporting). FTX/3AC from public court record. Real people: documented facts only,
+  no motive asserted (guardrail 5).
+  Zero external code. Same tap-to-define mechanism as every Xplainsight page.
+-->
+<style>
+  :root{--bg:#0E1116;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+    --muted:#8A9099;--faint:#838B94;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --warn:#C9A227;--define:#A78BFA;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;-webkit-text-size-adjust:100%}
+  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{font-size:.9rem;color:var(--muted);margin:0 0 14px}
+  .sub b,.card b,.exhibit b{color:var(--ink);font-weight:620}
+  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+  .term:active{opacity:.6}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+  .card p{font-size:.9rem;margin:8px 0}
+  .exhibit{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--down);border-radius:12px;padding:15px;margin:14px 0}
+  .exhibit p{font-size:.88rem;margin:8px 0}
+  .ex-title{font-weight:680;font-size:1.02rem}
+  .ex-when{font-size:.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .toll{border:1px solid rgba(224,144,108,.35);background:rgba(224,144,108,.06);border-radius:9px;padding:9px 12px;margin:9px 0;font-size:.85rem}
+  .toll b{color:var(--down)}
+  .lens{border:1px solid rgba(127,176,232,.35);background:rgba(127,176,232,.06);border-radius:9px;padding:9px 12px;margin:9px 0;font-size:.85rem}
+  .lens b{color:var(--accent)}
+  .filterbox{border:1px solid var(--line);border-left:3px solid var(--define);background:rgba(167,139,250,.06);border-radius:10px;padding:13px 15px;margin:14px 0;font-size:.88rem}
+  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:26px;font-size:.86rem;color:var(--muted)}
+  .mirror b{color:var(--ink)}
+  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+  #deftip.show{display:block}
+  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+  .wrap>*{animation:fadeUp .45s ease both}
+  .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+</style>
+</head>
+<body>
+<div style="position:sticky;top:0;z-index:40;background:rgba(14,17,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)"><div style="max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:8px"><a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#7FB0E8" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="#5FBF8F" stroke-width="2.2" stroke-linecap="round"/></svg>Xplainsight</a><span style="margin-left:auto;font-size:.7rem;color:var(--faint)">measuring history, not selling predictions</span></div></div>
+
+<div class="wrap">
+  <h1>The living museum of losses</h1>
+  <p class="sub">Every market museum celebrates winners. This one keeps the wreckage — the great documented blowups, each replayed through the same lens our live gauges use: <b>what the data showed at the time, what it couldn't show, and what the crowd did anyway.</b> Everything here already happened and already resolved — that's the rule. We teach the herd lesson only in the past tense, because reality has already graded the exam. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+
+  <div class="card">
+    <p><b>Why a living museum of losses exists:</b> the flat wallets on our live board are today's small wrecks. These are history's great ones — and they rhyme. Watch for the same five ingredients in every exhibit: <b>borrowed size</b> (<span class="term" data-def="leverage">leverage</span>), <b>a confident story</b>, <b>a crowd piling in</b>, <b>a trigger nobody modeled</b>, and <b>forced selling that feeds itself</b> (the <span class="term" data-def="doom loop">doom loop</span>). The costumes change — bonds, coins, exchanges. The machine doesn't.</p>
+  </div>
+
+  <!-- EXHIBIT 1: LTCM -->
+  <div class="exhibit">
+    <div class="ex-when">Exhibit 1 · 1998 · Bonds — before crypto existed</div>
+    <div class="ex-title">LTCM — the smartest room in finance, gone in four months</div>
+    <p><b>The story going in:</b> a hedge fund staffed by two Nobel Prize winners and Wall Street's most famous bond traders, running mathematical <span class="term" data-def="convergence trade">convergence trades</span>. Returns of 20–43% a year, four years running. The market's verdict: geniuses who couldn't lose.</p>
+    <p><b>The structure underneath:</b> the trades earned tiny, near-certain gaps — so to make big returns, the fund borrowed enormously: about <b>$30 of positions for every $1 of its own money</b> (28-to-1). At the end of 1997 the partners returned $2.7 billion to investors while keeping positions the same size — voluntarily <b>raising</b> their own leverage right before the storm. Our cushion gauge in one line: their room-to-fall was tiny by construction, and they made it tinier on purpose.</p>
+    <p><b>The trigger nobody modeled:</b> August 1998, Russia defaulted on its own debt. Panicked money worldwide fled everything risky at once — and "uncorrelated" positions all fell together, because in a panic everyone sells whatever they can. The fund lost <b>44% of its money in August alone</b>; $553 million on a single day.</p>
+    <p><b>The doom loop:</b> losses → margin calls → forced selling into a falling market → prices pushed further against the remaining positions → more margin calls. By mid-September: ~$600 million of capital against $100+ billion of positions — an effective leverage near <b>167-to-1</b>. The exact cascade our liquidation heatmap models, in government bonds, before crypto existed.</p>
+    <div class="toll"><b>The toll:</b> $4.6 billion lost in under four months. The Federal Reserve gathered 14 banks to inject $3.6 billion<sup><a href="plainsight-citations-1.html#c13" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[13]</a></sup> — private money, but a rescue the Fed had to arrange because a fire-sale of the fund's positions threatened the whole financial system. (Source: Federal Reserve History; SEC-era estimates.)</div>
+    <div class="lens"><b>Through our gauges (visible vs. invisible):</b> the leverage ratio was <b>knowable</b> — 28:1<sup><a href="plainsight-citations-1.html#c13" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[13]</a></sup> was in the fund's own reporting, the exact "real borrow vs. own money" number our board headlines. What was invisible: the assumption that markets stay orderly. Their models said a month like August 1998 was essentially impossible. The lesson our cushion teaches daily: the floor is real, the model of how far prices can move is a guess.</div>
+  </div>
+
+  <!-- EXHIBIT 2: TERRA/LUNA -->
+  <div class="exhibit">
+    <div class="ex-when">Exhibit 2 · May 2022 · Crypto — the death spiral</div>
+    <div class="ex-title">Terra / Luna — a "stable" coin that ran on belief</div>
+    <p><b>The story going in:</b> UST, a "stablecoin" meant to always equal $1 — held there not by dollars in a bank, but by an <span class="term" data-def="algorithmic stablecoin">algorithm</span> trading against its sister coin LUNA. On top sat Anchor, a savings product paying ~<b>20% a year</b>, holding about 75% of all UST in existence. LUNA peaked at $119 in April 2022; the ecosystem was the third-largest in crypto.</p>
+    <p><b>The arithmetic that was visible the whole time:</b> paying 20% on $14+ billion of deposits cost millions per day in subsidies — the project's own community voted to phase the rate down because everyone could see it wasn't sustainable. A 20% "safe" yield is a number that has to come from somewhere; here it came from newly printed value. That's checkable with grade-school math, before the crash, by anyone.</p>
+    <p><b>The trigger and the spiral:</b> May 7, 2022 — large UST withdrawals nudged it below $1. Fear → withdrawals → the algorithm printed LUNA to absorb them → LUNA's price fell → more fear. In days, LUNA's supply exploded from about 1 billion coins toward <b>6 trillion</b> and its price went from $80 to effectively zero. A <span class="term" data-def="bank run">bank run</span> with no bank and no brakes — 24/7, no closing bell, no circuit breaker (the exact "every difference makes it worse" list from our field guide).</p>
+    <div class="toll"><b>The toll:</b> roughly <b>$45–60 billion</b> of Terra ecosystem value erased in days (~$40B LUNA + ~$18B UST at peak); over $400 billion knocked off the wider crypto market. South Korea alone estimated 28,000 of its citizens lost funds. Life savings went to zero on the belief a "stable" coin couldn't fall. Founder Do Kwon was later arrested and faces fraud charges (public record; he has pleaded not guilty).</div>
+    <div class="lens"><b>Through our gauges (visible vs. invisible):</b> visible — the unsustainable yield arithmetic, the concentration (75% of UST parked in one product chasing that yield = a crowd standing in one doorway), and once the run began, the on-chain outflows in real time. Invisible — the moment belief would break. Our needle would have graded "UST always equals $1" as what it was: an <b>UNSUPPORTED CONCLUSION</b> resting on the assumption that everyone keeps believing. No gauge can time a stampede; the honest read was that the doorway was narrow and the room was full.</div>
+  </div>
+
+  <!-- EXHIBIT 3: 3AC -->
+  <div class="exhibit">
+    <div class="ex-when">Exhibit 3 · June 2022 · Crypto — the contagion</div>
+    <div class="ex-title">Three Arrows Capital — how one wreck sinks a fleet</div>
+    <p><b>The story going in:</b> one of crypto's most respected hedge funds, managing about <b>$10 billion</b> at its peak, borrowing from nearly every big lender in the industry — often with little or no collateral, on reputation.</p>
+    <p><b>What happened:</b> 3AC was heavily exposed to LUNA. When Terra died, the fund's losses ate its capital; within weeks it defaulted and went bankrupt. Because it had borrowed from everyone, its failure punched holes in its lenders — Voyager, Celsius, BlockFi, Genesis — and several of them fell too. That chain reached FTX by November.</p>
+    <div class="toll"><b>The toll:</b> a $10 billion fund to bankruptcy in weeks, then a cascade of lender bankruptcies freezing millions of ordinary customers' funds — people who never touched LUNA, never used leverage, and lost access anyway. (Public bankruptcy record.)</div>
+    <div class="lens"><b>Through our gauges (visible vs. invisible):</b> this is the exhibit about what <b>no</b> free gauge could see: 3AC's borrowing was private, off-chain, undisclosed — a leverage number that existed but was published nowhere. The lesson is the mirror image of the others: when the risk number is invisible, the honest reading is "unknown," not "fine." Our rule 4 ("we don't know yet" is a complete answer) is this exhibit's whole moral. Anyone who lent billions on reputation was treating an unknown as a fine.</div>
+  </div>
+
+  <!-- EXHIBIT 4: FTX -->
+  <div class="exhibit">
+    <div class="ex-when">Exhibit 4 · November 2022 · Crypto — the custody lie</div>
+    <div class="ex-title">FTX — the exchange that was betting the deposits</div>
+    <p><b>The story going in:</b> the second-largest crypto exchange on Earth, fronted by celebrity endorsements, stadium naming rights, and a founder celebrated as the industry's responsible adult.</p>
+    <p><b>What happened:</b> customer deposits — money people believed was sitting safe in their exchange accounts — had been funneled to the founder's trading firm, Alameda, and lost. When a leaked balance sheet showed Alameda propped up by FTX's own made-up token, a withdrawal run began. The exchange froze withdrawals and collapsed within days; the shortfall in customer money ran to roughly <b>$8 billion</b>. Founder Sam Bankman-Fried was convicted of fraud in 2023 and sentenced to 25 years (public court record).</p>
+    <div class="toll"><b>The toll:</b> millions of customers locked out of their funds for years of bankruptcy proceedings — including people who never traded at all, who just stored coins there.</div>
+    <div class="lens"><b>Through our gauges (visible vs. invisible):</b> the fraud itself was invisible — that's what fraud means. But notice which of our locked rules this exhibit wrote: an exchange balance is a <b>promise</b>; an on-chain wallet is a <b>fact</b>. Our whole tool exists on the fact side — reading a public chain nobody can privately misstate. And our identity rule ("never connects to your wallet, never touches money") is the structural opposite of the thing that failed here. FTX is why "not your keys, not your coins" stopped being a slogan and became evidence.</div>
+  </div>
+
+  <!-- EXHIBIT 5: PRIMARY EVIDENCE, FROM OUR OWN INSTRUMENT -->
+  <div class="exhibit" style="border-left-color:var(--accent)">
+    <div class="ex-when">Exhibit 5 · July 2026 · Measured live by this project's own board — not borrowed from history</div>
+    <div class="ex-title">One wallet, 1,729 closed trades: a winning record that lost $5.86 million</div>
+    <p><b>What was measured (facts only, read from the public chain on July 11, 2026):</b> a wallet surfaced in a random sample on our live board showed, across its recent trade window — <b>1,729 closed trades: 993 won, 736 lost — a 57% win rate</b>. The same trades summed to a net result of <b>−$5,858,448</b> after $8,521 in fees. Mostly traded: HYPE. Balance at reading: $60,455, no open bets.</p>
+    <p><b>Why it's in the museum:</b> every other exhibit here needed a history book. This one came off our own instrument, from a random draw — the win-rate-versus-profit independence that our scorecard exists to teach, at a scale no textbook example matches. This trader won <b>most</b> of their trades. The majority of their trades were correct. And the sum of all of it was a nearly six-million-dollar loss, because the losing trades were, on average, far larger than the winning ones. Winning often and making money are different skills — here is the measurement.</p>
+    <div class="toll"><b>The measured toll:</b> −$5,858,448 net across the readable window, from a 57%-winning record. (Source: Hyperliquid public chain data, read live; reproducible by anyone with the wallet's address<sup><a href="plainsight-citations-1.html#c26" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[26]</a></sup>.)</div>
+    <div class="lens"><b>The honest unknowns — named, not glossed (this is what non-biased means here):</b> our reading sees a <b>recent window</b> of trades, not a lifetime — earlier results are invisible to us. We <b>cannot see deposits or withdrawals</b>, so we don't know what fraction of this trader's wealth the loss represents. We don't know who or what this wallet is: it could be one person's account, one leg of a larger strategy that profits elsewhere (a hedge we can't see), or an automated system where these losses are a known cost. <b>The numbers are facts; every story about them is inference, and we assert none.</b> What survives all the unknowns is the arithmetic itself: a majority-winning record and a multimillion-dollar loss coexisted in one wallet, which is impossible if win rate measured profitability — and that impossibility is the exhibit.</div>
+  </div>
+
+  <!-- THE PATTERN -->
+  <div class="filterbox">
+    <b>The pattern across every exhibit — one machine, four costumes:</b><br>
+    1. <b>A confident story</b> ("geniuses can't lose" · "it's stable" · "they're too respected to check" · "he's the responsible one") — confidence sold in place of receipts, every time.<br>
+    2. <b>Borrowed size</b>, visible (LTCM's 28:1) or hidden (3AC's private loans) — either way, no room to be wrong.<br>
+    3. <b>A crowd in one doorway</b> — picture a packed theater with one exit. Nothing's wrong until someone smells smoke — then everyone needs the same door at the same second, and the door is the disaster. In markets the "door" is everyone holding the <span class="term" data-def="same trade">same trade</span> (LTCM and its imitators), everyone chasing the same <span class="term" data-def="yield">yield</span> (75% of all UST packed into Anchor's 20%), or everyone trusting the same <span class="term" data-def="counterparty">counterparty</span> (half the industry lending to 3AC, millions of customers storing coins on FTX). The crowd itself is what makes the exit impossible.<br>
+    4. <b>A trigger from outside the <span class="term" data-def="model">model</span></b> — every one of these players had a mental picture of "the worst that can realistically happen," and the thing that killed them wasn't in the picture. Russia refusing to pay its own debts (a <span class="term" data-def="default">default</span>). A "stable" coin slipping off its dollar anchor (a <span class="term" data-def="depeg">depeg</span>). A leaked spreadsheet. None of these were predictable from the price chart — which is exactly the point: <b>the fatal blow usually comes from outside the data everyone is staring at.</b> That's why "how much can I lose before I'm out?" (the cushion) protects you and "what do I predict happens?" doesn't.<br>
+    5. <b>Forced selling that feeds itself</b> — the doom loop our liquidation gauges exist to make visible before it's personal.<br>
+    And one more, quieter: in every single case, the arithmetic that mattered — the leverage ratio, the yield subsidy, the missing collateral — was either <b>public and unread</b>, or <b>hidden and unasked-about</b>. This museum exists so it gets read and asked about.
+  </div>
+
+  <div class="card">
+    <p><b>Where the live tool meets the living museum:</b> the numbers on our board — real borrow vs. own money, room-to-fall, the safety floor, the scorecard — are exactly the numbers that told each of these stories in advance where they were public. The museum is what those numbers look like after the ending. And as of Exhibit 5, the two have met: the living museum now holds a piece of <b>primary evidence our own instrument measured</b>, found in a random draw — the flat wallets on the live board and the exhibits here are the same lesson at every size.</p>
+  </div>
+
+  <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror">
+    <b>The mirror, as always:</b> nothing here says what to do — no exhibit ends with "so you should…". These are documented events with their receipts: figures from the Federal Reserve's own history, academic post-mortems, and public court records, with real people described only by the documented record. What the pattern means for you is yours to decide. That's the whole point of a museum: you walk through it, and you leave with your own eyes changed.
+  </div></details>
+</div>
+
+<div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const GLOSSARY={
+  "leverage":"Betting bigger than your own money by borrowing-in-effect. 28-to-1 means $28 of bets for every $1 that's really yours — so a move of about 3.5% against you erases everything. More leverage = less room to be wrong.",
+  "doom loop":"The self-feeding crash: losses force selling → the selling pushes prices further down → which causes more losses → which forces more selling. Nobody chooses it; the borrowed money does. It's the engine inside every exhibit here, and the thing our liquidation gauges try to make visible in advance.",
+  "convergence trade":"A bet that two nearly-identical things priced slightly differently will drift back together. The gap is usually tiny and usually closes — so traders borrow heavily to make tiny gaps pay. The catch: 'usually closes' is not 'always closes,' and borrowed size means you may not survive the exception.",
+  "algorithmic stablecoin":"A coin meant to always be worth $1, held there not by real dollars in a bank but by a trading rule against a sister coin. It works exactly as long as people believe it works — which makes belief itself the collateral. When belief runs, there's nothing underneath.",
+  "bank run":"Everyone trying to get their money out at once, because they're afraid everyone else will get there first. The fear is self-fulfilling: the rush itself is what breaks the thing. Crypto runs are bank runs with no closing bell, no deposit insurance, and no brakes.",
+  "same trade":"When many players hold the same bet, they all need to sell at the same moment when it goes wrong — and there's nobody left to sell TO, because the usual buyers are the ones selling. A trade that's easy to exit alone can be impossible to exit as a crowd. LTCM's positions were fine-sized for one fund and catastrophic once dozens of copycats held them too.",
+  "yield":"The income something pays you per year, as a percent. A 20% yield means $100 turns into $120 in a year IF nothing breaks. The rule of thumb this living museum keeps proving: the higher the yield, the harder you should ask 'who exactly is paying this, and with what?' Terra's 20% was paid with newly printed value — the money was coming from the belief of the next depositor.",
+  "counterparty":"The one on the other side of your deal — the borrower who owes you, the exchange holding your coins, the fund you lent to. Counterparty risk is the chance THEY fail even when your own bet was right. 3AC's lenders and FTX's customers didn't lose to the market; they lost to their counterparty.",
+  "model":"Here it means anyone's mental (or mathematical) picture of what can realistically happen — the range of outcomes they plan for. Every model has edges, and the edges are exactly where these stories end: LTCM's math said August 1998 was near-impossible; it happened anyway. The model isn't the world; it's a drawing of the world with the scary parts left out.",
+  "default":"When a borrower simply doesn't pay what they owe. Russia defaulting on its own government debt in 1998 was the 'that can't happen' event — governments printing their own currency weren't supposed to refuse to pay in it. It happened, and every model that assumed it couldn't broke at once.",
+  "depeg":"When a coin that's supposed to always equal a fixed value (like $1) slips off that anchor. For a 'stablecoin,' the peg IS the entire product — so even a small slip destroys the only thing holders were promised, and the rush for the exit does the rest. UST slipping to $0.985 was the smoke in the theater.",
+  "__demo":"Just like this: tap any underlined word and a plain meaning pops up."
+};
+function showDef(t){const b=GLOSSARY[t.toLowerCase()];if(!b)return;$("dt-w").textContent=t==="__demo"?"tap-to-define":t;$("dt-b").textContent=b;$("deftip").classList.add("show");}
+function hideDef(){$("deftip").classList.remove("show");}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(t){showDef(t.getAttribute("data-def"));return;}if(!e.target.closest("#deftip"))hideDef();});
+$("deftip").querySelector(".x").onclick=hideDef;
+</script>
+
+<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><b style="color:var(--ink)">Keep going:</b> <a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The wallet board — the instrument that measured Exhibit 5</a> &nbsp;·&nbsp; <a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Who called it — the same lesson, told by forecasts</a> &nbsp;·&nbsp; <a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">Case for active — the insurance argument these wrecks motivate</a> &nbsp;·&nbsp; <a href="index.html" style="color:var(--accent);text-decoration:none">Home — the whole map</a></div></div>
+<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:"  ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
+<script>(function(){var sel=".keyhole,.warnbox,.filterbox,.counter,.rulebox,.lens";document.querySelectorAll(sel).forEach(function(el){if(el.closest("details")||el.querySelector("details"))return;var b=el.querySelector("b");var label=b?b.textContent.replace(/[\s:—–-]+$/,""):el.textContent.trim().slice(0,60)+"…";if(el.textContent.trim().length<160)return;var d=document.createElement("details");d.className="psfold";var s=document.createElement("summary");s.textContent=label;d.appendChild(s);var inner=document.createElement("div");inner.innerHTML=el.innerHTML;d.appendChild(inner);el.innerHTML="";el.appendChild(d);});})();</script>
+<style>details.secfold{border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px;background:rgba(20,26,34,.5)}details.secfold[open]{border-color:rgba(127,176,232,.4)}details.secfold>summary{cursor:pointer;list-style:none;font-weight:660;font-size:.98rem;padding:12px 0;color:var(--ink)}details.secfold>summary::-webkit-details-marker{display:none}details.secfold>summary:after{content:" ⌄";color:#8A9099}details.secfold[open]>summary:after{content:""}</style>
+<script>(function(){
+function foldRun(start,stopSel){var d=document.createElement("details");d.className="secfold";
+var s=document.createElement("summary");s.textContent=start.textContent.trim();d.appendChild(s);
+start.parentNode.insertBefore(d,start);var n=start,items=[];
+while(n){var nx=n.nextElementSibling;items.push(n);n=nx;
+if(!n||n.matches(stopSel)||n.querySelector&&n.querySelector("#loadAll"))break;}
+items.forEach(function(el){d.appendChild(el)});d.removeChild(start.nextSibling===null?start:start);d.insertBefore(s,d.firstChild);start.style.display="none";d.appendChild(start);return d;}
+var h2s=[].slice.call(document.querySelectorAll(".wrap h2"));
+if(h2s.length>=3){h2s.forEach(function(h,i){var det=foldRun(h,"h2, .mirror");if(i===0)det.open=true;});}
+// museum exhibits / record graves: fold each block by its title line
+[".exhibit",".grave"].forEach(function(sel){
+document.querySelectorAll(sel).forEach(function(ex){
+var t=ex.querySelector(".ex-title,.g-title");if(!t)return;
+var d=document.createElement("details");d.className="secfold";d.style.border="0";d.style.padding="0";
+var s=document.createElement("summary");s.textContent=t.textContent.trim();
+var body=document.createElement("div");while(ex.firstChild)body.appendChild(ex.firstChild);
+d.appendChild(s);d.appendChild(body);ex.appendChild(d);});});
+})();</script>
+</body>
+</html>

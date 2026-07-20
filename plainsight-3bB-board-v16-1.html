@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xplainsight — see how risky a trader really is</title>
+<!--
+  XPLAINSIGHT board v8 (phone-only, no server, no vendor). Everything in v7, plus (S16):
+   A) "YOU ARE THE DATA" — the closed-trade scorecard (userFills, keyless, same /info
+      endpoint): real win rate NEXT TO real profit, because they are independent —
+      proven live in a prior session (47% win rate -> net gain; 49.5% -> net loss).
+      The one screen brokers can't build (their revenue needs you not to see it).
+      Fields new until this file's first live pull; dark-on-failure;
+      field self-reconciliation (prints what actually came back if names mismatch).
+   B) TRUST CARD — what leaves your phone (address -> Hyperliquid only), what doesn't
+      (everything -> us; there is no us to receive it), what was never private (the
+      chain), the one link we can't hide (your IP <-> the wallet you looked up, said
+      out loud), and HOW TO CHECK US (network tab), not just trust us.
+   C) IDENTITY RULE (proposed for CORE): Xplainsight NEVER connects to a wallet, never
+      asks for a key/seed phrase, never touches money. Paste-an-address is the ONLY
+      input. Any version asking for more is a fake. Printed on the face.
+   D) ZERO-DEPENDENCY LOCK (proposed for CORE): this file imports no external code —
+      no packages, no CDN scripts. Kept that way on purpose (supply-chain surface = 0).
+  v7 comment block below kept intact per nothing-deleted.
+-->
+<!--
+  XPLAINSIGHT board v5 (phone-only, no server, no vendor). Fixes from v4 testing:
+   1) BROKEN "3913% away" fixed. Cross margin = one shared pot backs every bet, so a single
+      bet has NO real wipe-out price of its own. Honest headline for a cross account is the
+      POT'S CUSHION: how much the whole account can lose before force-sell =
+      (accountValue - crossMaintenanceMarginUsed) / accountValue. Per-bet % only for ISOLATED
+      bets (own dedicated margin). Rule saved in LOG §5 (S15 correction).
+   2) BET-BY-BET WINDOWS restored — each position shown, with up/down P&L so "winners carry
+      losers" is visible.
+   3) REAL SAMPLER — "Pull a random sample" actually fetches real wallets keyless (vaultDetails),
+      keeps the ones with live bets, spreads across big/mid/small. No paste. Source is a single
+      swappable function pullSampleAddresses() — swap in blockDetails later for a fuller sample.
+   4) THREE BUTTONS, one job each: example / watch pasted / pull sample. No duplicate.
+  Discipline: cache-busted no-store, latency, dark-on-failure (never fabricated), tap-to-define,
+    plain 8th-grade language, calm colors.
+-->
+<style>
+  :root{
+    --bg:#0E1116; --panel:#141A22; --panel2:#1B222C; --line:#232A33;
+    --ink:#E8EAED; --muted:#8A9099; --faint:#838B94;
+    --accent:#7FB0E8; --up:#5FBF8F; --down:#E0906C; --define:#A78BFA; --warn:#C9A227;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55;-webkit-text-size-adjust:100%}
+  .wrap{max-width:620px;margin:0 auto;padding:22px 16px 80px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  h1{font-size:1.3rem;font-weight:680;letter-spacing:-.01em;margin:0 0 8px}
+  .sub{font-size:.95rem;color:var(--muted);margin:0 0 18px}
+  .sub b{color:var(--ink);font-weight:600}
+  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+  .term:active{opacity:.6}
+
+  .start{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .bigbtn{width:100%;background:var(--accent);color:#06121f;border:0;border-radius:10px;padding:14px;font-size:1rem;font-weight:680;cursor:pointer;margin-bottom:6px;box-shadow:0 3px 0 rgba(0,0,0,.28);transition:transform .08s,box-shadow .08s}
+  .bigbtn.blue{background:var(--accent);color:#06121f}
+  .bigbtn.green{background:var(--up);color:#06120c}
+  .bigbtn.alt{box-shadow:none}
+  .bigbtn.alt:active{transform:none;box-shadow:none}
+  .bigbtn:active{opacity:.9;transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+  .startnote{font-size:.82rem;color:var(--muted);margin:6px 0 14px;text-align:center}
+  .or{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:.78rem;margin:6px 0 12px}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+  textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:.86rem;resize:vertical;min-height:56px}
+  textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .rowbtns{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  button.go{background:var(--accent);color:#06121f;border:0;border-radius:9px;padding:11px 16px;font-size:.9rem;font-weight:640;cursor:pointer}
+  button.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:11px 16px;font-size:.9rem;font-weight:550;cursor:pointer}
+  .stat{font-size:.75rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .stat.ok{color:var(--up);border-color:rgba(95,191,143,.4)}
+  .stat.work{color:var(--accent);border-color:rgba(127,176,232,.4)}
+  .stat.bad{color:var(--warn);border-color:rgba(201,162,39,.4)}
+  .advhelp{font-size:.76rem;color:var(--faint);margin:2px 0 0}
+
+  .keyhole{border:1px solid var(--line);border-left:3px solid var(--warn);background:rgba(201,162,39,.06);border-radius:9px;padding:11px 13px;margin:14px 0;font-size:.84rem;color:var(--muted)}
+  .keyhole b{color:var(--ink)}
+
+  details.adv{background:var(--panel);border:1px solid var(--accent);border-left:3px solid var(--accent);border-radius:11px;padding:4px 14px;margin:14px 0;box-shadow:0 0 0 1px rgba(127,176,232,.12)}
+  details.adv>summary{cursor:pointer;font-size:.88rem;color:var(--accent);font-weight:640;padding:10px 0;list-style:none}
+  details.adv>summary::-webkit-details-marker{display:none}
+  details.adv[open]>summary .chev{transform:rotate(90deg)}
+  .chev{display:inline-block;transition:transform .15s;color:var(--muted)}
+  .advrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0;font-size:.84rem;color:var(--muted)}
+  .advrow .lbl{min-width:88px}
+  input[type=number]{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 9px;font-size:.82rem;width:110px}
+
+  .group{margin:16px 0}
+  .grouphead{font-size:.82rem;font-weight:650;color:var(--ink);margin:0 0 3px;display:flex;align-items:center;gap:8px}
+  .dot{width:8px;height:8px;border-radius:2px;flex:none}
+  .groupwhy{font-size:.78rem;color:var(--faint);margin:0 0 10px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0}
+  .who{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .who .id{font-weight:640;font-size:.9rem}
+  .who .money{margin-left:auto;font-size:.8rem;color:var(--muted)}
+  .plain{margin:10px 0}
+  .plain .lab{font-size:.8rem;color:var(--muted)}
+  .plain .val{font-size:1.15rem;font-weight:680;margin-top:1px}
+  .plain .say{font-size:.82rem;color:var(--muted);margin-top:1px}
+  .val.bet{color:var(--ink)}
+  .val.cush{color:var(--up)} .val.cush.thin{color:var(--warn)}
+  .capline{font-size:.78rem;color:var(--faint);margin-top:10px}
+
+  details.bets{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+  details.bets>summary{cursor:pointer;font-size:.82rem;color:var(--accent);font-weight:600;list-style:none}
+  details.bets>summary::-webkit-details-marker{display:none}
+  details.bets>summary:before{content:"▸ ";color:var(--muted)}
+  details.bets[open]>summary:before{content:"▾ ";color:var(--muted)}
+  .betscroll{max-height:58vh;overflow-y:auto;margin-top:6px;padding-right:2px;-webkit-overflow-scrolling:touch}
+  details.teach{margin-top:8px}
+  details.teach>summary{cursor:pointer;font-size:.78rem;color:var(--define);list-style:none}
+  details.teach>summary::-webkit-details-marker{display:none}
+  details.teach>summary:before{content:"▸ ";color:var(--muted)}
+  details.teach[open]>summary:before{content:"▾ ";color:var(--muted)}
+  ol.teachlist{margin:6px 0 0;padding-left:18px;font-size:.8rem;color:var(--muted);line-height:1.6}
+  ol.teachlist b{color:var(--ink)}
+  ol.teachlist li{margin:3px 0}
+  .bet{border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin:8px 0;background:var(--panel2);font-size:.82rem}
+  .bet .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .bet .coin{font-weight:640}
+  .coinwrap{display:inline-flex;flex-direction:column;line-height:1.05;cursor:pointer}
+  .tickerlab{font-size:.6rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:1px dotted var(--muted);align-self:flex-start}
+  .side{font-size:.68rem;font-weight:650;letter-spacing:.05em;text-transform:uppercase;padding:1px 7px;border-radius:999px}
+  .side.long{color:var(--up);border:1px solid rgba(95,191,143,.35)}
+  .side.short{color:var(--down);border:1px solid rgba(224,144,108,.35)}
+  .bet .pnl{margin-left:auto;font-weight:640}
+  .pnl.up{color:var(--up)} .pnl.down{color:var(--down)}
+  .bet .det{color:var(--muted);margin-top:4px;font-size:.78rem}
+
+  .empty{color:var(--faint);font-size:.86rem;text-align:center;padding:18px 0}
+  .flatsec{border:1px solid rgba(201,162,39,.45);border-left:4px solid var(--warn);background:rgba(201,162,39,.07);border-radius:12px;padding:12px 12px 6px;margin:16px 0}
+  .flathead{font-weight:680;font-size:.9rem;color:var(--warn);margin:0 0 4px}
+  .flatwhy{font-size:.8rem;color:var(--muted);margin:0 0 10px}
+  .flatrow{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;border-top:1px solid rgba(201,162,39,.2);padding:8px 2px;font-size:.86rem}
+  .fr-addr{color:var(--muted);flex:none}
+  .fr-bal{flex:none;color:var(--muted)}
+  .fr-rec{flex:1;min-width:200px;color:var(--ink)}
+  .carderr{color:var(--warn);font-size:.84rem}
+  .meta{font-size:.72rem;color:var(--faint);margin-top:8px}
+
+  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:620px;margin:0 auto}
+  #deftip.show{display:block}
+  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+  .wrap>*{animation:fadeUp .45s ease both}
+  .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+</style>
+</head>
+<body>
+<div style="position:sticky;top:0;z-index:40;background:rgba(14,17,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)"><div style="max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:8px"><a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#7FB0E8" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="#5FBF8F" stroke-width="2.2" stroke-linecap="round"/></svg>Xplainsight</a><span style="margin-left:auto;font-size:.7rem;color:var(--faint)">measuring history, not selling predictions</span></div></div>
+
+<div class="wrap">
+  <h1>See how risky a trader really is</h1>
+  <p class="sub">Type in a crypto wallet and this shows — in plain words — <b>how big their bets are</b> (their <span class="term" data-def="notional value">notional value</span>) and <b>how close they are to losing it all</b>. Real public data, not a guess. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+
+  <div class="start">
+    <button class="bigbtn green" id="example">Show me a random real trader</button>
+    <button class="bigbtn blue" id="sample">Pull a random sample of real traders</button>
+    <p class="startnote">New here? Tap either one to see it work — no setup. Tapping again pulls a different real wallet, not the same one twice.</p>
+    <div class="or">or paste addresses — your own to check yourself, or others to watch</div>
+    <textarea id="addrs" spellcheck="false" autocapitalize="off" placeholder="Paste one or more wallet addresses, one per line (they look like 0x…). Your own address works here too."></textarea>
+    <p class="advhelp"><span class="term" data-def="where">Where do I get wallet addresses?</span></p>
+    <div class="rowbtns">
+      <button class="go" id="load">Watch these</button>
+      <button class="ghost" id="refresh" style="display:none">Refresh now</button>
+      <span class="stat" id="stat">ready</span>
+    </div>
+  </div>
+
+  <div class="keyhole" style="border-left-color:var(--define);background:rgba(167,139,250,.06)"><b>The rule that spots every fake:</b> Xplainsight <b>never</b> connects to your wallet, <b>never</b> asks for a key or seed phrase, and <b>never</b> touches money. Pasting an address is the <b>only</b> input that exists. Any version of this tool asking for more is a counterfeit — no matter how identical it looks. <span class="term" data-def="trust">How do I check this page isn't lying?</span></div>
+
+  <div class="keyhole" style="border-left-color:var(--up);background:rgba(95,191,143,.06)"><b>Try it on yourself.</b> Paste <b>your own</b> address in the box above and see what everyone else can already see about you — including your real <span class="term" data-def="scorecard">scorecard</span>: your win rate next to your actual profit. They're different numbers, and the gap is the most useful thing this tool shows. <span class="term" data-def="privacy">Is my wallet data private?</span></div>
+
+  <div class="keyhole"><b>A peek through a keyhole, not the whole market.</b> You only see the wallets loaded here. What it shows is real <b>for those wallets</b> — it says nothing about everyone else. This is for <b>learning</b> how betting, winning, and getting wiped out really work — not for copying anyone's trades. Remember: winning and losing — and everything in between — are only <b>real</b> once a bet is closed (cashed out). Until then it's just a number on the screen that can still change.</div>
+
+  <details class="adv">
+    <summary>⚙ More options — group cutoffs, sample size, auto-refresh <span class="chev">▸</span></summary>
+    <p class="advhelp" style="margin:8px 0 4px">Adjust how wallets are grouped, how many the sampler tries at once, and whether this page re-checks loaded wallets on its own. Everything below is optional — the page works fine with the defaults.</p>
+    <div class="advrow"><span class="lbl"><span class="term" data-def="groups">group sizes</span></span>
+      big ≥ $<input type="number" id="tW" value="1000000"> medium ≥ $<input type="number" id="tM" value="50000"></div>
+    <div class="advrow"><span class="lbl"><span class="term" data-def="sample">sample size</span></span>
+      try <input type="number" id="sampleTry" value="24" min="4" style="width:70px"> wallets, show the ones with live bets</div>
+    <div class="advrow"><span class="lbl"><span class="term" data-def="auto">auto-check</span></span>
+      <label style="font-size:.82rem"><input type="checkbox" id="autoOn"> keep re-checking loaded wallets, every</label>
+      <input type="number" id="everySec" value="300" min="15" style="width:70px"><span>seconds (15 minimum)</span></div>
+  </details>
+
+  <div id="board"><p class="empty">Tap “Show me an example”, pull a random sample, or paste a wallet address to start.</p></div>
+</div>
+
+<div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const API="https://api.hyperliquid.xyz/info";
+const EXAMPLE="0x31ca8395cf837de08b24da3f660e77761dfb974b";
+const SAMPLE_VAULT="0xdfc24b077bc1425ad1dea75bcb6f8158e10df303"; // swappable source (see pullSampleAddresses)
+
+const GLOSSARY={
+  margin:"Margin — their own money. The cash that's really theirs in the account, holding the bet up. It's the most they can lose. (Also called equity or collateral.)",
+  "real leverage":"How big someone's bets are compared to their own money, right now. 3× means their bets are three times bigger than the cash they put in — so gains and losses hit three times harder. We work it out: all their bets ÷ their own money (margin).",
+  leverage:"Betting bigger than your own money by borrowing-in-effect. “5×” means for every $1 of their own, they control a $5 bet. More leverage = bigger wins and bigger losses.",
+  "notional value":"The full size of their bet — their own money PLUS the borrowed-in-effect part. It is NOT money they have, and NOT a prize they can win. It's how hard each price move hits.\n\nEvery 1% the coin moves = about (N × 1%) to them, up or down.\n • N = notional = the full dollar size of the bet.\n • 1% = the price move you're testing, written as 0.01.\nSo N × 0.01 = the dollar swing per 1%. Want 2%? N × 0.02.\n(Exact for small moves; for big ones it's close, not perfect.)",
+  "bet size":"The full dollar size of this one bet, borrowed-in-effect part included. The trading word for it is its notional value.",
+  perpetual:"What the bet really is: a price-tracking contract (a “perpetual”). They don't own the coin — they hold a contract that just tracks its price. That's why they can bet it goes DOWN, and control a huge bet with a little money.",
+  ticker:"A ticker is a short code for a cryptocurrency — like a stock symbol. ETH is Ethereum, BTC is Bitcoin, SOL is Solana. It's the coin this bet is tracking. There are hundreds of them; the code is just the nickname.",
+  long:"A bet the price goes UP. It's a perpetual (a price-tracking contract), not owning the coin. Wins as price rises above the entry, loses as it falls.",
+  short:"A bet the price goes DOWN. It's a perpetual (a price-tracking contract), not owning the coin. Wins as price falls below the entry, loses as it rises.",
+  liquidation:"Automatic account closing. If losses eat down to the safety floor, the exchange force-sells the bets so the loss can't go past what they put in. The trading word is “liquidation.”",
+  "safety floor":"The least the account is allowed to keep (its “maintenance margin”). Drop below it and the account is automatically closed. The exchange sets it at about 1–5% of the bet, depending on the coin — and Hyperliquid publishes the exact figure.",
+  "price move":"How far the price has to move against them before the account is automatically closed. Only clean for a single-bet account (one coin, one price). We get it as: room to fall ÷ the bet size.",
+  "shared pot":"Called “cross” margin. All their money sits in one pot, and every bet draws from that same pot. So the winners help hold up the losers — one bet can be deep underwater and nothing happens, as long as the whole pot stays healthy.",
+  cushion:"How much of their own money the account can lose before it's automatically closed. For a shared-pot (cross) account this is the honest “how close to the edge” number — not any single bet's price.",
+  "isolated margin":"The trading world's real name for this. Only this ONE bet's own set-aside cash backs it — it doesn't share a pot with the trader's other bets, and their other bets can't come save it either. Because the cash is dedicated to just this bet, it DOES have its own real closing price — a specific price where it gets force-closed, shown on the bet itself. (The opposite is 'cross' / shared-pot margin, where every bet draws from one shared pile — see the other term.)",
+  cap:"The most leverage they switched on — a setting, like a speed limit. NOT how much they're using. Someone can set 20× but only bet 1× of their money.",
+  "their money":"Their own money in the account — cash plus what their open bets are worth right now. The trading word is margin.",
+  "entry price":"The price the coin was at when they opened this bet. Their win or loss is measured from here — a long wins as price rises above it, a short wins as it falls below.",
+  pnl:"Profit or loss on a bet that isn't closed yet. “Up” = winning right now, “down” = losing right now. It moves every second and only becomes real when they close the bet.",
+  groups:"We sort wallets by how much money is in them: big, medium, small. You pick where the lines are. The point is to watch whether big accounts play it safer than small ones.",
+  sample:"“Pull a random sample” fetches real wallets for free (no sign-in, no paying), keeps the ones with live bets, and spreads them across big/medium/small. Two built-in biases to know: (1) SURVIVORSHIP — a wallet that already got wiped out is flat, so it can't pass the 'live bets' filter; the sample can only ever show survivors, which makes results look rosier than reality. (2) SMALL POOL — the free list is about a hundred addresses, mostly people who park cash and don't trade, so the same few live wallets will repeat across pulls. A thin, biased peek — never a fair picture of everyone.",
+  auto:"Re-check the loaded wallets on a timer. Only runs while this page is open — nothing runs in the background, and it costs nothing.",
+  where:"From a public tracker website like hyperstats.org — it just lists traders, and you're only reading a page, not signing in or trading. Open a trader and copy their address (the long 0x… code). Or just tap “Pull a random sample” and skip this.",
+  trust:"Don't trust — check. This page is one file with no hidden parts: (1) its code is public, so anyone can read every line; (2) your browser can show you exactly where data goes — open your browser's developer tools, 'Network' tab, and watch: every request goes to api.hyperliquid.xyz and nowhere else; (3) this file imports zero outside code — no add-ons that could change behind our back. There is no Xplainsight server: your address travels from YOUR phone straight to Hyperliquid. We never receive it, so we can't store, sell, or leak it.\n\nOne honest limit we can't fix: when your phone asks Hyperliquid about a wallet, Hyperliquid's servers can see that someone at your internet connection looked that wallet up. Every explorer and tracker site has this same limit. We can't hide it, so we say it.\n\nOne more honest note: your own browser extensions can read anything you paste into any page — including this one. That's true of every website; worth knowing.",
+  privacy:"Here's the surprise: your wallet data was never private. Every position, trade, and balance on Hyperliquid lives on a public chain — anyone who knows your address can already see all of it, right now, with or without this tool. This page reveals nothing new; it shows YOU what's already visible to everyone else. Nothing you do here is saved anywhere: close the tab and it's gone. No account, no tracking, no storage — there's nowhere to store it.",
+  scorecard:"Your closed trades, added up honestly: how often you won (win rate) shown NEXT TO how much you actually made or lost (net profit, after fees). We show both because they're independent — we've watched a wallet win 47% of the time and come out ahead, and another win 49.5% of the time and come out behind. Winning often and making money are different skills; the gap between your two numbers is where the lesson lives.",
+  "win rate":"Out of your finished (closed) trades, the share that ended in profit. Feels like THE number — it isn't. A few big losses can erase many small wins, so a high win rate can still lose money, and a low one can still make money. That's why we always show it next to the actual profit.",
+  "fees paid":"What the exchange charged you across these trades. Fees come out win or lose — the quiet drain that makes most active traders' math worse than it feels. We show it so it can't hide — even down to the exact cents if the total is small, because rounding a real fee to '$0' would hide the very thing this card exists to catch.",
+  "maker rebate":"Most trades pay a fee. But someone who places a standing offer that someone else trades into (a 'maker') is sometimes PAID a small rebate instead of charged — the exchange rewards adding to the order book. Rare for typical traders; normal for market-maker-style accounts trading constantly on both sides.",
+  __demo:"Just like this: tap any underlined word and a plain meaning pops up."
+};
+function showDef(t){const k=t.toLowerCase(),b=GLOSSARY[k];if(!b)return;$("dt-w").textContent=t;$("dt-b").textContent=b;$("deftip").classList.add("show");}
+function hideDef(){$("deftip").classList.remove("show");}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(t){showDef(t.getAttribute("data-def"));return;}if(!e.target.closest("#deftip"))hideDef();});
+$("deftip").querySelector(".x").onclick=hideDef;
+
+const num=x=>{const n=Number(x);return isFinite(n)?n:NaN;};
+const fmtUsd=n=>isNaN(n)?"—":"$"+Number(n).toLocaleString(undefined,{maximumFractionDigits:0});
+const fmtUsd2=n=>isNaN(n)?"—":(n<0?"-$":"+$")+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:0});
+// precision-aware: a fee total between -$0.50 and $0.50 must never print as the
+// same "$0" as a true zero — that would hide the exact drain this card exists to show.
+const fmtFee=n=>{ if(isNaN(n))return"—"; const a=Math.abs(n);
+  if(a===0) return "$0.00 exactly";
+  if(a<0.5) return (n<0?"-$":"$")+a.toFixed(4)+" (rounds to $0 — shown exact so it isn't hidden)";
+  return fmtUsd(n); };
+const fmtPrice=n=>{ if(n==null||isNaN(n))return"—"; n=Number(n); const a=Math.abs(n); if(a===0)return"$0"; const d=a>=1?2:a>=0.01?4:6; return "$"+n.toLocaleString(undefined,{maximumFractionDigits:d}); };
+const fmtX=n=>(isNaN(n)||!isFinite(n))?"—":Number(n).toLocaleString(undefined,{maximumFractionDigits:2})+"×";
+const fmtPct=n=>(isNaN(n)||!isFinite(n))?"—":Number(n).toFixed(1)+"%";
+const short=a=>a.slice(0,6)+"…"+a.slice(-4);
+function setStat(t,c){const s=$("stat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
+function parseAddrs(raw){return [...new Set(raw.split(/[\s,]+/).map(s=>s.trim().toLowerCase()).filter(Boolean))];}
+
+let members=[];
+let timer=null;
+let sampleNote="";   // survivorship/small-pool warning; set by runSample, cleared by other loads, rendered by render()
+
+async function post(body){
+  const t0=performance.now();
+  const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",body:JSON.stringify(body)});
+  const ms=Math.round(performance.now()-t0);
+  if(!r.ok){const e=new Error("HTTP "+r.status);e.ms=ms;throw e;}
+  return {data:await r.json(),ms};
+}
+
+async function readAcct(addr){
+  const {data,ms}=await post({type:"clearinghouseState",user:addr});
+  const s=data.marginSummary||{};
+  const acctVal=num(s.accountValue), totNtl=num(s.totalNtlPos), totMU=num(s.totalMarginUsed);
+  const crossMM=num(data.crossMaintenanceMarginUsed);
+  const positions=(data.assetPositions||[]).map(p=>p.position).filter(Boolean);
+  let nCross=0,nIso=0,up=0,down=0;
+  const bets=positions.map(p=>{
+    const iso=(p.leverage&&p.leverage.type==='isolated');
+    iso?nIso++:nCross++;
+    const pnl=num(p.unrealizedPnl); if(pnl>=0)up++;else down++;
+    const sz=Math.abs(num(p.szi)), ntl=num(p.positionValue), liq=num(p.liquidationPx);
+    let isoMovePct=NaN;
+    if(iso && liq && sz && ntl){ const mark=ntl/sz; if(mark) isoMovePct=Math.abs(mark-liq)/mark*100; }
+    return {coin:p.coin, side:num(p.szi)>=0?"long":"short", ntl, pnl, entry:num(p.entryPx), iso, isoMovePct};
+  });
+  // cross cushion: how much the whole pot can lose before force-sell
+  const cushionPct=(acctVal>0 && !isNaN(crossMM)) ? (acctVal-crossMM)/acctVal*100 : NaN;
+  return {addr, ok:true, acctVal, nPos:positions.length, nCross, nIso, up, down,
+    realLev:(acctVal>0)?totNtl/acctVal:NaN, capLev:(totMU>0)?totNtl/totMU:NaN,
+    notional:totNtl, floor:crossMM, cushionPct, bets, ms};
+}
+
+function tierOf(v){const w=num($("tW").value),m=num($("tM").value); if(v>=w)return"big"; if(v>=m)return"mid"; return"small";}
+
+// ---- SAMPLER (swappable source). Today: vault followers via vaultDetails (keyless).
+//      Swap this one function for blockDetails (recent traders) later for a fuller sample. ----
+async function pullSampleAddresses(){
+  const {data}=await post({type:"vaultDetails",vaultAddress:SAMPLE_VAULT});
+  const fol=(data&&data.followers)||[];
+  let addrs=[...new Set(fol.map(f=>f.user).filter(Boolean).map(a=>a.toLowerCase()))];
+  return addrs;
+}
+
+async function runSample(){
+  setStat("finding traders…","work");
+  $("board").innerHTML=`<p class="empty">Pulling real wallets and keeping the ones with live bets…</p>`;
+  let pool;
+  try{ pool=await pullSampleAddresses(); }
+  catch(err){ setStat("couldn't reach the list","bad"); $("board").innerHTML=`<p class="empty">Couldn't fetch the wallet list right now. Nothing made up. Try again, or paste an address.</p>`; return; }
+  if(!pool.length){ setStat("empty list","bad"); $("board").innerHTML=`<p class="empty">The list came back empty. Nothing made up.</p>`; return; }
+  const tryN=Math.max(4,num($("sampleTry").value)||24);
+  const picks=pool.slice().sort(()=>Math.random()-0.5).slice(0,tryN);
+  setStat("reading "+picks.length+"…","work");
+  const results=await Promise.allSettled(picks.map(a=>readAcct(a)));
+  const readOk=results.filter(r=>r.status==="fulfilled").map(r=>r.value);
+  const live=readOk.filter(m=>m.nPos>0), flat=readOk.filter(m=>m.nPos===0);
+  const unreadable=results.length-readOk.length;
+  members=live.concat(flat);   // flat wallets kept — render() shows them in their own section
+  $("refresh").style.display="";
+  if(live.length===0 && flat.length===0){
+    $("board").innerHTML=`<p class="empty">Couldn't read any of the ${picks.length} wallets tried. Nothing made up. Try again.</p>`;
+    setStat("0 readable","bad"); return;
+  }
+  if(flat.length){
+    setStat("reading "+flat.length+" trade records…","work");
+    const sums=await Promise.allSettled(flat.map(m=>fetchScoreSummary(m.addr)));
+    sums.forEach((s,i)=>{ flat[i].score = s.status==="fulfilled" ? s.value : {err:"couldn't read record"}; });
+  }
+  sampleNote=`<div class="keyhole"><b>The whole draw, both sides: of ${picks.length} wallets tried — ${live.length} with live bets, ${flat.length} flat (no open bets)${unreadable?`, ${unreadable} unreadable`:""}.</b> Most samples online show you only the active winners — that's <b>survivorship bias</b>, and it makes trading look safer than it is. Here the flat wallets are shown too, each with its own tap-to-tally record of what it traded and how that went. One honest limit: <b>flat doesn't automatically mean lost</b> — an empty wallet could be wiped out, could have taken profits and left, or could have never traded. We can't see deposits or withdrawals; we show each wallet's balance and its trade record, and you judge. Also: the free wallet list is small (${pool.length} addresses), so repeat pulls return mostly the same wallets.</div>`;
+  render();
+  setStat("done · "+live.length+" live, "+flat.length+" flat, of "+picks.length+" tried","ok");
+}
+
+async function loadAll(addrs){
+  sampleNote="";
+  if(addrs.length===0){ $("board").innerHTML=`<p class="empty">Paste at least one wallet address (0x…).</p>`; return; }
+  setStat("reading "+addrs.length+"…","work"); members=[];
+  for(const a of addrs){
+    if(!/^0x[0-9a-f]{40}$/.test(a)){ members.push({addr:a,ok:false,err:"That's not a valid address — it should be 0x and 40 letters/numbers. Skipped. Nothing made up."}); continue; }
+    try{ members.push(await readAcct(a)); }
+    catch(err){ members.push({addr:a,ok:false,err:"Couldn't read this wallet. Check the address and your connection, then try again. Nothing made up."}); }
+  }
+  $("refresh").style.display="";
+  const flatNew=members.filter(m=>m.ok&&m.nPos===0&&!m.score);
+  if(flatNew.length){
+    const sums=await Promise.allSettled(flatNew.map(m=>fetchScoreSummary(m.addr)));
+    sums.forEach((s,i)=>{ flatNew[i].score = s.status==="fulfilled" ? s.value : {err:"couldn't read record"}; });
+  }
+  render();
+  setStat("done · "+members.filter(m=>m.ok).length+" read","ok");
+}
+
+async function refresh(){
+  if(members.length===0) return;
+  setStat("checking…","work");
+  for(const m of members){ if(!m.addr) continue; try{ const sc=m.score; Object.assign(m, await readAcct(m.addr)); m.score=sc; }catch(e){ m.ok=false; m.err="Couldn't re-read just now. Nothing made up."; } }
+  const flatNew=members.filter(m=>m.ok&&m.nPos===0&&!m.score);
+  for(const m of flatNew){ m.score=await fetchScoreSummary(m.addr); }
+  render(); setStat("updated · "+new Date().toLocaleTimeString(),"ok");
+}
+
+function betRow(b){
+  const pnlUp=b.pnl>=0;
+  const move = b.iso && !isNaN(b.isoMovePct)
+      ? `auto-closes if price moves ~${fmtPct(b.isoMovePct)} · <span class="term" data-def="isolated margin">isolated</span>`
+      : `<span class="term" data-def="shared pot">shared pot</span> — no closing price of its own`;
+  return `<div class="bet"><div class="top">
+      <span class="coinwrap" data-def="ticker"><span class="tickerlab">ticker</span><span class="coin">${b.coin}</span></span>
+      <span class="side ${b.side}" data-def="${b.side}" style="cursor:pointer">${b.side}</span>
+      <span class="pnl ${pnlUp?'up':'down'}">${fmtUsd2(b.pnl)}</span>
+    </div><div class="det"><span class="term" data-def="bet size">bet size</span> ${fmtUsd(b.ntl)} · <span class="term" data-def="entry price">entry</span> ${fmtPrice(b.entry)} · ${move}</div></div>`;
+}
+
+function teachBox(m, room){
+  const pctFloor = (m.notional>0 && !isNaN(m.floor)) ? m.floor/m.notional*100 : NaN;
+  let priceStep = "";
+  if(m.nPos===1 && m.notional>0 && !isNaN(room)){
+    priceStep = `<li><b>In price terms</b> (works only with one bet): that loss needs a price move of room ÷ bet = ${fmtUsd(room)} ÷ ${fmtUsd(m.notional)} = <b>~${fmtPct(room/m.notional*100)}</b> against their ${m.bets[0].coin}. <span style="color:var(--faint)">Exact for small moves.</span></li>`;
+  }
+  return `<details class="teach"><summary>check me by hand ▸</summary>
+    <ol class="teachlist">
+      <li><span class="term" data-def="margin">Margin</span> (their own money): <b>${fmtUsd(m.acctVal)}</b></li>
+      <li>Their bet (<span class="term" data-def="notional value">notional</span>): <b>${fmtUsd(m.notional)}</b></li>
+      <li><span class="term" data-def="safety floor">Safety floor</span>${isNaN(pctFloor)?"":` (~${fmtPct(pctFloor)} of the bet)`}: <b>${fmtUsd(m.floor)}</b> — read straight from Hyperliquid.</li>
+      <li><b>Room to fall</b> = margin − floor = ${fmtUsd(m.acctVal)} − ${fmtUsd(m.floor)} = <b>${fmtUsd(room)}</b></li>
+      <li><b>As a share of their money</b> = room ÷ margin = ${fmtUsd(room)} ÷ ${fmtUsd(m.acctVal)} = <b>~${fmtPct(m.cushionPct)}</b></li>
+      ${priceStep}
+    </ol>
+    <p class="advhelp" style="margin:4px 0 0">Every number is read from the wallet or made from the two above it — nothing hidden. Training wheels off, you could redo this yourself.</p>
+  </details>`;
+}
+
+function cardHtml(m){
+  if(!m.ok) return `<div class="card"><div class="who"><span class="id mono">${short(m.addr)}</span></div><p class="carderr">${m.err}</p></div>`;
+  // account-level "how close to the edge"
+  let edgeBlock;
+  if(m.nPos===0){
+    const empty=m.acctVal<1;
+    edgeBlock=`<div class="plain"><div class="lab">Open bets</div><div class="val bet">none right now</div>
+      <div class="say">${empty
+        ? `This wallet is <b>empty</b> (under $1 left). Its trade record below shows what happened — whether it was wiped out or walked away, the closed trades and the balance together tell the story.`
+        : `This wallet holds ${fmtUsd(m.acctVal)} but has nothing at risk right now — parked cash, or between trades. Its trade record below shows whether it ever played.`}</div></div>`;
+  } else if(m.nCross>0 && !isNaN(m.cushionPct)){
+    const thin=m.cushionPct<15;
+    const say = thin ? "Thin — not much room left." : (m.cushionPct>60?"Big cushion — far from the edge.":"Some room left.");
+    const room = m.acctVal - m.floor;
+    let priceLine;
+    if(m.nPos===1 && m.notional>0 && !isNaN(room)){
+      priceLine = `<div class="say"><b>In price terms:</b> a move of about <b>${fmtPct(room/m.notional*100)}</b> against their ${m.bets[0].coin} closes the account. <span class="term" data-def="price move">(?)</span></div>`;
+    } else {
+      priceLine = `<div class="say" style="color:var(--faint)">Many bets, no single price — so we use the cushion above, not a price move.</div>`;
+    }
+    edgeBlock=`<div class="plain">
+      <div class="lab">How close to <span class="term" data-def="liquidation">automatic account closing</span></div>
+      <div class="val cush ${thin?'thin':''}">can lose ~${fmtPct(m.cushionPct)} of their money first</div>
+      <div class="say">The whole account can lose about that much before it's automatically closed (a <span class="term" data-def="shared pot">shared pot</span>). ${say}</div>
+      ${priceLine}
+      ${teachBox(m, room)}</div>`;
+  } else {
+    edgeBlock=`<div class="plain"><div class="lab">How close to <span class="term" data-def="liquidation">automatic account closing</span></div>
+      <div class="val bet">see each bet</div>
+      <div class="say">Each of these bets uses <span class="term" data-def="isolated margin">isolated margin</span> — its own set-aside cash, not shared with the trader's other bets. That means each one has its own real closing price, shown below.</div></div>`;
+  }
+  const betsSummary = m.nPos>0 ? `${m.nPos} bet${m.nPos===1?"":"s"} — <span style="color:var(--up)">${m.up} up</span>, <span style="color:var(--down)">${m.down} down</span>` : "";
+  const betsBlock = m.nPos>0 ? `<details class="bets"><summary>${betsSummary} &nbsp;—&nbsp; tap to see each bet</summary>
+      <p class="advhelp" style="margin:6px 0 0">Each bet is a <span class="term" data-def="perpetual">price-tracking contract</span> — a <span class="term" data-def="long">long</span> (bet up) or <span class="term" data-def="short">short</span> (bet down), not owning the coin. In a shared pot, winners help carry losers.</p>
+      <div class="betscroll">${m.bets.map(betRow).join("")}</div></details>` : "";
+  const capline = m.nPos>0 ? `<div class="capline">Limit they set: <b>${fmtX(m.capLev)}</b> — a <span class="term" data-def="cap">cap</span> (a setting), not how much they're using.</div>` : "";
+  const scoreBlock = `<details class="bets" ontoggle="if(this.open&&!this.dataset.l){this.dataset.l=1;loadScore('${m.addr}')}"><summary>the <span class="term" data-def="scorecard">scorecard</span> — what it traded, wins vs. actual profit &nbsp;—&nbsp; tap to open</summary>
+      <div class="scorebox" id="score-${m.addr}"><p class="advhelp" style="margin:8px 0">reading recent trades…</p></div></details>`;
+  return `<div class="card">
+    <div class="who"><span class="id mono">${short(m.addr)}</span><span class="money"><span class="term" data-def="margin">margin</span> ${fmtUsd(m.acctVal)}</span></div>
+    <div class="plain">
+      <div class="lab">How much they're really betting <span class="term" data-def="real leverage">(?)</span></div>
+      <div class="val bet">${m.nPos>0?fmtX(m.realLev):"0×"} <span style="font-size:.8rem;color:var(--muted);font-weight:500">their own money</span></div>
+    </div>
+    ${edgeBlock}
+    ${capline}
+    ${betsBlock}
+    ${scoreBlock}
+  </div>`;
+}
+
+function flatRow(m){
+  const s=m.score||{};
+  const bal = m.acctVal<1 ? `<span style="color:var(--down)">empty</span>` : `<span style="color:var(--ink)">${fmtUsd(m.acctVal)}</span>`;
+  let rec;
+  if(s.err) rec=`<span style="color:var(--warn)">${s.err} — nothing made up</span>`;
+  else if(s.none) rec=`never traded (in this window)`;
+  else if(s.noCloses) rec=`${s.fills} fills, no finished trades yet · fees so far ${fmtFee(s.fees)}`;
+  else rec=`won <b>${s.wr.toFixed(0)}%</b> (${s.wins}W/${s.losses}L) · result <b style="color:${s.net>=0?'var(--up)':'var(--down)'}">${fmtUsd2(s.net)}</b> after ${fmtUsd(s.fees)} fees · mostly ${s.top}`;
+  return `<div class="flatrow"><span class="mono fr-addr">${short(m.addr)}</span><span class="fr-bal">holds ${bal}</span><span class="fr-rec">${rec}</span></div>`;
+}
+function median(a){if(!a.length)return NaN;const s=[...a].sort((x,y)=>x-y);const m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+
+function render(){
+  const ok=members.filter(m=>m.ok);
+  const errs=members.filter(m=>!m.ok);
+  const liveOk=ok.filter(m=>m.nPos>0), flatOk=ok.filter(m=>m.nPos===0);
+  const tiers=[["big","Big accounts","var(--accent)"],["mid","Medium accounts","var(--define)"],["small","Small accounts","var(--up)"]];
+  const nonEmpty=tiers.filter(([t])=>liveOk.some(m=>tierOf(m.acctVal)===t));
+  const showHeaders=nonEmpty.length>1;
+  let html="";
+  if(showHeaders && liveOk.length>1) html+=`<p class="groupwhy" style="margin:0 0 6px">Watch whether the big accounts play it safer than the small ones — that gap is the whole lesson.</p>`;
+  for(const [t,label,color] of tiers){
+    const pool=liveOk.filter(m=>tierOf(m.acctVal)===t);
+    if(!pool.length) continue;
+    html+=`<div class="group">`;
+    if(showHeaders){
+      const medLev=median(pool.map(m=>m.realLev).filter(x=>!isNaN(x)));
+      html+=`<div class="grouphead"><span class="dot" style="background:${color}"></span>${label} · ${pool.length}</div><div class="groupwhy">typically betting ${fmtX(medLev)} their money</div>`;
+    }
+    for(const m of pool) html+=cardHtml(m);
+    html+=`</div>`;
+  }
+  if(flatOk.length){
+    html+=`<div class="flatsec"><div class="flathead">⚑ Flat wallets — no live bets · the side most sites never show you · ${flatOk.length}</div>
+      <p class="flatwhy">Each line is that wallet's recent record, read instantly: what's left in it, how often it won, its actual result after fees, and its main coin. Flat can mean wiped out, cashed out, or never traded — the balance next to the record is your clue.</p>`;
+    for(const m of flatOk) html+=flatRow(m);
+    html+=`</div>`;
+  }
+  for(const e of errs) html+=cardHtml(e);
+  if(!html) html=`<p class="empty">No wallets to show yet.</p>`;
+  $("board").innerHTML=sampleNote+html;
+}
+
+/* ---- lean record summary for FLAT wallet rows (v15): same userFills read,
+   boiled down to one line of facts. Dark-on-failure; never fabricated. ---- */
+async function fetchScoreSummary(addr){
+  try{
+    const {data:fills}=await post({type:"userFills",user:addr});
+    if(!Array.isArray(fills)) return {err:"record unreadable"};
+    if(fills.length===0) return {none:true};
+    const closes=fills.filter(f=>typeof f.dir==="string" && f.dir.startsWith("Close"));
+    const pnls=closes.map(f=>num(f.closedPnl)).filter(n=>!isNaN(n));
+    const fees=fills.map(f=>num(f.fee)).filter(n=>!isNaN(n)).reduce((a,b)=>a+b,0);
+    if(pnls.length===0) return {noCloses:true, fills:fills.length, fees};
+    const wins=pnls.filter(p=>p>0).length, losses=pnls.filter(p=>p<0).length;
+    const net=pnls.reduce((a,b)=>a+b,0)-fees;
+    const cc={}; closes.forEach(f=>{ if(f.coin) cc[f.coin]=(cc[f.coin]||0)+1; });
+    const top=Object.entries(cc).sort((a,b)=>b[1]-a[1])[0];
+    return {wins, losses, n:pnls.length, wr:wins/pnls.length*100, net, fees, top:top?top[0]:"—", fills:fills.length};
+  }catch(e){ return {err:"couldn't read record"}; }
+}
+
+/* ---- SCORECARD (v8): win rate NEXT TO actual profit, from recent closed trades.
+   userFills = same keyless /info endpoint. Fields new: coin, closedPnl,
+   fee, dir ("Close Long"/"Close Short" marks a closing trade). Self-reconciles:
+   if expected fields are missing, goes dark and prints the keys it actually got.
+   HL returns a RECENT window of fills — a recent-window read, not a lifetime
+   record; the card says so. Nothing fabricated. ---- */
+async function loadScore(addr){
+  const box=document.getElementById("score-"+addr);
+  if(!box) return;
+  box.innerHTML=`<p class="advhelp" style="margin:8px 0">reading recent trades…</p>`;
+  let fills, ms=0;
+  try{ const r=await post({type:"userFills",user:addr}); fills=r.data; ms=r.ms; }
+  catch(err){ box.innerHTML=`<p class="carderr">Couldn't read this wallet's trades (${err.message||"fetch failed"}). Nothing made up.</p>`; return; }
+  if(!Array.isArray(fills)){ box.innerHTML=`<p class="carderr">Unexpected reply shape (not a list). Nothing made up. Keys got: ${Object.keys(fills||{}).slice(0,8).join(", ")}</p>`; return; }
+  if(fills.length===0){ box.innerHTML=`<p class="advhelp" style="margin:8px 0">No recent trades on record for this wallet.</p>`; return; }
+  // field self-reconciliation on the first fill (the WS-probe pattern)
+  const f0=fills[0], need=["coin","closedPnl","fee","dir"];
+  const missing=need.filter(k=>!(k in f0));
+  if(missing.length){ box.innerHTML=`<p class="carderr">Trade fields didn't match what we expected (missing: ${missing.join(", ")}). Going dark instead of guessing. Keys got: ${Object.keys(f0).slice(0,10).join(", ")}</p>`; return; }
+  // closing fills only — where profit or loss became real
+  const closes=fills.filter(f=>typeof f.dir==="string" && f.dir.startsWith("Close"));
+  const pnls=closes.map(f=>num(f.closedPnl)).filter(n=>!isNaN(n));
+  const totFees=fills.map(f=>num(f.fee)).filter(n=>!isNaN(n)).reduce((a,b)=>a+b,0);
+  if(pnls.length===0){ box.innerHTML=`<p class="advhelp" style="margin:8px 0">${fills.length} recent fills read, but none were closing trades — nothing has been won or lost yet in this window. Fees so far: ${fmtFee(totFees)}.</p>`; return; }
+  const wins=pnls.filter(p=>p>0).length, losses=pnls.filter(p=>p<0).length, flats=pnls.length-wins-losses;
+  const netPnl=pnls.reduce((a,b)=>a+b,0);
+  const netAfterFees=netPnl-totFees;
+  const wr=wins/pnls.length*100;
+  // what it traded: top coins by closed-trade count (the "what the wallet held" window)
+  const coinCount={};
+  closes.forEach(f=>{ if(f.coin) coinCount[f.coin]=(coinCount[f.coin]||0)+1; });
+  const topCoins=Object.entries(coinCount).sort((a,b)=>b[1]-a[1]).slice(0,6)
+    .map(([c,n])=>`${c} ×${n}`).join(" · ");
+  const coinLine=topCoins?`<p class="advhelp" style="margin:4px 0 2px">What it traded (closed bets in this window): ${topCoins}${Object.keys(coinCount).length>6?" · …":""}</p>`:"";
+  const agree=(wr>=50&&netAfterFees>=0)||(wr<50&&netAfterFees<0);
+  const gapLesson = agree
+    ? "Here the two numbers happen to point the same way — they often don't, and the gap is the lesson when they split."
+    : (wr>=50
+      ? `<b>The gap on display:</b> this wallet wins <b>more than half</b> its trades and is still <b>down overall</b> — a few big losses outweighing many small wins. Winning often and making money are different skills.`
+      : `<b>The gap on display:</b> this wallet wins <b>less than half</b> its trades and is still <b>UP overall</b> — its wins are bigger than its losses. Winning often and making money are different skills.`);
+  const extremeNote = (pnls.length>=10 && (losses===0 || wins===0))
+    ? (losses===0
+      ? `<p class="advhelp" style="margin:6px 0 2px;color:var(--warn)"><b>Worth a second look:</b> zero losses across ${pnls.length} closed trades is unusual. It can mean genuinely disciplined exits — or it can mean this account tends to <b>hold losing bets open rather than close them</b> (waiting/hoping, sometimes adding to them), so losses never show up as a "close." Either is possible from this data alone; we can't tell you which.</p>`
+      : `<p class="advhelp" style="margin:6px 0 2px;color:var(--warn)"><b>Worth a second look:</b> zero wins across ${pnls.length} closed trades is unusual. It can mean a genuinely rough stretch — or a pattern of closing winners too early and letting losers run. Either is possible from this data alone; we can't tell you which.</p>`)
+    : "";
+  const feeNote = totFees<0
+    ? `<span style="color:var(--up)">Negative fees mean this wallet earned <span class="term" data-def="maker rebate">maker rebates</span> — paid to trade, not charged. Uncommon for most people; common for market-maker-style accounts.</span>`
+    : (totFees<0.01 && fills.length>50
+        ? `<span style="color:var(--warn)">Near-zero fees across ${fills.length} fills is unusual — worth a second look, not blind trust.</span>`
+        : "");
+  const acctVal=num((members.find(m=>m.addr===addr)||{}).acctVal);
+  const scaleNote = (!isNaN(acctVal) && acctVal>0 && Math.abs(netAfterFees)>acctVal*2)
+    ? `<p class="advhelp" style="margin:6px 0 2px;color:var(--warn)"><b>Why this can look bigger than the account:</b> this total is added up across ALL ${pnls.length} closed trades in the window — not just today's open bet. It's normal for that sum to be larger than the money in the account right now: the account's current size already reflects those past wins or losses, and this reading can't see deposits or withdrawals along the way. Read it as "what happened across many trades," not "what's true of the current balance."</p>`
+    : "";
+  box.innerHTML=`
+    <div class="plain" style="margin:8px 0 4px">
+      <div class="lab"><span class="term" data-def="win rate">Win rate</span> (recent closed trades)</div>
+      <div class="val bet">${wr.toFixed(1)}% <span style="font-size:.8rem;color:var(--muted);font-weight:500">won ${wins} · lost ${losses}${flats?` · flat ${flats}`:""}</span></div>
+    </div>
+    <div class="plain" style="margin:4px 0">
+      <div class="lab">Actual result, after <span class="term" data-def="fees paid">fees</span></div>
+      <div class="val" style="font-size:1.15rem;font-weight:680;color:${netAfterFees>=0?'var(--up)':'var(--down)'}">${fmtUsd2(netAfterFees)}</div>
+      <div class="say">Trade profit/loss ${fmtUsd2(netPnl)} minus fees paid ${fmtFee(totFees)}. ${feeNote}</div>
+    </div>
+    ${coinLine}
+    <p class="advhelp" style="margin:6px 0 2px">${gapLesson}</p>
+    ${extremeNote}
+    ${scaleNote}
+    <p class="advhelp" style="margin:4px 0 0;color:var(--faint)">Honest window: this reads the wallet's <b>recent</b> trades (the exchange serves a recent slice, not a lifetime history — ${fills.length} fills, ${pnls.length} closes, ${ms}ms). A short window can flatter or insult anyone; it's a sample, not a verdict.</p>`;
+}
+
+// "Show me an example" now pulls a genuinely random real wallet (same keyless
+// vaultDetails source as the sampler), not the same fixed address every time.
+// Tries several candidates in parallel for one with live bets; if the whole
+// draw comes up flat (the vault-follower bias — most park cash, don't trade),
+// falls back to the known-good fixed wallet and SAYS SO — never silent.
+async function runExample(){
+  setStat("finding a real trader…","work");
+  $("board").innerHTML=`<p class="empty">Pulling a random real wallet…</p>`;
+  let pool;
+  try{ pool=await pullSampleAddresses(); }
+  catch(err){ setStat("using known example (couldn't reach the list)","work"); $("addrs").value=""; return loadAll([EXAMPLE]); }
+  if(!pool.length){ setStat("using known example (list came back empty)","work"); $("addrs").value=""; return loadAll([EXAMPLE]); }
+  const tryN=Math.min(Math.max(4,num($("sampleTry").value)||24), pool.length);
+  const picks=pool.slice().sort(()=>Math.random()-0.5).slice(0,tryN);
+  const results=await Promise.allSettled(picks.map(a=>readAcct(a)));
+  const withBets=results.filter(r=>r.status==="fulfilled" && r.value.nPos>0).map(r=>r.value);
+  if(withBets.length===0){
+    setStat("using known example (random draw was flat)","work");
+    $("addrs").value=""; return loadAll([EXAMPLE]);
+  }
+  const chosen=withBets[Math.floor(Math.random()*withBets.length)];
+  sampleNote="";
+  members=[chosen];
+  $("addrs").value=chosen.addr;
+  $("refresh").style.display="";
+  render();
+  setStat("done · random real wallet","ok");
+}
+$("example").onclick=runExample;
+$("sample").onclick=runSample;
+$("load").onclick=()=>loadAll(parseAddrs($("addrs").value));
+$("refresh").onclick=refresh;
+function setAutoTimer(){
+  if(timer){clearInterval(timer);timer=null;}
+  if(!$("autoOn").checked){ return; }
+  const asked=num($("everySec").value)||300;
+  const sec=Math.max(15,asked);
+  if(asked<15) $("everySec").value=15;   // show the clamp, never silently ignore it
+  timer=setInterval(refresh,sec*1000);
+  setStat("auto-check ON · every "+sec+"s"+(asked<15?" (15s is the minimum)":""),"work");
+}
+$("autoOn").onchange=setAutoTimer;
+$("everySec").onchange=setAutoTimer;
+</script>
+
+<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><b style="color:var(--ink)">Keep going:</b> <a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum of losses — Exhibit 5 came off this board</a> &nbsp;·&nbsp; <a href="plainsight-simulator-offline-1.html" style="color:var(--accent);text-decoration:none">Flight simulator — practice reads with nothing at stake</a> &nbsp;·&nbsp; <a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">Markets pack — the same crowd-reading, four more markets</a> &nbsp;·&nbsp; <a href="index.html" style="color:var(--accent);text-decoration:none">Home — the whole map</a></div></div>
+<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:"  ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
+<script>(function(){var sel=".keyhole,.warnbox,.filterbox,.counter,.rulebox,.lens";document.querySelectorAll(sel).forEach(function(el){if(el.closest("details")||el.querySelector("details"))return;var b=el.querySelector("b");var label=b?b.textContent.replace(/[\s:—–-]+$/,""):el.textContent.trim().slice(0,60)+"…";if(el.textContent.trim().length<160)return;var d=document.createElement("details");d.className="psfold";var s=document.createElement("summary");s.textContent=label;d.appendChild(s);var inner=document.createElement("div");inner.innerHTML=el.innerHTML;d.appendChild(inner);el.innerHTML="";el.appendChild(d);});})();</script>
+<details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:20px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror"><b>The mirror, for a live data board:</b> every number here is real and pulled live — but a board of numbers can still mislead if it's read as advice. It shows what large wallets are doing right now; it does not show why, and it does not say what you should do next. Big positions can be hedges, mistakes, or unrelated to price at all. Read it as a window, not a signal.</div></details>
+</body>
+</html>

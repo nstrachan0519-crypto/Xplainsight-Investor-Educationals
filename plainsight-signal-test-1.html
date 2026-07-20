@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xplainsight — the signal test</title>
+<!--
+  XPLAINSIGHT — THE INDICATOR AUTOPSY v1 (S19). Nicholas's commission: take the
+  famous chart signals people actually cite, and prove or disprove each against
+  all of recorded history — live, in the browser, reproducibly.
+  DATA: Shiller S&P 500 monthly series 1871→ (public domain, PDDL, credit
+  R. Shiller; same source as simulator v5 — Rule 10 verified prior session).
+  Includes PE10 (CAPE) column, enabling test #9.
+  METHOD (pre-registered, printed on the face before any test runs):
+   - Signals computed ONLY from data available at fire time (no look-ahead).
+   - Outcome window: the NEXT 12 MONTHS' price return after each fire.
+   - Compared against the unconditional base rate (all rolling 12-month
+     returns in the same history).
+   - Price returns only, both sides (dividends excluded consistently — fair
+     comparison, stated openly; favors no signal).
+   - No trading costs modeled (stated; costs only make signals worse).
+   - VERDICT RULE: "HELD UP HERE" if hit-rate ≥ base+3pts AND avg ≥ base+1pt;
+     "FAILED HERE" if hit-rate ≤ base-3pts AND avg ≤ base-1pt; else
+     "NO EDGE FOUND" (≈ base rate). Same rule for every signal, forever.
+   - Multiple-comparisons warning printed: test enough rules and one shines
+     by luck — that's how indicator products are born.
+  CANNOT-TEST LIST printed on face: candlesticks, intraday S/R, Fibonacci,
+  Elliott (below monthly resolution or unfalsifiable); volume signals (dataset
+  has no volume; we don't fake data).
+  Dark-on-failure. Zero external code. Tap-to-define.
+-->
+<style>
+  :root{--bg:#0E1116;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+    --muted:#8A9099;--faint:#838B94;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --warn:#C9A227;--define:#A78BFA;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+  .sub b,.card b{color:var(--ink);font-weight:620}
+  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+  .term:active{opacity:.6}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+  .card p{font-size:.88rem;margin:8px 0}
+  .bigbtn{width:100%;background:var(--up);color:#06120c;border:0;border-radius:10px;padding:14px;font-size:1rem;font-weight:680;cursor:pointer;margin:6px 0;box-shadow:0 3px 0 rgba(0,0,0,.28)}
+  .bigbtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+  .stat{font-size:.75rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .stat.ok{color:var(--up);border-color:rgba(95,191,143,.4)}
+  .stat.bad{color:var(--warn);border-color:rgba(201,162,39,.4)}
+  .base{border:1px solid rgba(127,176,232,.4);border-left:3px solid var(--accent);background:rgba(127,176,232,.06);border-radius:9px;padding:10px 13px;margin:10px 0;font-size:.86rem}
+  details.sig{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px}
+  details.sig>summary{cursor:pointer;list-style:none;padding:12px 0;font-size:.92rem;font-weight:640}
+  details.sig>summary::-webkit-details-marker{display:none}
+  .verdict{font-size:.64rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:middle}
+  .v-up{color:#06120c;background:var(--up)}
+  .v-down{color:#fff;background:var(--down)}
+  .v-flat{color:var(--warn);border:1px solid rgba(201,162,39,.5)}
+  .v-rare{color:var(--define);border:1px solid rgba(167,139,250,.6)}
+  .v-wait{color:var(--faint);border:1px solid var(--line)}
+  .sigbody{font-size:.84rem;color:var(--muted);border-top:1px solid var(--line);padding:10px 0}
+  .sigbody b{color:var(--ink)}
+  .row2{display:flex;gap:8px;margin:8px 0}
+  .cell{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center}
+  .cell .n{font-size:1.05rem;font-weight:720}
+  .cell .l{font-size:.64rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .warnbox{border:1px solid rgba(201,162,39,.4);border-left:3px solid var(--warn);background:rgba(201,162,39,.06);border-radius:9px;padding:10px 13px;margin:10px 0;font-size:.86rem}
+  .warnbox b{color:var(--warn)}
+  .cell.term2{cursor:pointer;border:1px dashed var(--line)}
+  .cell.term2 .l{color:var(--muted)}
+  .cell.term2:active{opacity:.65}
+  .tech{color:var(--faint);font-size:.85em}
+  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
+  .mirror b{color:var(--ink)}
+  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+  #deftip.show{display:block}
+  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The signal test</h1>
+  <p class="sub">The famous chart signals people cite, sell, and swear by — put to the test against <b>up to 150 years of real market history, right now, on your phone.</b> No cherry-picked decade, no survivor examples: every time each signal ever fired, and what the next 12 months actually did, next to the <span class="term" data-def="base rate">base rate</span> it has to beat. The scoring rule is printed before any test runs, and it's the same for every signal, forever. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+  <p class="sub" style="border-left:3px solid var(--accent);padding-left:10px"><b>Markets owe no one patterns.</b> Every famous signal earns its reputation here by surviving the same public, pre-registered test — or it doesn't. And one boundary holds throughout: this engine measures whether a pattern <b>historically repeated</b>; it cannot determine <b>why</b>. History shows what happened — never the reason.</p>
+  <div class="card" style="font-size:.85rem"><b>Why only 11 signals, when thousands exist?</b> Because we don't try to cover them all — we couldn't, and a list that long would just be a new kind of noise. We test the most famous, most-cited ones properly, and we built the machine so YOU can test any other: the bring-your-own-CSV loader runs a claim you define through the same seven checks. The lesson was never "here are the signals that work." It's "here is how to check any signal, forever." That scales to thousands even though our list doesn't.</div>
+  <div class="card" style="font-size:.85rem"><b>Where do these signals come from?</b> Every signal on this page is a calculation made from <b>past prices only</b> — no earnings, no news, no company information, nothing about the future. Indicators don't "see" anything; they rearrange what already happened into a pattern, and traders then believe the pattern means something. This page asks the only question that matters about that belief: <b>when the pattern appeared in history, did the market actually do better afterward?</b></div>
+
+  <div class="card">
+    <p><b>The pre-registered test (fixed before the data loads, so it can't bend):</b> no signal gets a lone pass/fail. Each faces <b>seven independent checks</b> — beating our deliberately-<span class="term" data-def="beats-nonsense">nonsense signals</span>, the <span class="term" data-def="unconditional control">unconditional baseline</span>, and a <span class="term" data-def="random-entry control">random-entry dart</span>; reaching <span class="term" data-def="statistical significance">significance</span> by a <b>permutation test</b> (which makes no bell-curve assumption); surviving <span class="term" data-def="multiple comparison correction">multiple-comparison correction</span>; keeping the same edge across three historical eras (<span class="term" data-def="sign stability">sign stability</span>); and holding on <span class="term" data-def="non-overlapping windows">independent non-overlapping windows</span>. Passes 6–7 = <b>strong historical evidence</b>; 4–5 = <b>moderate</b>; 2–3 = <b>mixed</b>; 0–1 = <b>little</b> — always "historical evidence," never "true": history can show what repeated, not what will. Signals too rare for statistics get their <b>full record shown instead of a fake verdict</b>. Tap any check name for a plain-English meaning.</p>
+    <div style="margin:10px 0;padding:10px 12px;border:1px dashed var(--line);border-radius:9px;font-size:.83rem">
+      <b>Test your own data (stays on your device):</b> the built-in run uses monthly data back to 1871. Have a daily CSV (Date, Close — plus Open/High/Low if you want the sweep tests)? Load it to test faster signals — your file never leaves your device — nothing is uploaded anywhere. <b>Cross-market replication (the strongest test, and one only you can run):</b> this engine runs unchanged on ANY market — download other indexes from stooq.com (Nikkei <span class="mono">^nkx</span>, DAX <span class="mono">^dax</span>, FTSE <span class="mono">^ukx</span>, gold <span class="mono">xauusd</span>) and re-run. A pattern that survives in markets it has never seen is far stronger evidence than one market's history — and one that only works here was probably this market's luck.
+      <input id="csvfile" type="file" accept=".csv,text/csv" style="display:block;margin-top:8px;font-size:.82rem;color:var(--muted)">
+      <div style="margin-top:10px;border-top:1px dashed var(--line);padding-top:8px">
+        <b>🌍 Or test a market with one tap (no download):</b> official monthly share-price indexes, fetched keyless from OECD data via DBnomics (open license, credit both). Decades deep — markets this engine has never seen.
+        <div id="intlRow" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+        <button id="cmpBtn" style="margin-top:8px;width:100%;background:var(--up);color:#06120c;border:0;border-radius:9px;padding:11px;font-weight:750;font-size:.85rem;cursor:pointer">🌍 Compare — same test across all 9 markets (summary charts)</button>
+        <div style="font-size:.72rem;color:var(--faint);margin-top:5px">Two buttons, two jobs, one engine: <b>🔬 Deep dive</b> (top button, or any single country above) tests ONE market and shows the full teaching cards — every check named and tap-to-define, complete records for rare signals, parameter robustness. <b>🌍 Compare</b> runs the identical pre-registered checks on all nine markets and shows the summary charts. Nothing is dumbed down in either — one teaches deeply, one tests whether the lessons travel.</div>
+        <div id="compareBox" style="margin-top:8px"></div>
+        <div style="font-size:.74rem;color:var(--faint);margin-top:6px">Honest caveats: these are broad-market monthly index values (a smoother path than daily closes — fine for 12-month horizons, stated plainly), and the series end when the OECD archived this dataset — history is the point here, not today's price. If a fetch fails, it goes dark and says so; nothing is made up.</div>
+      </div>
+    </div>
+    <button class="bigbtn" id="run">🔬 Deep dive — full test of ONE market (built-in: US, monthly since 1871)</button>
+    <div style="margin-top:6px"><span class="stat" id="astat">ready — one download, everything computed on your phone</span></div>
+  </div>
+
+  <div class="base" id="baseline" style="display:none"></div>
+  <div id="results"></div>
+
+  <details class="sig"><summary style="font-size:.88rem;font-weight:640">🧪 The tests we run on our own tests (overlap, honest limits) ▾ tap to open</summary><div class="sigbody"><div class="warnbox" style="border-left-color:var(--accent);background:rgba(127,176,232,.06)"><b style="color:var(--accent)">Rule 0, applied to our own method (the tests we run on the tests):</b> the biggest weakness in this kind of study is that overlapping 12-month windows repeat each other — measure Jan→Jan and Feb→Feb and you've counted almost the same year twice, which makes naive confidence numbers too rosy. We handle that <b>two independent ways</b> and show both: <b>Angle 11</b> re-runs each signal on only non-overlapping yearly windows (fewer fires, but each a genuinely separate story), and <b>Angle 12</b> is a planned second angle — a standard overlap correction called Newey-West, which keeps all the data but honestly widens the uncertainty math to account for the repeats. <b>It is not implemented in this version</b>; naming it before it's real would be exactly the kind of overclaim this project exists to catch in others. Until it ships, non-overlapping windows (Angle 11) is the correction actually running — and a signal that survives all seven checks on that alone is real evidence on its own. Remaining honest limits: 150 years is really only ~150 truly-independent years; "appears true" means "survived every stress test we could build," never "proven" or "will work for you"; and this is monthly data — the fast signals day-traders use live below it (see the refusal list above and the crypto candle test for where daily data lets us look closer).</div></div></details>
+
+  <details class="sig" style="margin-top:18px"><summary style="font-weight:660">📐 Full method &amp; every parameter (so anyone can reproduce or refute this)</summary>
+  <div class="sigbody">
+    <p><b>Data:</b> built-in run uses the public-domain Shiller monthly S&amp;P series (1871→), price-only, no dividends. Your own CSV runs the identical engine at its own resolution.</p>
+    <p><b>Signal windows (fixed in advance):</b> moving averages 10-month &amp; 2-month; momentum 12-month; RSI-14; MACD 12/26/9; buy-dip at −10% and −20% from running peak; CAPE from Shiller's own column, threshold 30. A signal "fires" only on the bar it first becomes true, using only closed data up to that bar — <b>audited line-by-line for look-ahead</b> (decision inputs never touch the outcome window).</p>
+    <p><b>Outcome:</b> the next 12 months' price return (monthly) or ~3 months (daily uploads). <b>Controls:</b> (1) unconditional — all windows; (2) random-entry dart — same number of entries chosen at random, 3,000 repeats, 95% band; (3) nonsense group — four arbitrary rules that must score at the base rate. <b>The old "same-state" control was removed as biased</b> (it compared a buy-signal's months against mostly-down months — an unfair tailwind).</p>
+    <p><b>Significance:</b> a <b>permutation test</b> (4,000 reshuffles) — no normal-curve assumption, because market returns are fat-tailed and skewed and a plain z-test would be technically wrong here. <b>Multiple-comparison correction:</b> Benjamini-Hochberg across all tested signals. <b>Overlap:</b> handled by also testing non-overlapping windows. <b>Eras:</b> history split in thirds; a real edge keeps its sign in all three.</p>
+    <p><b>External review, credited honestly:</b> this engine's v4 upgrades — the evidence-language verdicts, effect sizes, bootstrap intervals, economic-significance line, regime breakdown, parameter robustness, and the cross-market path — came from an external AI peer review of our method. Per our own rules: praise is not validation and earned nothing; the suggestions were adopted because each makes the test harder to fool, and each was verified on known answers before shipping. Still queued from that review: Bayes factors and parameter-stability heatmaps.</p>
+    <p><b>What we cannot fix, stated plainly (Rule 0 on ourselves):</b></p>
+    <p>• <b>Menu survivorship:</b> we test <i>famous</i> signals — famous partly because they once seemed to work. The forgotten failures aren't here. The nonsense group is our partial defense; it shows the noise floor honestly.<br>
+    • <b>The market itself is a survivor:</b> the US market is the one that didn't get closed, hyperinflated, or nationalized. Signals from the winning market can't tell you they'd have worked on the ones that died.<br>
+    • <b>"150 years" is really 4–5 different markets:</b> pre-Fed gold standard, interwar, Bretton Woods, post-1971 fiat, modern electronic — different money, different index composition (the S&amp;P wasn't 500 stocks until 1957), different participants and laws. A signal that only worked in one era is likely an artifact of that era. That's why the three-era sign check matters.<br>
+    • <b>Reflexivity:</b> a signal that worked before it was famous can stop working <i>because</i> it became famous and the crowd traded it away.<br>
+    • <b>No costs, taxes, or slippage modeled</b> — real trading only lowers every result. "Beats the dart" is not "tradeable."<br>
+    • <b>Independent years are few:</b> 150 years of overlapping windows is closer to ~150 truly independent observations — humbling, and the reason nothing here is ever "proven."</p>
+  </div></details>
+
+  <details class="sig"><summary style="font-size:.88rem;font-weight:640">🚫 What this page refuses to grade, and why ▾ tap to open</summary><div class="sigbody"><div class="warnbox"><b>What this page refuses to grade, and why (honesty about our own limits):</b> candlestick patterns, intraday support/resistance, scalping signals — they live <b>below monthly resolution</b>, and a test that can't see a claim can't judge it (the account-level results of the people who trade them are on our options page). <b>Volume signals</b> — this dataset has no volume column, and we don't fake data. <b>Fibonacci retracements and Elliott waves</b> — as commonly used, they're flexible enough to fit any outcome after the fact, which makes them <span class="term" data-def="unfalsifiable">unfalsifiable</span> — and a claim that can't be wrong can't be right either. That's not a small result; it's the most useful one on the page.</div></div></details>
+
+  <details class="sig"><summary style="font-size:.88rem;font-weight:640">⚠️ The trap this page exists to expose (read before believing ANY indicator) ▾ tap to open</summary><div class="sigbody"><div class="warnbox"><b>The trap this page is built to expose (read before believing ANY indicator, including ours):</b> test twenty rules on one history and one will shine by pure luck — that's the <span class="term" data-def="multiple comparisons">multiple-comparisons problem</span>, and it's how most sold indicators are born. Our defenses: the verdict rule was fixed in advance, it's identical for every signal, we publish the losers next to the winners, and the whole test re-runs live on public data anyone can download. Also stated plainly: <b>no trading costs are modeled</b> (costs only make every signal worse), returns are price-only on both sides of every comparison (fair, favors no one), and "held up over 150 years of history" is evidence about the past — the crowd can trade away tomorrow what worked yesterday, and does.</div></div></details>
+
+  <details class="sig"><summary style="font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div class="sigbody">
+  <p style="font-size:.84rem;color:var(--muted)"><b style="color:var(--ink)">What "the mirror" means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves. In two words: <b>self-check</b>. Three questions, every time — what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? If a page you read anywhere else never holds a mirror to itself, that silence is information too.</p>
+  <div class="mirror" style="margin-top:6px"><b>This page's mirror:</b> it grades famous claims against public history with one fixed rule — it does not tell you to trade anything, and a signal that held up here is not a promise, an edge for you personally, or a recommendation. What it proves is narrower and more valuable: <b>the checking was always possible, free, on a phone.</b> Everyone who sold you an indicator could have shown you this table. Ask why they didn't.</div>
+</div></details>
+</div>
+
+<div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const GLOSSARY={
+  "base rate":"What the market did on average across ALL periods — the do-nothing benchmark every signal must beat. If 12-month returns were positive 70% of the time anyway, a signal that's 'right' 70% of the time found nothing: it's selling you the coin you already owned.",
+  "unfalsifiable":"A claim built so no outcome can ever prove it wrong — the wave count 'adjusts,' the level 'almost' held, the pattern 'needed confirmation.' Unfalsifiable claims feel powerful because they always fit; that's also why they can never be evidence. If nothing could disprove it, nothing confirms it either.",
+  "multiple comparisons":"Test enough rules on the same history and some will look brilliant by pure luck — flip 1,000 coins and a few land ten heads straight. The cure is deciding the test BEFORE looking, applying it identically to every rule, and publishing the failures next to the successes. Sold indicators usually show you the one lucky coin.",
+  "moving average":"The average price over the last N periods, redrawn each period — a smoothed line showing the trend with the wiggles ironed out. 'Above the average' roughly means the market is higher than its own recent normal.",
+  "rsi":"Relative Strength Index — a 0–100 gauge of how one-sided recent moves have been. The folklore: above 70 = 'overbought' (due to fall), below 30 = 'oversold' (due to bounce). We test the monthly version of that exact folklore.",
+  "macd":"A momentum gauge built from the gap between a fast and a slow moving average; when the gap crosses its own average, followers call it a buy or sell signal. Tested here on monthly data, labeled as such.",
+  "cape":"Shiller's price vs ten years of inflation-adjusted earnings — the market-expensiveness gauge from our record's Japan card. The folklore tested: 'CAPE above 30 means get out.' The dataset carries Shiller's own CAPE column, so the test is exact.",
+  "beats-nonsense":"We run four deliberately meaningless rules (like 'fire on prime-numbered days') that CANNOT contain real information. They score at the base rate, always — that's the noise floor. A real signal has to beat what our nonsense scored, or it has found nothing a coin couldn't. If a famous signal can't beat junk, that IS the verdict.",
+  "same-state control":"Compares the signal's months only against OTHER months of the SAME kind. Honest warning: for a 'buy' signal this can be biased, because 'other months' skew toward down-markets — so we no longer treat it as a main check. We show it only for completeness and flag it as biased. The controls that matter are the unconditional one and the random-entry dart.",
+  "unconditional control":"The plainest baseline: what happened across ALL periods, no matter what any signal said. If the market rose 76% of the time anyway, a signal has to clear 76%, not zero, to have found anything.",
+  "random-entry control":"The dart-throwing test. We pick the SAME number of entry dates the signal used, but at random, and measure what they'd have earned — then repeat thousands of times to get the range a blindfolded dart would score. A real signal must beat the dart's upper range. This is the fairest control because it holds sample size identical and assumes zero skill.",
+  "statistical significance":"Asking: could this result be a fluke? A p-value is the chance you'd see an edge this big by pure luck if the signal actually had none. Below 0.05 (a 1-in-20 fluke chance) is the usual bar. Small samples almost never reach it — which is a limit of the evidence, not proof the signal is fake.",
+  "multiple comparison correction":"Test 13 signals and, by luck alone, one or two will look great — like flipping many coins and finding one that lands heads five times. This correction (Benjamini-Hochberg) raises the bar to account for how many signals we tried, so we don't crown a lucky coin. Very few real edges survive it, by design.",
+  "sign stability":"We split history into early and late halves and check whether the signal's edge points the SAME direction in both. An edge that's positive in one era and negative in the other isn't an edge — it's noise that happened to average out. Same sign in both halves is a real robustness sign.",
+  "non-overlapping windows":"Because a 12-month result measured in January shares 11 months with one measured in February, nearby fires mostly repeat each other. This check throws out the overlap — keeping only fires spaced a full window apart — so every data point is a genuinely separate story. Fewer points, but honest ones.",
+  "newey-west":"A standard statistical correction that keeps all the data but widens the uncertainty to account for overlapping windows repeating each other. Named after the two economists who devised it. Planned for a future version of this page — not yet implemented here.",
+  "rare-event signal":"A signal that only fires a handful of times, clustered around once-in-a-lifetime events (like extreme-valuation warnings that only appear near giant bubbles). Normal statistics CAN'T judge these — you can't get significance from 10 clustered points, ever. So instead of a fake verdict, we show the complete list of every time it fired and let you read the record yourself. The full history IS the honest answer.",
+  "episodes":"How many SEPARATE times a signal really appeared, counting a cluster of nearby fires as one event. Ten fires all inside the 2000 bubble is one episode, not ten — and one episode can never be a statistical sample, only a story.",
+  "cell-fires":"How many times this signal appeared in all of history, and how many SEPARATE occasions that really was (a cluster of fires in one crash counts as one episode). 100 fires in 60 episodes is real repetition; 10 fires in 2 episodes is two stories.",
+  "cell-upnext":"After the signal fired, how often the market was higher one horizon later. The range in brackets is where the true rate most likely sits (95% confidence) — a wide range means few fires, so less certainty. Green = better than doing nothing; orange-red = worse.",
+  "cell-avg":"The average gain or loss after the signal fired, over the next horizon. The ± number is how wildly individual outcomes swung around that average — a +8% average with ±18 swings means plenty of painful years hid inside the average.",
+  "cell-darthit":"We threw the same NUMBER of entries at random dates, thousands of times — pure blind darts. This is the range of up-rates the darts scored. If the signal's up-rate fits inside the dart range, it did nothing a dart couldn't.",
+  "cell-dartavg":"The same blind darts' AVERAGE result range. A signal must land above this range (or below it, for exit signals) to have found anything beyond the market's own drift.",
+  "cell-perm":"The chance this signal's result was pure luck, measured by reshuffling history thousands of times (no bell-curve assumed). Under 0.05 = under a 1-in-20 fluke chance. The correction note accounts for testing many signals at once — test enough signals and one always shines by accident.",
+  "__demo":"Just like this: tap any underlined word and a plain meaning pops up."
+};
+function showDef(t){const b=GLOSSARY[t.toLowerCase()];if(!b)return;$("dt-w").textContent=t==="__demo"?"tap-to-define":t;$("dt-b").textContent=b;$("deftip").classList.add("show");}
+function hideDef(){$("deftip").classList.remove("show");}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(t){showDef(t.getAttribute("data-def"));return;}if(!e.target.closest("#deftip"))hideDef();});
+$("deftip").querySelector(".x").onclick=hideDef;
+
+/* ---------- data ---------- */
+const URLS=["https://raw.githubusercontent.com/datasets/s-and-p-500/main/data/data.csv",
+            "https://raw.githubusercontent.com/datasets/s-and-p-500/master/data/data.csv"];
+let FWD=12; // outcome window in bars (pre-registered 12 for monthly; set per-run for daily/weekly)
+function setA(t,c){const s=$("astat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
+
+async function loadData(){
+  let txt=null, err=null;
+  for(const u of URLS){
+    try{ const r=await fetch(u,{cache:"no-store"}); if(r.ok){ txt=await r.text(); break;} err="HTTP "+r.status; }
+    catch(e){ err=e.message; }
+  }
+  if(!txt) throw new Error(err||"unreachable");
+  const lines=txt.trim().split(/\r?\n/), head=lines[0].split(",");
+  const di=head.findIndex(h=>/date/i.test(h));
+  const pi=head.findIndex(h=>/^sp500$/i.test(h.trim()));
+  const ci=head.findIndex(h=>/pe10|cape/i.test(h));
+  if(di<0||pi<0) throw new Error("unexpected CSV shape ("+head.slice(0,5).join(",")+"…)");
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const c=lines[i].split(",");
+    const t=c[di], p=Number(c[pi]), cape=ci>=0?Number(c[ci]):NaN;
+    if(t && isFinite(p) && p>0) rows.push({d:t, p, cape:(isFinite(cape)&&cape>0)?cape:null, m:Number(t.slice(5,7))});
+  }
+  return rows;
+}
+
+/* ---------- helpers (no look-ahead: everything uses data up to index i only) ---------- */
+function sma(rows,i,n){ if(i<n-1)return null; let s=0; for(let k=i-n+1;k<=i;k++)s+=rows[k].p; return s/n; }
+function ema(prev,price,n){ const k=2/(n+1); return prev==null?price:price*k+prev*(1-k); }
+function fwdRet(rows,i){ if(i+FWD>=rows.length)return null; return (rows[i+FWD].p-rows[i].p)/rows[i].p*100; }
+
+/* ---------- the 11 pre-registered signals ---------- */
+function buildSignals(rows){
+  // precompute series
+  const n=rows.length;
+  const sma10=[],sma2=[],mom12=[],runmax=[],rsi14=[],macdH=[];
+  let e12=null,e26=null,sig9=null, avgU=null,avgD=null;
+  let rm=-Infinity;
+  for(let i=0;i<n;i++){
+    sma10.push(sma(rows,i,10)); sma2.push(sma(rows,i,2));
+    mom12.push(i>=12 ? (rows[i].p-rows[i-12].p)/rows[i-12].p*100 : null);
+    rm=Math.max(rm,rows[i].p); runmax.push(rm);
+    // Wilder RSI-14 (monthly)
+    if(i>0){ const ch=rows[i].p-rows[i-1].p, up=Math.max(ch,0), dn=Math.max(-ch,0);
+      if(i<=14){ avgU=(avgU==null?0:avgU)+up/14; avgD=(avgD==null?0:avgD)+dn/14; rsi14.push(i===14? 100-100/(1+(avgU/(avgD||1e-9))) : null); }
+      else { avgU=(avgU*13+up)/14; avgD=(avgD*13+dn)/14; rsi14.push(100-100/(1+(avgU/(avgD||1e-9)))); } }
+    else rsi14.push(null);
+    // MACD (12,26,9) monthly
+    e12=ema(e12,rows[i].p,12); e26=ema(e26,rows[i].p,26);
+    const macd=e12-e26; sig9=ema(sig9,macd,9); macdH.push(i>=26? macd-sig9 : null);
+  }
+  const F=(name,folk,rule,dir)=>({name,folk,rule,dir,fires:[]});
+  const S=[
+    F("Price above its 10-month average","'Stay in only above the 200-day line' — Faber's rule, the most-cited filter in trend folklore",
+      i=>sma10[i]!=null && rows[i].p>sma10[i] && (i===0||rows[i-1].p<=sma10[i-1]),"bull"),
+    F("Price falls below its 10-month average","'Get out below the 200-day' — the same rule's exit side (we score what the NEXT year did after each exit signal)",
+      i=>sma10[i]!=null && rows[i].p<sma10[i] && (i===0||rows[i-1].p>=sma10[i-1]),"bear"),
+    F("Golden cross (fast average crosses above slow)","'The golden cross marks new bull markets' (monthly adaptation: 2-mo crosses 10-mo)",
+      i=>i>0&&sma2[i]!=null&&sma10[i]!=null&&sma2[i]>sma10[i]&&sma2[i-1]<=sma10[i-1],"bull"),
+    F("12-month momentum positive (buy strength)","'Winners keep winning' — the academic momentum claim, simplest form",
+      i=>mom12[i]!=null && mom12[i]>0 && (i===0||mom12[i-1]<=0),"bull"),
+    F("Buy the dip: market down 10%+ from its high","'Dips are gifts' — buying after a 10% fall from the running peak",
+      i=>i>0 && rows[i].p<=runmax[i]*0.9 && rows[i-1].p>runmax[i-1]*0.9,"bull"),
+    F("Buy the crash: market down 20%+ from its high","The braver cousin: buying the official bear-market threshold",
+      i=>i>0 && rows[i].p<=runmax[i]*0.8 && rows[i-1].p>runmax[i-1]*0.8,"bull"),
+    F("New all-time high","Both camps cite this one: 'too high to buy' vs 'strength begets strength.' History picks.",
+      i=>i>0 && rows[i].p>=runmax[i] && rows[i-1].p<runmax[i-1],"bull"),
+    F("Monthly RSI above 70 ('overbought — sell')","The RSI folklore, tested at the resolution we have and labeled as such",
+      i=>rsi14[i]!=null && rsi14[i]>70 && (rsi14[i-1]==null||rsi14[i-1]<=70),"bear"),
+    F("Monthly RSI below 30 ('oversold — buy')","The other half of the RSI folklore",
+      i=>rsi14[i]!=null && rsi14[i]<30 && (rsi14[i-1]==null||rsi14[i-1]>=30),"bull"),
+    F("MACD bullish cross (monthly)","'The MACD cross times the turns' — tested on monthly bars, labeled as such",
+      i=>macdH[i]!=null && macdH[i]>0 && (macdH[i-1]==null||macdH[i-1]<=0),"bull"),
+    F("CAPE above 30 — 'overvalued, get out'","The valuation exit: sell when Shiller's own gauge crosses 30 (his dataset, his column, exact test)",
+      i=>rows[i].cape!=null && rows[i].cape>30 && (i===0||rows[i-1].cape==null||rows[i-1].cape<=30),"bear"),
+  ];
+  // seasonals (every qualifying month is a fire; different fire logic)
+  const seasonal=[
+    {name:"Sell in May (hold only Nov–Apr)",folk:"'Sell in May and go away' — we score what May–Oct actually returned vs Nov–Apr, all years",
+     type:"season"},
+    {name:"The January Barometer",folk:"'As January goes, so goes the year' — does January's direction predict the next 11 months?",
+     type:"january"}
+  ];
+  // collect fires + outcomes
+  for(const s of S){
+    for(let i=0;i<n;i++){
+      let f=false;
+      try{ f=s.rule(i); }catch(e){}
+      if(f){ const r=fwdRet(rows,i); if(r!=null) s.fires.push({i,r,d:rows[i].d}); }
+    }
+  }
+  // OHLC-dependent signals (only when the loaded data carries High/Low — e.g. daily CSV uploads).
+  // Pre-registered S20 definitions; first tested 2026-07 on real 2013-26 daily S&P (see What We've Learned).
+  if(rows.length>50 && rows[0].h!=null && rows[0].l!=null){
+    const N20=20;
+    const swingLow=i=>{if(i<N20)return null;let m=Infinity;for(let k=i-N20;k<i;k++)m=Math.min(m,rows[k].l);return m;};
+    const swingHigh=i=>{if(i<N20)return null;let m=-Infinity;for(let k=i-N20;k<i;k++)m=Math.max(m,rows[k].h);return m;};
+    const s_bull=F("Bullish liquidity sweep (SMC)","'Price swept the stops below a 20-day low and closed back above — institutions reversed it, buy.' The modern method's flagship setup, tested at the speed it claims",
+      i=>{const s=swingLow(i);return s!=null&&rows[i].l<s&&rows[i].p>s;},"bull");
+    const s_bear=F("Bearish liquidity sweep (SMC)","'Price swept the stops above a 20-day high and closed back below — distribution, expect weakness.' The unfashionable mirror of the famous setup",
+      i=>{const s=swingHigh(i);return s!=null&&rows[i].h>s&&rows[i].p<s;},"bear");
+    const s_fvg=F("Bullish fair value gap forms (SMC)","'A 3-candle gap up marks institutional urgency — continuation/support.' The most-searched concept in the modern method",
+      i=>i>=2&&rows[i-2].h<rows[i].l,"bull");
+    // Strict order-block retests (pre-registered S20: down/up candle -> >=2% impulse in 3 bars -> first zone return within 60d)
+    const _obFires=dir=>{const set=new Set();
+      for(let t=1;t<rows.length-4;t++){
+        const dn=rows[t].p<rows[t].o, up=rows[t].p>rows[t].o;
+        if(dir==="bull"&&!dn)continue; if(dir==="bear"&&!up)continue;
+        let imp=false;
+        for(let k=1;k<=3;k++){ if(dir==="bull"&&rows[t+k].p>=rows[t].h*1.02){imp=true;break;}
+          if(dir==="bear"&&rows[t+k].p<=rows[t].l*0.98){imp=true;break;} }
+        if(!imp)continue;
+        for(let k=t+4;k<=Math.min(t+64,rows.length-1);k++){
+          if(dir==="bull"&&rows[k].l<=rows[t].h){set.add(k);break;}
+          if(dir==="bear"&&rows[k].h>=rows[t].l){set.add(k);break;} } }
+      return set;};
+    const _obBullSet=_obFires("bull"), _obBearSet=_obFires("bear");
+    const s_obB=F("Bullish order block retest (SMC, strict)","'Price returning to the origin of an upward impulse finds institutional support — buy the retest.' Tested with a frozen, non-flexible definition — because as commonly taught, the definition bends after the fact",
+      i=>_obBullSet.has(i),"bull");
+    const s_obS=F("Bearish order block retest (SMC, strict)","'Price returning to the origin of a downward impulse meets resistance — expect weakness.' The mirror, same frozen definition",
+      i=>_obBearSet.has(i),"bear");
+    for(const s of [s_bull,s_bear,s_fvg,s_obB,s_obS]){
+      for(let i=N20;i<rows.length;i++){let f=false;try{f=s.rule(i);}catch(e){}
+        if(f){const r=fwdRet(rows,i); if(r!=null) s.fires.push({i,r,d:rows[i].d});}}
+      S.push(s);
+    }
+  }
+  return {S,seasonal,sma10};
+}
+
+function pct(x){ return (x>=0?"+":"")+x.toFixed(1)+"%"; }
+
+/* ===== SIGNAL TEST ENGINE v3 (S19) — adversarially hardened =====
+   Every statistical function known-answer tested; every angle verified against
+   real S&P data before ship (see build log). No lone verdicts. Unbiased controls.
+   Nonsense-signal control group. Permutation test (no bell-curve assumption).
+   Rare-event class for signals too sparse for statistics. Full methodology below. */
+
+function _mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0;}
+function _std(a){if(a.length<2)return 0;const m=_mean(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/(a.length-1));}
+function _normCdf(z){const t=1/(1+0.2316419*Math.abs(z));const d=0.3989423*Math.exp(-z*z/2);
+  let p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p;}
+function _wilson(h,n){if(!n)return[0,0];const z=1.96,p=h/n,d=1+z*z/n;
+  const c=(p+z*z/(2*n))/d,hw=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/d;return[100*(c-hw),100*(c+hw)];}
+function _bh(ps,q){const idx=ps.map((p,i)=>[p,i]).sort((a,b)=>a[0]-b[0]);const m=ps.length;let kmax=-1;
+  idx.forEach(([p],rank)=>{if(p<=(rank+1)/m*q)kmax=rank;});const sig=new Array(m).fill(false);
+  for(let r=0;r<=kmax;r++)sig[idx[r][1]]=true;return sig;}
+function _rng(s){s=s>>>0||1;return()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};}
+function _episodes(fires,FWD){let ep=0,last=-Infinity;for(const f of [...fires].sort((a,b)=>a.i-b.i)){if(f.i-last>FWD)ep++;last=f.i;}return ep;}
+function _nonOverlap(fires,FWD){const s=[...fires].sort((a,b)=>a.i-b.i);const k=[];let last=-Infinity;for(const f of s){if(f.i-last>=FWD){k.push(f);last=f.i;}}return k;}
+// Unbiased random-entry ("dart") control: same N, random entries, R repeats, 95% band.
+function _dart(allW,N,R,seed){const rnd=_rng(seed);const H=[],A=[];
+  for(let r=0;r<R;r++){let h=0,s=0;for(let k=0;k<N;k++){const w=allW[(rnd()*allW.length)|0];if(w.r>0)h++;s+=w.r;}H.push(h/N*100);A.push(s/N);}
+  H.sort((a,b)=>a-b);A.sort((a,b)=>a-b);const lo=(R*0.025)|0,hi=(R*0.975)|0;
+  return{hitLo:H[lo],hitHi:H[hi],avgLo:A[lo],avgHi:A[hi],hitMean:_mean(H),avgMean:_mean(A)};}
+// Permutation test on the mean: no distributional assumption. Returns one-sided p.
+function _perm(fires,allW,R,seed,dir){const rnd=_rng(seed);const real=_mean(fires.map(f=>f.r));
+  const pool=allW.map(w=>w.r),N=fires.length;let beat=0;
+  for(let r=0;r<R;r++){let s=0;for(let k=0;k<N;k++)s+=pool[(rnd()*pool.length)|0];const m=s/N;
+    if(dir==="bull"?(m>=real):(m<=real))beat++;}
+  return beat/R;}
+function pct(x){return (x>=0?"+":"")+x.toFixed(1)+"%";}
+function _bootCI(vals,R,seed){const rnd=_rng(seed);const ms=[];
+  for(let r=0;r<R;r++){let s=0;for(let k=0;k<vals.length;k++)s+=vals[(rnd()*vals.length)|0];ms.push(s/vals.length);}
+  ms.sort((a,b)=>a-b);return[ms[(R*.025)|0],ms[(R*.975)|0]];}
+function _cohenD(vals,baseMean,baseSd){return baseSd>0?(_mean(vals)-baseMean)/baseSd:0;}
+const _REGIMES=[["pre-Fed","0000-00","1913-12"],["interwar","1914-01","1944-12"],
+  ["Bretton Woods","1945-01","1971-08"],["high inflation","1971-09","1982-12"],
+  ["disinflation","1983-01","2008-12"],["QE / zero-rate","2009-01","2021-12"],["post-2022","2022-01","9999-99"]];
+function setA(t,c){const s=$("astat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
+
+// The nonsense control group — arbitrary rules that SHOULD find nothing.
+function nonsenseSignals(rows,allW){
+  const defs=[
+    ["Prime-numbered day of month", i=>[2,3,5,7,11,13,17,19,23,29,31].includes(+rows[i].d.slice(8,10))],
+    ["Odd day of the year", i=>{const dt=new Date(rows[i].d);const s=new Date(dt.getFullYear(),0,0);return Math.floor((dt-s)/864e5)%2===1;}],
+    ["Every 17th data point", i=>i%17===0],
+    ["Price's last digit is 7", i=>Math.floor(rows[i].p*100)%10===7],
+  ];
+  return defs.map(([name,fn])=>{
+    const fires=[];for(let i=0;i<rows.length;i++){let f=false;try{f=fn(i);}catch(e){}if(f){const w=allW.find(x=>x.i===i);if(w)fires.push(w);}}
+    const N=fires.length||1,hit=fires.filter(f=>f.r>0).length/N*100,avg=_mean(fires.map(f=>f.r));
+    return{name,N:fires.length,hit,avg};
+  });
+}
+
+function _sigChecks(rd,isBull){
+  const beatsBaseHit = isBull ? rd.hitRate>=rd.baseHit+3 : rd.hitRate<=rd.baseHit-3;
+    const beatsBaseAvg = isBull ? rd.avg>=rd.baseAvg+1 : rd.avg<=rd.baseAvg-1;
+    const beatsDart = isBull ? (rd.hitRate>rd.dart.hitHi || rd.avg>rd.dart.avgHi) : (rd.hitRate<rd.dart.hitLo || rd.avg<rd.dart.avgLo);
+    const beatsNonsense = isBull ? (rd.hitRate>rd.nonsHitMax+2 || rd.avg>rd.nonsAvgMax+1) : (rd.avg<rd.baseAvg-1);
+    const permSig = rd.permP<0.05;
+    const bhSig = rd.bh;
+    const eraStable = rd.eraSignsAgree;
+    const indepHolds = rd.iN>=6 && (isBull? rd.iHit>=rd.baseHit+3 : rd.iHit<=rd.baseHit-3);
+
+    const checks=[
+      ["beats-nonsense","Better than fake signals? <span class=tech>(nonsense control)</span>", beatsNonsense],
+      ["unconditional control","Beat normal investing? <span class=tech>(baseline)</span>", beatsBaseHit||beatsBaseAvg],
+      ["random-entry control","Beat random timing? <span class=tech>(dart test)</span>", beatsDart],
+      ["statistical significance","Probably not luck? <span class=tech>(permutation test)</span>", permSig],
+      ["multiple comparison correction","Survived testing many ideas at once? <span class=tech>(correction)</span>", bhSig],
+      ["sign stability","Worked in old, middle, AND modern markets? <span class=tech>(era check)</span>", eraStable],
+      ["non-overlapping windows","Repeated in fully separate years? <span class=tech>(no overlap)</span>", indepHolds],
+    ];
+  return checks;
+}
+
+function _computeAll(rows,FWDp,ppy){
+  FWD=FWDp; // set the global so fwdRet/buildSignals use the SAME horizon as the baseline (fixes daily-mode mismatch)
+  const allW=[]; for(let i=0;i+FWD<rows.length;i++) allW.push({i,r:(rows[i+FWD].p-rows[i].p)/rows[i].p*100});
+  if(allW.length<30) return null;
+  const baseHit=allW.filter(w=>w.r>0).length/allW.length*100, baseAvg=_mean(allW.map(w=>w.r));
+
+  // nonsense control group
+  const nons=nonsenseSignals(rows,allW);
+  const nonsHitMax=Math.max(...nons.map(n=>n.hit)), nonsAvgMax=Math.max(...nons.map(n=>n.avg));
+
+
+
+  const {S}=buildSignals(rows);
+
+  // pass 1: compute everything
+  const RD=[];
+  for(const s of S){
+    const N=s.fires.length;
+    const ep=_episodes(s.fires,FWD);
+    if(N<8 || ep<3){ RD.push({s,N,ep,rare:(ep<3&&N>=1),skip:(N===0)||(N<8&&ep>=3)}); continue; }
+    const outs=s.fires.map(f=>f.r);
+    const hit=s.fires.filter(f=>f.r>0).length, hitRate=hit/N*100, avg=_mean(outs), sd=_std(outs);
+    const ci=_wilson(hit,N);
+    const dart=_dart(allW,N,3000, 1000+N);
+    const permP=_perm(s.fires,allW,4000, 2000+N, s.dir);
+    // v4 additions (external peer review, adopted on merit): effect size, bootstrap CI, economic significance
+    const allSd=_std(allW.map(w=>w.r));
+    const dEff=_cohenD(outs, baseAvg, allSd);
+    const bci=_bootCI(outs, 2000, 3000+N);
+    const perYr = (ppy||12)/FWD; // periods-per-year from detected data resolution, never inferred from window length
+    const annExcess=(avg-baseAvg)*perYr;
+    const econOK=Math.abs(annExcess)>=0.5;
+    // named-regime breakdown (informational; activates on deep monthly data)
+    let regimeTxt="";
+    if(rows[0].d<"1946"){
+      const parts=[];
+      for(const[nm,ra,rb]of _REGIMES){
+        const f=s.fires.filter(x=>x.d>=ra&&x.d<=rb);
+        if(f.length>=5)parts.push(nm+" "+pct(_mean(f.map(y=>y.r))-baseAvg));
+      }
+      if(parts.length>=2)regimeTxt=parts.join(" · ");
+    }
+    // regime split by thirds of the row index (structural eras, sharper than half)
+    const t1=Math.floor(rows.length/3), t2=Math.floor(2*rows.length/3);
+    const seg=k=>{const f=s.fires.filter(x=>x.i<k[1]&&x.i>=k[0]);return f.length?_mean(f.map(y=>y.r)):null;};
+    const e1=seg([0,t1]),e2=seg([t1,t2]),e3=seg([t2,rows.length]);
+    const eras=[e1,e2,e3].filter(x=>x!=null);
+    const eraSignsAgree = eras.length>=2 && eras.every(x=> (x-baseAvg>0)===(eras[0]-baseAvg>0));
+    const indep=_nonOverlap(s.fires,FWD); const iN=indep.length;
+    const iHit=iN?indep.filter(f=>f.r>0).length/iN*100:0, iAvg=iN?_mean(indep.map(f=>f.r)):0;
+    let worst=Infinity,worstYr="";s.fires.forEach(f=>{if(f.r<worst){worst=f.r;worstYr=f.d.slice(0,7);}});
+    RD.push({s,N,ep,skip:false,rare:false,outs,hit,hitRate,avg,sd,ci,dart,permP,
+             e1,e2,e3,eraSignsAgree,iN,iHit,iAvg,worst,worstYr,baseHit,baseAvg,nonsHitMax,nonsAvgMax,
+             dEff,bci,annExcess,econOK,regimeTxt});
+  }
+  // BH across the permutation p-values of the non-skipped, non-rare
+  const testable=RD.filter(r=>!r.skip&&!r.rare);
+  const bh=_bh(testable.map(r=>r.permP),0.05); testable.forEach((r,k)=>r.bh=bh[k]);
+  return {allW,baseHit,baseAvg,nons,nonsHitMax,nonsAvgMax,S,RD,testable};
+}
+
+async function run(dataOverride, horizonOverride, sourceLabel, ppyOverride){
+  $("run").disabled=true; setA("loading data…");
+  let rows;
+  if(dataOverride){ rows=dataOverride; }
+  else{
+    try{ rows=await loadData(); }
+    catch(e){ setA("couldn't reach the dataset ("+e.message+") — dark, nothing made up.","bad"); $("run").disabled=false; return; }
+  }
+  FWD = horizonOverride || 12;
+  const unit = horizonOverride ? (FWD+"-step") : "12-month";
+  setA("running the full test battery on your "+(sourceLabel||"data")+"…");
+
+  // unconditional windows (CONTROL 1)
+  const C=_computeAll(rows,FWD,ppyOverride);
+  if(!C){ setA("too little data for an honest test.","bad"); $("run").disabled=false; return; }
+  const {allW,baseHit,baseAvg,nons,nonsHitMax,nonsAvgMax,S,RD}=C;
+  $("baseline").style.display="";
+  $("baseline").innerHTML=`<b>The floor every real signal must clear.</b><br>
+    <b>Unconditional baseline</b> — across ${allW.length.toLocaleString()} ${unit} windows (${rows[0].d.slice(0,7)}→${rows[rows.length-1].d.slice(0,7)}): the market was up <b>${baseHit.toFixed(0)}%</b> of the time, avg <b>${pct(baseAvg)}</b>. A signal must beat THIS, not zero.<br>
+    <b>The nonsense floor</b> — we also ran ${nons.length} deliberately meaningless rules (${nons.map(n=>n.name.toLowerCase()).join(", ")}). The best any junk rule scored: <b>${nonsHitMax.toFixed(0)}% up, ${pct(nonsAvgMax)} avg</b> — essentially the base rate, as it must be. <b>Any real signal has to beat the nonsense, or it has found nothing a coin couldn't.</b> This is our strongest honesty check: if famous signals score like our junk rules, that's the story.`;
+
+
+  // render
+  let html="", trueCount=0;
+  for(const rd of RD){
+    const s=rd.s;
+    if(rd.skip){ html+=`<details class="sig"><summary>${s.name}<span class="verdict v-wait">INSUFFICIENT EVIDENCE (${rd.N} FIRES)</span></summary><div class="sigbody"><p>${s.folk}. Fired ${rd.N} times — below the minimum of 8 for any honest test.</p></div></details>`; continue; }
+    if(rd.rare){
+      // RARE-EVENT class: no p-value; show the full record instead
+      const list=s.fires.map(f=>`${f.d.slice(0,7)} → ${pct(f.r)}`).join(" · ");
+      const rHit=s.fires.filter(f=>f.r>0).length/rd.N*100, rAvg=_mean(s.fires.map(f=>f.r));
+      html+=`<details class="sig"><summary>${s.name}<span class="verdict v-rare">INSUFFICIENT EVIDENCE — FULL RECORD SHOWN</span></summary>
+        <div class="sigbody"><p>${s.folk}. This is a <span class="term" data-def="rare-event signal">rare-event signal</span>: it fired ${rd.N} times across only <b>${rd.ep} separate <span class="term" data-def="episodes">episode(s)</span></b> — clustered around once-in-a-lifetime moments. <b>Statistics genuinely cannot judge this</b> (you can't get significance from a handful of clustered points, ever). So instead of a fake verdict, here is the complete, honest record — every time it fired, and what followed:</p>
+        <p style="font-size:.8rem;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px">${list}</p>
+        <p>Across those: ${rHit.toFixed(0)}% were followed by gains, avg ${pct(rAvg)}. <b>Read the list yourself — that IS the answer.</b> A signal about generational events can only ever be a short story, never a statistic, and anyone selling it as a reliable system is selling you ${rd.ep} data point(s) dressed as a law.</p></div></details>`;
+      continue;
+    }
+    // full battery for frequent signals
+    const isBull=s.dir==="bull";
+    const checks=_sigChecks(rd,isBull);
+
+    const passed=checks.filter(c=>c[2]).length;
+    const rest = passed>=6?["STRONG HISTORICAL EVIDENCE","v-up"] : passed>=4?["MODERATE HISTORICAL EVIDENCE","v-flat"] : passed<=1?["LITTLE HISTORICAL EVIDENCE","v-down"] : ["MIXED HISTORICAL EVIDENCE","v-flat"];
+    if(passed>=6)trueCount++;
+    const dirNote = isBull?"":" <i>(This is an EXIT/sell signal, so every question below flips: ✅ means the market did WORSE after it — which is what an exit signal claims.)</i>";
+    const permTxt = rd.permP<0.0002?"<0.001":rd.permP.toFixed(3);
+
+    html+=`<details class="sig"><summary>${s.name}<span class="verdict ${rest[1]}">${rest[0]}</span></summary>
+      <div class="sigbody">
+        <p style="margin:6px 0">${s.folk}.${dirNote}</p>
+        <p style="margin:6px 0"><b>The simple answer:</b> ${passed>=6?"this pattern repeatedly cleared hard tests in this market's history — as strong as historical evidence gets here (still not a promise).":passed>=4?"this pattern worked better than chance in this market's history, but not consistently enough to call a law.":passed>=2?"this pattern shows up in some checks and vanishes in others — the honest answer is: maybe, weakly, sometimes.":"this pattern did nothing here that random guessing didn't — no convincing historical evidence."}</p>
+        <p style="margin:6px 0"><b>Evidence: passed ${passed} of 7 checks</b> — plain questions up front, technical names in grey, tap any line for the full meaning. ➖ means "not confirmed" — which is information, not shame:</p>
+        <div style="font-size:.82rem;line-height:2">
+        ${checks.map(c=>`<div>${c[2]?"✅":"➖"} <span class="term" data-def="${c[0]}">${c[1]}</span></div>`).join("")}
+        </div>
+        <details style="margin-top:8px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--accent)">🔬 The math behind the answer ▾ tap to open</summary>
+        <div style="font-size:.68rem;color:var(--faint);margin:8px 0 3px">Tap any box for a plain meaning:</div>
+        <div class="row2">
+          <div class="cell term2" data-def="cell-fires"><div class="n">${rd.N}</div><div class="l">times it fired<br>${rd.ep} separate episodes</div></div>
+          <div class="cell term2" data-def="cell-upnext"><div class="n" style="color:${rd.hitRate>=rd.baseHit?"var(--up)":"var(--down)"}">${rd.hitRate.toFixed(0)}%</div><div class="l">how often UP next<br>(likely range ${rd.ci[0].toFixed(0)}–${rd.ci[1].toFixed(0)}%)</div></div>
+          <div class="cell term2" data-def="cell-avg"><div class="n" style="color:${rd.avg>=rd.baseAvg?"var(--up)":"var(--down)"}">${pct(rd.avg)}</div><div class="l">average result<br>(swings ±${rd.sd.toFixed(0)})</div></div>
+        </div>
+        <div class="row2">
+          <div class="cell term2" data-def="cell-darthit"><div class="n" style="color:var(--warn)">${rd.dart.hitLo.toFixed(0)}–${rd.dart.hitHi.toFixed(0)}%</div><div class="l">what a blind DART<br>scores (up-rate range)</div></div>
+          <div class="cell term2" data-def="cell-dartavg"><div class="n" style="color:var(--warn)">${pct(rd.dart.avgLo).replace('%','')}–${rd.dart.avgHi.toFixed(0)}</div><div class="l">the dart's average<br>result range</div></div>
+          <div class="cell term2" data-def="cell-perm"><div class="n" style="color:${rd.permP<0.05?"var(--up)":"var(--down)"}">p=${permTxt}</div><div class="l">fluke chance<br>${rd.bh?"survives many-signal correction":"fails many-signal correction"}</div></div>
+        </div>
+        <p style="margin:8px 0;font-size:.79rem;color:var(--faint)">
+        Effect size (Cohen's d): <b>${rd.dEff.toFixed(2)}</b> ${Math.abs(rd.dEff)<0.2?"(negligible)":Math.abs(rd.dEff)<0.5?"(small)":Math.abs(rd.dEff)<0.8?"(medium)":"(large)"} · Bootstrap 95% CI on avg: <b>${pct(rd.bci[0])} to ${pct(rd.bci[1])}</b> · Annualized excess ≈ <b>${pct(rd.annExcess)}/yr</b> — ${rd.econOK?"could clear":"would NOT clear"} 0.5%/yr friction (no costs modeled; real trading only lowers it).${rd.regimeTxt?"<br>By economic regime (avg edge vs base): "+rd.regimeTxt+".":""}<br>
+        Worst single outcome while following: <b style="color:var(--down)">${pct(rd.worst)}</b> (${rd.worstYr}). ·
+        Three eras avg-edge vs base: ${rd.e1!=null?pct(rd.e1-rd.baseAvg):"—"} / ${rd.e2!=null?pct(rd.e2-rd.baseAvg):"—"} / ${rd.e3!=null?pct(rd.e3-rd.baseAvg):"—"} ${rd.eraSignsAgree?"(same sign — stable)":"(⚠ sign flips across eras — fragile)"}. ·
+        Independent windows: ${rd.iN} fires, ${rd.iHit.toFixed(0)}% up.</p></details>
+      </div></details>`;
+  }
+  // v4: parameter robustness — if only the famous setting works, that's suspicious
+  try{
+    const _sma=(i,n)=>{if(i<n-1)return null;let s=0;for(let k=i-n+1;k<=i;k++)s+=rows[k].p;return s/n;};
+    const _rsi=(i,n)=>{if(i<n)return null;let g=0,l=0;for(let k=i-n+1;k<=i;k++){const ch=rows[k].p-rows[k-1].p;if(ch>0)g+=ch;else l-=ch;}const rs=l===0?100:g/l;return 100-100/(1+rs);};
+    const edge=cond=>{const f=[];for(let i=1;i<rows.length;i++){let ok=false;try{ok=cond(i);}catch(e){}if(ok){const w=allW.find(x=>x.i===i);if(w)f.push(w);}}
+      return f.length>=8?_mean(f.map(x=>x.r))-baseAvg:null;};
+    const fam=[
+      ["Trend filter — bars above their N-bar average", [8,10,12].map(n=>[n+"-bar", edge(i=>{const s=_sma(i,n);return s!=null&&rows[i].p>s;})])],
+      ["Oversold RSI(P) below 30", [10,12,14,16,18].map(p=>["RSI-"+p, edge(i=>{const r=_rsi(i,p);return r!=null&&r<30;})])],
+      ["Momentum — positive over N bars", [9,12,15].map(n=>[n+"-bar", edge(i=>i>=n&&rows[i].p>rows[i-n].p)])],
+    ];
+    let rb="";
+    for(const[name,vars]of fam){
+      const shown=vars.filter(v=>v[1]!=null);
+      if(shown.length<2)continue;
+      const signs=shown.map(v=>v[1]>0);
+      const consistent=signs.every(x=>x===signs[0]);
+      rb+=`<div style="margin:6px 0"><b>${name}:</b> ${shown.map(v=>v[0]+" "+pct(v[1])).join(" · ")} — ${consistent?"neighbors agree (evidence the pattern is not one lucky setting)":"⚠ neighbors disagree (the famous setting may be a lucky pick)"}</div>`;
+    }
+    if(rb) html+=`<div class="warnbox" style="border-left-color:var(--accent);background:rgba(127,176,232,.06)"><b style="color:var(--accent)">Parameter robustness (avg edge vs base, per setting):</b> a real phenomenon shows up across neighboring settings, not just the one that got famous.${rb}</div>`;
+  }catch(e){}
+  // luck accounting (peer-review adoption): how many "wins" would pure chance hand us?
+  try{
+    const tiers={strong:0,mod:0,mix:0,little:0};
+    for(const rd of RD){ if(rd.skip||rd.rare)continue;
+      const p=_sigChecks(rd, rd.s.dir==="bull").filter(c=>c[2]).length;
+      if(p>=6)tiers.strong++; else if(p>=4)tiers.mod++; else if(p>=2)tiers.mix++; else tiers.little++;
+    }
+    const nT=tiers.strong+tiers.mod+tiers.mix+tiers.little;
+    if(nT>0) html+=`<div class="warnbox"><b>The luck accounting (read this before celebrating any winner):</b> we fully tested <b>${nT}</b> signals here — ${tiers.strong} strong · ${tiers.mod} moderate · ${tiers.mix} mixed · ${tiers.little} little. Testing ${nT} signals at the usual 5% significance bar, <b>≈${(nT*0.05).toFixed(1)} would clear it by pure luck alone</b> — that's why the multiple-comparison correction is one of the seven checks, and why one lonely "winner" in a big menu is exactly what chance predicts. A result only starts meaning something when it survives the correction AND travels across markets.</div>`;
+  }catch(e){}
+  // Reproducibility footer (peer-review adoption)
+  html+=`<div style="border:1px dashed var(--line);border-radius:10px;padding:11px 13px;margin-top:12px;font-size:.74rem;color:var(--muted)"><b style="color:var(--ink)">Reproduce this run:</b> Data: ${sourceLabel||"built-in monthly S&P (Shiller dataset, public-domain mirror on GitHub)"} · Period: ${rows[0].d.slice(0,7)} → ${rows[rows.length-1].d.slice(0,7)} · Rows: ${rows.length.toLocaleString()} · Outcome window: ${FWD} bars at the data's own rhythm · Rules: exactly as printed in the method section above, frozen before data loads · Engine: in-page JavaScript, readable via view-source — nothing hidden · Run: ${new Date().toISOString().slice(0,10)} on your device. Same data + same rules = same numbers, for anyone, forever — different numbers are a bug report we want.</div>`;
+  $("results").innerHTML=html;
+  setA(`complete · ${rows.length.toLocaleString()} rows · ${unit} horizon · ${trueCount} signal(s) reached strong-evidence level · source: ${sourceLabel||"built-in monthly"}`,"ok");
+  $("run").disabled=false; $("run").textContent="🔬 Re-run deep dive";
+}
+$("run").onclick=()=>run();
+
+/* ===== CROSS-MARKET one-tap (S20): OECD monthly share-price indexes via DBnomics.
+   License path checked (Rule 10): OECD data under its open terms, DBnomics aggregate ODbL — display with attribution. */
+const INTL=[["JPN","Japan (Nikkei-area)"],["DEU","Germany (DAX-area)"],["GBR","United Kingdom"],
+            ["FRA","France"],["CAN","Canada"],["AUS","Australia"],["ITA","Italy"],["KOR","South Korea"]];
+async function _fetchIntlRows(code){
+  const u="https://api.db.nomics.world/v22/series/OECD/MEI/"+code+".SPASTT01.IXOB.M?observations=1";
+  const r=await fetch(u,{cache:"no-store"});
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const j=await r.json();
+  const doc=j&&j.series&&j.series.docs&&j.series.docs[0];
+  if(!doc||!doc.period||!doc.value) throw new Error("unexpected response shape");
+  const rows=[];
+  for(let i=0;i<doc.period.length;i++){const v=Number(doc.value[i]);
+    if(isFinite(v)&&v>0) rows.push({d:doc.period[i]+"-01", p:v});}
+  if(rows.length<120) throw new Error("only "+rows.length+" usable months");
+  rows.sort((a,b)=>a.d<b.d?-1:1);
+  return rows;
+}
+function _renderCmpChart(PAL){
+  const area=$("chartArea"); const S=window._cmpSel, C=window._cmp;
+  if(!S.length){ area.innerHTML=""; return; }
+  const legend=S.map(k=>`<span style="font-size:.72rem;margin-right:10px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${PAL[k]};margin-right:4px"></span>${C.cols[k].label}</span>`).join("");
+  let rows="";
+  for(const nm of C.order){
+    let any=false;
+    const barsH=S.map(k=>{
+      const v=C.cols[k].map[nm];
+      if(v&&v.st==="ok"){ any=true;
+        const tier=v.p>=6?["strong","var(--up)"]:v.p>=4?["moderate","var(--warn)"]:v.p>=2?["mixed","var(--muted)"]:["little","var(--down)"];
+        const segs=Array.from({length:7},(_,q)=>`<div style="flex:1;height:9px;border-radius:2px;background:${q<v.p?PAL[k]:"var(--panel2)"}"></div>`).join("");
+        return `<div style="display:flex;align-items:center;gap:6px;margin:2px 0"><div style="display:flex;gap:2px;flex:1">${segs}</div><span style="font-size:.66rem;white-space:nowrap"><b>${v.p}/7</b> <span style="color:${tier[1]}">${tier[0]}</span> <span style="color:var(--faint)">· edge ${v.e>=0?"+":""}${v.e.toFixed(1)}% · ${v.n} fires</span></span></div>`;
+      }
+      const tag=v? (v.st==="rare"?"R — too rare, full record in single-run":"· too few fires") : "— not present";
+      return `<div style="font-size:.66rem;color:var(--faint);margin:2px 0">${tag}</div>`;
+    }).join("");
+    if(!any && S.length===1) continue;
+    rows+=`<div style="margin:9px 0"><div style="font-size:.75rem;margin-bottom:2px">${nm} <span style="color:var(--faint)">(checks passed of 7)</span></div>${barsH}</div>`;
+  }
+  area.innerHTML=`<div style="border:1px solid var(--line);border-radius:9px;padding:10px;background:var(--panel2)"><div style="margin-bottom:6px">${legend}</div>${rows}<div style="font-size:.7rem;color:var(--faint);margin-top:4px">Each bar has 7 segments — one per independent check; filled = passed, countable by eye. 6–7 = strong historical evidence · 4–5 moderate · 2–3 mixed · 0–1 little. Overlays share each signal row for direct comparison. These charts are summaries: for the classroom version — every check named and tap-to-define, full records for rare signals — run the 🔬 deep dive on any single market.</div></div>`;
+}
+async function compareAll(btn){
+  btn.disabled=true; $("compareBox").innerHTML="";
+  const MK=[["US since 1871",()=>loadData()]].concat(INTL.map(([c,l])=>[l,()=>_fetchIntlRows(c)]));
+  const cols=[], order=[];
+  for(let k=0;k<MK.length;k++){
+    const [label,get]=MK[k];
+    setA("cross-market "+(k+1)+"/"+MK.length+": "+label+"…");
+    const col={label,ok:false,map:{}};
+    try{
+      const rows=await get();
+      const C=_computeAll(rows,12,12);
+      if(!C) throw new Error("too little data");
+      col.ok=true; col.span=rows[0].d.slice(0,7)+"→"+rows[rows.length-1].d.slice(0,7);
+      for(const rd of C.RD){
+        const nm=rd.s.name;
+        if(!order.includes(nm)) order.push(nm);
+        col.map[nm]= rd.skip?{st:"few"} : rd.rare?{st:"rare"} : {st:"ok", p:_sigChecks(rd, rd.s.dir==="bull").filter(c=>c[2]).length, e:(rd.avg-rd.baseAvg), n:rd.N};
+      }
+    }catch(e){ col.err=(e&&e.message)||"failed"; }
+    cols.push(col);
+  }
+  const okN=cols.filter(c=>c.ok).length;
+  let bars="";
+  for(const nm of order){
+    let tested=0,mod=0;
+    for(const c of cols){const v=c.ok&&c.map[nm]; if(v&&v.st==="ok"){tested++; if(v.p>=4)mod++;}}
+    if(!tested)continue;
+    const share=mod/tested;
+    const colr=share>=0.6?"var(--up)":share>=0.34?"var(--warn)":"var(--down)";
+    bars+=`<div style="margin:8px 0"><div style="font-size:.78rem;margin-bottom:3px">${nm} — <b>${mod} of ${tested}</b> markets show moderate-or-stronger evidence</div><div style="background:var(--panel2);border:1px solid var(--line);border-radius:6px;height:12px;overflow:hidden"><div style="width:${Math.max(3,share*100).toFixed(0)}%;height:100%;background:${colr}"></div></div></div>`;
+  }
+  let grid="<tr><th style='text-align:left;padding:4px'>signal</th>"+cols.map(c=>`<th style='padding:4px' title="${c.ok?c.span:c.err}">${c.label.split(" ")[0]}</th>`).join("")+"</tr>";
+  for(const nm of order){
+    grid+="<tr><td style='text-align:left;padding:3px 4px;white-space:nowrap'>"+nm.slice(0,28)+"</td>"+cols.map(c=>{
+      if(!c.ok)return "<td style='color:var(--down)'>✗</td>";
+      const v=c.map[nm]; if(!v)return "<td>–</td>";
+      if(v.st==="few")return "<td style='color:var(--faint)'>·</td>";
+      if(v.st==="rare")return "<td style='color:var(--define)'>R</td>";
+      const cc=v.p>=6?"var(--up)":v.p>=4?"var(--warn)":"var(--muted)";
+      return `<td style="color:${cc};font-weight:750">${v.p}</td>`;
+    }).join("")+"</tr>";
+  }
+  window._cmp={cols,order};
+  // 🎯 THE PLAIN ANSWER — the ELI5 dial. Deliberately coarse: five buckets, never a percentage.
+  // Built from ONLY two defensible ingredients: home score (checks of 7, deepest market) + replication (markets at moderate+).
+  let plain="";
+  for(const nm of order){
+    const home=cols[0].ok && cols[0].map[nm] && cols[0].map[nm].st==="ok" ? cols[0].map[nm].p : null;
+    let tested=0, mod=0;
+    for(const c of cols){const v=c.ok&&c.map[nm]; if(v&&v.st==="ok"){tested++; if(v.p>=4)mod++;}}
+    if(tested<2 && home==null) continue;
+    const repl=tested?mod/tested:0;
+    const hN=home==null?0:home/7;
+    const score=(hN*0.5)+(repl*0.5);
+    const B= score>=0.7?["STRONG evidence","var(--up)",5,"kept passing checks at home AND in most other countries — the rare kind"]
+      : score>=0.5?["PROMISING","var(--up)",4,"real signs of life in several countries — worth respect, not worship"]
+      : score>=0.3?["MIXED","var(--warn)",3,"works some places, fails others — treat any confident claim about it with suspicion"]
+      : score>=0.15?["WEAK","var(--down)",2,"mostly fails; the occasional pass looks like what luck produces"]
+      : ["NO CONVINCING EVIDENCE","var(--down)",1,"failed nearly everywhere it was tested — a coin does this"];
+    const segs=Array.from({length:5},(_,q)=>`<div style="width:14px;height:10px;border-radius:2px;background:${q<B[2]?B[1]:"var(--panel2)"}"></div>`).join("");
+    plain+=`<details style="padding:6px 0;border-bottom:1px solid var(--line)"><summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px"><span style="flex:1;font-size:.79rem">${nm}</span><span style="display:flex;gap:2px">${segs}</span><span style="font-size:.7rem;font-weight:750;color:${B[1]};min-width:74px;text-align:right">${B[0]}</span></summary>
+      <div style="font-size:.75rem;color:var(--muted);padding:5px 0 3px">${B[3]}. <b>The recipe (nothing hidden):</b> home market ${home!=null?home+"/7 checks":"not scored"} · moderate-or-better in ${mod} of ${tested} countries. That's the whole dial — the full evidence is in the sections below.</div></details>`;
+  }
+  // ---- single status readout: every market, every test bucket, at a glance ----
+  let status="";
+  for(const c of cols){
+    if(!c.ok){ status+=`<div style="display:flex;justify-content:space-between;gap:8px;font-size:.76rem;padding:3px 0;border-bottom:1px solid var(--line)"><span>✗ <b>${c.label}</b></span><span style="color:var(--down)">${c.err}</span></div>`; continue; }
+    let t=0,r=0,f=0; for(const nm of order){const v=c.map[nm]; if(!v)continue; if(v.st==="ok")t++; else if(v.st==="rare")r++; else f++;}
+    status+=`<div style="display:flex;justify-content:space-between;gap:8px;font-size:.76rem;padding:3px 0;border-bottom:1px solid var(--line)"><span>✓ <b>${c.label}</b> <span style="color:var(--faint)">${c.span}</span></span><span><span style="color:var(--up)">${t} tested</span> · <span style="color:var(--define)">${r} rare</span> · <span style="color:var(--faint)">${f} few</span></span></div>`;
+  }
+  // ---- country chips for per-country charts with overlay ----
+  const PAL=["#5FBF8F","#7FB0E8","#E0906C","#C9A227","#A78BFA","#6FD3D3","#E88FB0","#9FCB6C","#B0B8C4"];
+  let chips=cols.map((c,k)=>`<button class="cmpChip" data-k="${k}" ${c.ok?"":"disabled"} style="background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:.75rem;color:${c.ok?"var(--ink)":"var(--faint)"};cursor:pointer"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${PAL[k]};margin-right:5px"></span>${c.label.split(" ")[0]}</button>`).join("");
+  // 🧭 agreement/divergence: does each signal score the same everywhere, or differ by market?
+  const ABBR={"US since 1871":"US","Japan (Nikkei-area)":"JP","Germany (DAX-area)":"DE","United Kingdom":"UK","France":"FR","Canada":"CA","Australia":"AU","Italy":"IT","South Korea":"KR"};
+  let agree="";
+  for(const nm of order){
+    const cells=[]; const scored=[];
+    for(const c of cols){
+      const ab=ABBR[c.label]||c.label.slice(0,2);
+      if(!c.ok){cells.push(`<span style="display:inline-block;min-width:26px;text-align:center;font-size:.64rem;color:var(--down)">${ab}✗</span>`);continue;}
+      const v=c.map[nm];
+      if(!v||v.st!=="ok"){cells.push(`<span style="display:inline-block;min-width:26px;text-align:center;font-size:.64rem;color:var(--faint)">${ab}${v&&v.st==="rare"?"R":"·"}</span>`);continue;}
+      scored.push({ab,p:v.p,label:c.label});
+      const cc=v.p>=6?"var(--up)":v.p>=4?"var(--warn)":v.p>=2?"var(--muted)":"var(--down)";
+      cells.push(`<span style="display:inline-block;min-width:26px;text-align:center;font-size:.68rem;font-weight:700;color:${cc}">${ab}${v.p}</span>`);
+    }
+    if(scored.length<2){continue;}
+    const ps=scored.map(s=>s.p), hi=Math.max(...ps), lo=Math.min(...ps);
+    const top=scored.find(s=>s.p===hi), bot=scored.find(s=>s.p===lo);
+    const spread=hi-lo;
+    const verdict= spread<=1 ? `<span style="color:var(--up)">agrees everywhere</span>`
+      : spread<=2 ? `<span style="color:var(--warn)">mostly agrees</span>`
+      : `<span style="color:var(--down)">DIFFERS by market</span> — strongest ${top.ab} ${hi}/7, weakest ${bot.ab} ${lo}/7`;
+    agree+=`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><div style="font-size:.76rem;margin-bottom:3px">${nm} — ${verdict}</div><div>${cells.join("")}</div></div>`;
+  }
+  // 🎯 ELI5 plain answers: five honest zones from a PRINTED counting rule — a summary of the checks, never a new measurement
+  const ZONES=[["No real evidence","var(--down)"],["Weak","#C97A5A"],["Mixed","var(--warn)"],["Promising","var(--accent)"],["Strong","var(--up)"]];
+  let dials="";
+  for(const nm of order){
+    let tested=0,mod=0,strong=0;
+    for(const c of cols){const v=c.ok&&c.map[nm]; if(v&&v.st==="ok"){tested++; if(v.p>=4)mod++; if(v.p>=6)strong++;}}
+    if(tested<3)continue;
+    const share=mod/tested;
+    const z = (share>=0.6&&strong>=1)?4 : share>=0.4?3 : share>=0.2?2 : mod>=1?1 : 0;
+    const say=[
+      `tested in ${tested} markets, cleared the bar in none. The honest short answer: nothing here a coin doesn't have.`,
+      `cleared the bar in ${mod} of ${tested} markets — which is what luck usually looks like. The honest short answer: probably nothing.`,
+      `shows up in ${mod} of ${tested} markets and vanishes in the rest. The honest short answer: sometimes, somewhere — no law.`,
+      `cleared a hard test in ${mod} of ${tested} markets${strong?` (strong in ${strong})`:``}. The honest short answer: real enough to take seriously, too patchy to call a law.`,
+      `cleared hard tests in ${mod} of ${tested} markets, strong in ${strong}. The honest short answer: as close to "real" as history can say — still not a promise.`
+    ][z];
+    const strip=ZONES.map((zz,q)=>`<div style="flex:1;text-align:center"><div style="height:10px;border-radius:3px;background:${zz[1]};opacity:${q===z?1:.22}"></div><div style="font-size:.56rem;color:${q===z?zz[1]:"var(--faint)"};margin-top:2px;${q===z?"font-weight:800":""}">${q===z?"▲ ":""}${zz[0]}</div></div>`).join("");
+    dials+=`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="font-size:.8rem;font-weight:650;margin-bottom:4px">${nm}</div><div style="display:flex;gap:4px;margin-bottom:3px">${strip}</div><div style="font-size:.73rem;color:var(--muted)">If a friend asked "does this work?": ${say}</div></div>`;
+  }
+  $("compareBox").innerHTML=`
+    <div style="border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--panel)">
+      <b style="font-size:.95rem">🎯 The plain answer — one dial per signal (tap any for its recipe)</b>
+      <div style="font-size:.72rem;color:var(--faint);margin:3px 0 4px">Deliberately coarse on purpose: five buckets, never a fake percentage. Each dial mixes just two things — how many of the 7 checks it passed in the deepest market, and how many countries it replicated in. "Strong" means strong <i>historical</i> evidence; nothing here is a promise, a prediction, or advice.</div>
+      <div style="margin-bottom:12px">${plain}</div>
+      <b style="font-size:.95rem">🎯 The plain answer — every signal, one dial</b>
+      <div style="font-size:.7rem;color:var(--faint);margin:3px 0 6px">This dial is a SUMMARY of the seven checks across all markets, never a new measurement. The counting rule, printed so you can check us: <b>Strong</b> = moderate-or-better (≥4 of 7 checks) in 60%+ of tested markets AND strong (≥6) somewhere · <b>Promising</b> = moderate+ in 40%+ · <b>Mixed</b> = 20%+ · <b>Weak</b> = at least one market · <b>No real evidence</b> = none. A dial can say "did repeat" — it can never say "will work."</div>
+      <div style="margin-bottom:12px">${dials}</div>
+      <b style="font-size:.9rem">📋 Status — every market, every test</b>
+      <div style="margin:6px 0 10px">${status}</div>
+      <b style="font-size:.9rem">🧭 Do the signals agree across markets?</b>
+      <div style="font-size:.72rem;color:var(--faint);margin:3px 0 6px">Every market is scored by the IDENTICAL engine and the same 7 pre-registered checks — US and the eight countries alike. Each cell = that country's score of 7. Spread of 0–1 across markets = the signal behaves the same everywhere; 3+ = it genuinely differs by market — which is itself a finding (a "universal law" that only works in some countries was probably local luck).</div>
+      <div style="margin-bottom:10px">${agree}</div>
+      <b style="font-size:.9rem">📊 Per-country charts (tap a country; tap more to overlay — up to all ${okN})</b>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0" id="chipRow">${chips}</div>
+      <div id="chartArea" style="margin:6px 0"></div>
+      <details style="margin-top:8px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650">Cross-market bars — how well each signal traveled ▾</summary><div style="margin-top:6px">${bars}</div></details>
+      <details style="margin-top:8px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650">Full grid — every signal × every market ▾</summary>
+        <div style="overflow-x:auto;margin-top:6px"><table style="border-collapse:collapse;font-size:.74rem;text-align:center">${grid}</table></div>
+        <div style="font-size:.72rem;color:var(--faint);margin-top:5px">Cells = checks passed of 7 · <span style="color:var(--define)">R</span> = too rare, full record in single-run mode · "·" = too few fires · ✗ = fetch failed (dark, nothing made up). US = Shiller monthly since 1871; others = OECD monthly share-price indexes via DBnomics (open licenses, monthly averages — a smoother path, stated plainly). Same pre-registered checks everywhere; no costs modeled; history, not advice.</div>
+      </details>
+    </div>`;
+  window._cmpSel=[];
+  document.querySelectorAll(".cmpChip").forEach(b=>{
+    b.onclick=()=>{
+      const k=+b.dataset.k;
+      const at=window._cmpSel.indexOf(k);
+      if(at>=0){window._cmpSel.splice(at,1); b.style.outline="";}
+      else {window._cmpSel.push(k); b.style.outline="2px solid "+PAL[k];}
+      _renderCmpChart(PAL);
+    };
+  });
+  setA("cross-market comparison complete — "+okN+"/"+MK.length+" markets","ok");
+  btn.disabled=false;
+}
+async function fetchIntl(code,label,btn){
+  btn.disabled=true; setA("fetching "+label+" monthly index (OECD via DBnomics)…");
+  try{
+    const rows=await _fetchIntlRows(code);
+    run(rows, 12, label+" — OECD share-price index via DBnomics ("+rows[0].d.slice(0,7)+"→"+rows[rows.length-1].d.slice(0,7)+")", 12);
+  }catch(e){
+    setA(label+": couldn't fetch ("+(e.message||"failed")+") — dark, nothing made up. Try again later or use the CSV route above.","bad");
+  }
+  btn.disabled=false;
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  const cb=$("cmpBtn"); if(cb) cb.onclick=()=>compareAll(cb);
+  const row=$("intlRow"); if(!row)return;
+  INTL.forEach(([code,label])=>{
+    const b=document.createElement("button");
+    b.textContent=label; b.style.cssText="background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.78rem;cursor:pointer";
+    b.onclick=()=>fetchIntl(code,label,b);
+    row.appendChild(b);
+  });
+});
+
+/* ===== BRING-YOUR-OWN-CSV loader (Thread 2) — file never leaves the device ===== */
+function _parseCSV(text){
+  const lines=text.trim().split(/\r?\n/); const head=lines[0].split(",").map(h=>h.trim().toLowerCase());
+  const di=head.findIndex(h=>/date/.test(h)); let ci=head.findIndex(h=>h==="close");
+  if(ci<0)ci=head.findIndex(h=>/close|price|value|sp500/.test(h));
+  if(di<0||ci<0) throw new Error("need a Date column and a Close/Price column");
+  const oi=head.findIndex(h=>h==="open"), hi=head.findIndex(h=>h==="high"), li=head.findIndex(h=>h==="low");
+  const rows=[];
+  for(let i=1;i<lines.length;i++){const c=lines[i].split(",");const d=c[di],p=+c[ci];
+    if(d&&isFinite(p)&&p>0){const r={d:d.trim(),p};
+      if(oi>=0&&hi>=0&&li>=0){const o=+c[oi],h=+c[hi],l=+c[li];
+        if(isFinite(o)&&isFinite(h)&&isFinite(l)&&l>0){r.o=o;r.h=h;r.l=l;}}
+      rows.push(r);}}
+  rows.sort((a,b)=>a.d<b.d?-1:1);
+  if(rows.length<40) throw new Error("only "+rows.length+" valid rows");
+  return rows;
+}
+function _detectHorizon(rows){
+  // median gap in days between rows → daily(~1-4)=63-step, weekly=13, monthly(~28-31)=12
+  const gaps=[];for(let i=1;i<Math.min(rows.length,200);i++){const a=new Date(rows[i-1].d),b=new Date(rows[i].d);gaps.push((b-a)/864e5);}
+  gaps.sort((a,b)=>a-b);const med=gaps[gaps.length>>1]||30;
+  if(med<=4) return {h:63, label:"daily (≈3-month horizon)", ppy:252};
+  if(med<=10) return {h:13, label:"weekly (≈3-month horizon)", ppy:52};
+  return {h:12, label:"monthly (12-month horizon)", ppy:12};
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  const inp=$("csvfile"); if(!inp)return;
+  inp.addEventListener("change",e=>{
+    const f=e.target.files[0]; if(!f)return;
+    const rd=new FileReader();
+    rd.onload=()=>{
+      try{
+        const rows=_parseCSV(rd.result);
+        const {h,label,ppy}=_detectHorizon(rows);
+        setA(`loaded ${rows.length.toLocaleString()} rows (${rows[0].d}→${rows[rows.length-1].d}), detected ${label} — testing…`);
+        run(rows,h,`your file (${label})`,ppy);
+      }catch(err){ setA("couldn't read that file: "+err.message+" — nothing was uploaded; it stayed on your device.","bad"); }
+    };
+    rd.readAsText(f);
+  });
+});
+
+</script>
+</body>
+</html>

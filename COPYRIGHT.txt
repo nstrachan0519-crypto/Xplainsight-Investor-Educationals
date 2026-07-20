@@ -1,0 +1,12 @@
+Copyright © 2026 Xplainsight. All rights reserved.
+
+This work — including all text, code, design, and original data
+compilations in this project — is the property of Xplainsight and
+is protected by copyright law from the moment of creation. No
+license is granted. No part of this work may be copied, modified,
+redistributed, or used to create derivative works without prior
+written permission.
+
+Contact for permissions or licensing inquiries: Xplainsight@duck.com
+
+This notice intentionally identifies the work by project name only.

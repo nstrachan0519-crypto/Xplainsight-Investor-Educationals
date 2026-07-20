@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xplainsight — what you actually need (and hiring help honestly)</title>
+<!--
+  XPLAINSIGHT — GETTING HELP / THE TWO TOOLKITS (S18). Fills three gaps Nicholas
+  identified: (1) what each player type actually NEEDS (vs what the industry
+  sells them), (2) a full financial-advisor literacy section (types, fees,
+  regulation, fiduciary vs suitability, free government verification, red
+  flags), (3) the honest off-ramp — "maybe this is all too much" is a valid
+  conclusion an education tool must serve respectfully.
+  Facts: training-stable regulatory/structural knowledge (RIA vs broker-dealer,
+  Reg BI 2019, fiduciary standard, CFP, SEC adviser search + FINRA BrokerCheck,
+  typical ~1%/yr AUM fees). Industry benefit claims (e.g. "advisor alpha")
+  tiered as industry-published, not independent. Fee math cross-referenced to
+  the verified computation on the company-reading page.
+  Zero external code. House tap-to-define. Section folding via shared snippet.
+-->
+<style>
+  :root{--bg:#0E1116;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+    --muted:#8A9099;--faint:#838B94;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --warn:#C9A227;--define:#A78BFA;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;-webkit-text-size-adjust:100%}
+  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+  .wrap>*{animation:fadeUp .45s ease both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+  h2{font-size:1.08rem;font-weight:650;margin:28px 0 4px;border-top:1px solid var(--line);padding-top:18px}
+  h2:first-of-type{border-top:none;padding-top:0}
+  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+  .sub b,.card b,.kit b{color:var(--ink);font-weight:620}
+  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+  .term:active{opacity:.6}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+  .card p{font-size:.88rem;margin:8px 0}
+  .kit{border-left:3px solid var(--accent);background:rgba(127,176,232,.05);border-radius:9px;padding:10px 13px;margin:8px 0;font-size:.86rem}
+  .kit.spec{border-left-color:var(--down);background:rgba(224,144,108,.05)}
+  .warnbox{border:1px solid rgba(201,162,39,.4);border-left:3px solid var(--warn);background:rgba(201,162,39,.06);border-radius:9px;padding:10px 13px;margin:10px 0;font-size:.86rem}
+  .warnbox b{color:var(--warn)}
+  .trust{border:1px solid rgba(95,191,143,.4);border-left:3px solid var(--up);background:rgba(95,191,143,.05);border-radius:9px;padding:10px 13px;margin:10px 0;font-size:.86rem}
+  .trust b{color:var(--up)}
+  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
+  .mirror b{color:var(--ink)}
+  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+  #deftip.show{display:block}
+  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>What you actually need — and hiring help honestly</h1>
+  <p class="sub">Every room in this app teaches a skill. This room answers three quieter questions: what does each path <b>actually require</b> (versus what the industry sells it)? How does hiring a <b>financial advisor</b> really work — fees, rules, and who's legally on your side? And the most honest question of all: <b>what if you've decided this is all too much?</b> That's a valid answer, and it deserves a real plan, not shame. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+
+  <h2>🧰 The two toolkits — what each path truly requires</h2>
+  <div class="card"><p>The industry's quiet trick is selling everyone everything: charts to indexers, newsletters to savers, courses to people who needed one fund. Here's the honest inventory, path by path.</p></div>
+
+  <div class="kit"><b>The indexer / buy-and-holder needs exactly four things:</b><br>
+  1. <b>One broad, low-fee fund</b> (the whole decision is the expense ratio — the fee math on our company page shows a 1% fee eating ~31% of final wealth over 40 years).<br>
+  2. <b>An automatic contribution</b> — the same amount, every payday, no decisions.<br>
+  3. <b>Decades</b> — matched honestly to the four questions on our bonds page (horizon, survivable loss, the money's job, the racetrack).<br>
+  4. <b>Behavior control</b> — the only hard one. Not selling in crashes is the entire skill; the scorekeeper data says investors lose more to their own exits than to their funds.<br>
+  <span style="color:var(--muted)">Notice what's NOT on the list: charts, news, gauges, predictions, this app's live tools, or anyone's opinion. An indexer who understands the four items above is <b>done learning</b> — and any product sold to them beyond this list is selling entertainment or fear.</span></div>
+
+  <div class="kit spec"><b>The speculator needs seven things (this list is from the verified winners, not from us):</b><br>
+  1. <b>An edge stated in advance</b> — a written, testable reason you win (Thorp's standard; "I'm good at this" is not an edge).<br>
+  2. <b>Position sizing rules</b> — the one trait every verified winner shared: obsession with how much can be lost per bet.<br>
+  3. <b>A written exit plan</b> before entry — both directions.<br>
+  4. <b>A real scorecard</b> — win rate NEXT TO net profit after fees (our board shows why those are different numbers; most traders track neither honestly).<br>
+  5. <b>Fee awareness</b> — the flat wallets on our board lost more to fees than to markets.<br>
+  6. <b>Capital they can lose twice</b> — financially and emotionally.<br>
+  7. <b>The willingness to discover they have no edge</b> — the rarest item. Our simulator exists for this: if your calibration tracks the coin-flip line after many rounds, that IS the finding.<br>
+  <span style="color:var(--muted)">The honest base rates for this path are on the options and bookshelf pages (SEBI's 93%, the day-trading studies). The toolkit doesn't beat the base rate — it's the minimum equipment for finding out, cheaply, which side of it you're on.</span></div>
+
+  <h2>🤝 Financial advisors — the honest manual</h2>
+  <div class="card">
+    <p><b>What they actually do:</b> real advisors do far more than pick investments — retirement math, tax placement, insurance review, estate coordination, and (their most evidenced value) <b>behavior coaching</b>: being the voice that stops the panic-sell. The industry's own studies claim advisors add meaningful yearly value mostly through that coaching — an industry-published claim, not independent, but it points at something true: the indexer's item #4 is the one most people fail alone.</p>
+    <p><b>The fee structures (always ask, in writing):</b> <span class="term" data-def="aum fee">assets-under-management</span> (~1%/yr is typical — compounding exactly like the fund-fee math, so a $500k account pays ~$5,000 every year); <b>flat-fee or hourly</b> (a project price or ~$150–400/hr — you pay for time, not a percentage of your life savings); <b>commission</b> (they're paid by the products they sell you — read that sentence twice).</p>
+    <p><b>The regulation map (this is the trust question, answered):</b> there are two legal species wearing the same suit. <span class="term" data-def="fiduciary">Fiduciaries</span> — registered investment advisers (RIAs), regulated by the SEC or states — are <b>legally required to put your interests first</b>. Brokers — regulated by <span class="term" data-def="finra">FINRA</span> — historically owed you only <span class="term" data-def="suitability">"suitability,"</span> upgraded in 2019 to "Regulation Best Interest,"<sup><a href="plainsight-citations-1.html#c20" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[20]</a></sup> which is stronger on paper but still not the full fiduciary duty, and commission conflicts remain built into the model. Many people hold both licenses and switch hats mid-conversation — you're allowed to ask which hat is on.</p>
+  </div>
+  <div class="trust"><b>The most trustworthy configuration, by structure (not by our opinion):</b> a <b>fee-only fiduciary</b> — paid ONLY by you (no commissions, no product kickbacks), legally bound to your interest, ideally holding the <span class="term" data-def="cfp">CFP</span> mark (a real exam, experience requirement, and its own fiduciary obligation). "Fee-only" and "fee-based" sound identical and are not — <b>fee-based means commissions too.</b> One word, entire difference.</div>
+  <div class="trust"><b>Verify anyone, free, in two minutes — the library door again:</b> every legitimate adviser and broker in America is in a public government database. Search their name on the SEC's <b>Investment Adviser Public Disclosure</b> site (adviserinfo.sec.gov) or FINRA's <b>BrokerCheck</b> (brokercheck.finra.org): licenses, employment history, and — the part that matters — <b>disclosed complaints, disputes, and regulatory actions</b>. Free, no account. An adviser who's never been looked up has clients who never checked; the checking is the system working, exactly like the insider filings on our company page.</div>
+  <details style="margin:10px 0"><summary style="cursor:pointer;font-size:.86rem;font-weight:640;color:var(--warn);padding:4px 0">⚠️ Red flags, each one sufficient by itself ▾ tap to open</summary><div class="warnbox"><b>Red flags, each one sufficient by itself:</b> promises of specific returns ("12% guaranteed" — the record is full of these) · pressure to move fast · pay driven by what they sell you · reluctance to state their fee as a plain dollar number · not registered in the databases above · and the big one — <b>asking to take custody of your money directly</b>. Legitimate advisors direct your money to an independent <span class="term" data-def="custodian">custodian</span> in YOUR name; Madoff's whole fraud lived in being his own custodian<sup><a href="plainsight-citations-1.html#c21" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[21]</a></sup>. It's our identity rule, in human form: the trustworthy configuration is the one that CAN'T take your money, not the one that promises it won't.</div></details>
+  <div class="card"><p><b>When hiring one makes honest sense:</b> a windfall or inheritance (the exact wrong-time-cohort moment our active page maps); retirement's one-way decisions (when to claim benefits, how to draw down — mistakes there don't get decades to heal); complex tax/estate situations; or the self-aware version of indexer item #4 — "I will panic without a human between me and the sell button." Paying ~1% forever to have someone pick funds a target-date fund picks automatically is the expensive version; paying a flat fee for a plan, or an ongoing fee for genuine behavior-and-tax work, is the defensible one. The math is yours to run — and now you can.</p></div>
+
+  <h2>🚪 The off-ramp — if you've decided this is all too much</h2>
+  <div class="card">
+    <p><b>That's a legitimate conclusion, and this app respects it.</b> Markets literacy is a defense, not an obligation — and the entire scorekeeper record says the person who does LESS usually beats the person who does more. If you close this app forever, here is the whole thing in five lines:</p>
+    <p>1. <b>Never send money, keys, or codes</b> to anything that promises returns — the promise is the tell.<br>
+    2. If you invest at all, <b>one broad low-fee index fund, automatically, for decades</b> beats what ~92% of professionals achieved.<br>
+    3. <b>Fees compound like returns do</b> — ask every product and every person for the number in writing.<br>
+    4. If you hire help: <b>fee-only fiduciary, verified free at adviserinfo.sec.gov / brokercheck.finra.org</b>, who never holds your money directly.<br>
+    5. <b>Win rate isn't profit, confidence isn't accuracy, and "forever" and "never" are the two words to distrust</b> — in markets and in anyone selling you their picture of them.</p>
+    <p style="color:var(--muted)">Keep those five and you've kept the core. And come back as often as you need — that's our hope, not our business model. Nothing here earns money from your visits, so nothing here is built to trap you: no subscription to cancel, no streak to keep, no fear to feed. Just a free library that wants to be useful for life, open whenever you need it.</p>
+  </div>
+
+  <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror"><b>The mirror, as always:</b> this page described what each path requires, how advice is priced and regulated, and how to verify anyone — with the government's own free databases doing the trust work. It didn't tell you which path is yours, whether to hire anyone, or whom. Structure over promises, verification over trust, and the decision where it belongs: with you — including the decision to walk away.</div></details>
+</div>
+
+<div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const GLOSSARY={
+  "aum fee":"'Assets Under Management' — the advisor takes a yearly percentage of everything you have with them, commonly around 1%. It's quiet (deducted, never invoiced) and it compounds against you exactly like a fund fee: the same math that showed 1% eating roughly a third of final wealth over 40 years applies here too. Always translate it to dollars per year out loud.",
+  "fiduciary":"The strongest duty in the business: legally required to act in YOUR best interest, disclose conflicts, and put your outcome ahead of their pay. Registered investment advisers (RIAs) owe it by law. If a professional won't say 'I am a fiduciary, at all times, in writing' — that sentence's absence is the answer.",
+  "suitability":"The weaker historical standard for brokers: what they sell you only had to be 'suitable' — roughly, not crazy for someone like you — even if a cheaper identical option existed and they skipped it for the commission. Upgraded in 2019 to 'Regulation Best Interest,' which is stronger on paper but still short of full fiduciary duty, and the commission model's conflicts remain.",
+  "finra":"The self-regulatory body for brokers and brokerage firms (the SEC oversees it). It runs BrokerCheck — the free public database of every broker's licenses, history, and disclosed complaints. Its existence is why 'trust me' is never required: you can look.",
+  "cfp":"Certified Financial Planner — a designation with a real exam, education and experience requirements, and its own fiduciary obligation when giving advice<sup><a href='plainsight-citations-1.html#c22' style='color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700'>[22]</a></sup>. Not a guarantee of skill or honesty (verify anyone regardless), but it filters out the weekend-course 'advisors' — anyone can print 'wealth strategist' on a card; CFP has to be earned.",
+  "custodian":"The independent company (a brokerage or bank) that actually HOLDS your money and sends you statements directly, in your name. Legitimate advisors direct trades at a custodian; they never take your money into their own accounts. Madoff was his own custodian — the statements came from the same hands doing the stealing. One structural question ('who is the custodian?') defeats that entire category of fraud.",
+  "__demo":"Just like this: tap any underlined word and a plain meaning pops up."
+};
+function showDef(t){const b=GLOSSARY[t.toLowerCase()];if(!b)return;$("dt-w").textContent=t==="__demo"?"tap-to-define":t;$("dt-b").textContent=b;$("deftip").classList.add("show");}
+function hideDef(){$("deftip").classList.remove("show");}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(t){showDef(t.getAttribute("data-def"));return;}if(!e.target.closest("#deftip"))hideDef();});
+$("deftip").querySelector(".x").onclick=hideDef;
+</script>
+
+<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><b style="color:var(--ink)">Keep going:</b> <a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">How to read a company — the fee math this page leans on</a> &nbsp;·&nbsp; <a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals — the four questions every plan answers</a> &nbsp;·&nbsp; <a href="index.html" style="color:var(--accent);text-decoration:none">Home — the whole map</a></div></div>
+</body>
+</html>

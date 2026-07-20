@@ -84,6 +84,18 @@
   .mirror b{color:var(--ink)}
 
   a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+  /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
+  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.32);transition:transform .07s,box-shadow .07s}
+  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.32)}
+  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.28)}
+  .task{box-shadow:0 3px 0 rgba(0,0,0,.28);transition:transform .07s,box-shadow .07s;cursor:pointer}
+  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+  details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
+    background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
+    box-shadow:0 3px 0 rgba(0,0,0,.22);transition:transform .07s,box-shadow .07s;list-style:none}
+  details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
+    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.22)}
 </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
@@ -154,11 +166,11 @@
   <div style="background:var(--panel);border:1px solid rgba(95,191,143,.35);border-radius:12px;padding:13px 15px;margin:14px 0">
     <b style="font-size:.95rem">🧪 The live tools — real data, measured on your phone</b>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">
-      <a href="plainsight-signal-test-1.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>The signal test</b><br><span style="color:var(--muted)">11 famous signals · 7 checks · 9 countries, one tap</span></a>
-      <a href="plainsight-candle-test-1.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>The candle test</b><br><span style="color:var(--muted)">candlestick claims vs 900 live candles</span></a>
-      <a href="plainsight-3bB-board-v16-1.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>The whale board</b><br><span style="color:var(--muted)">real wallets' leverage &amp; cushion, live</span></a>
-      <a href="plainsight-company-reading-7.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>Reading a company</b><br><span style="color:var(--muted)">decode a filing, one tap to the real SEC record</span></a>
-      <a href="plainsight-research-desk-1.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem;grid-column:1/-1"><b>The research desk</b><br><span style="color:var(--muted)">observe → request evidence → thesis → confidence → your reasoning graded, on real dated history</span></a>
+      <a href="plainsight-signal-test-1.html" class="tile3d" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>The signal test</b><br><span style="color:var(--muted)">11 famous signals · 7 checks · 9 countries, one tap</span></a>
+      <a href="plainsight-candle-test-1.html" class="tile3d" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>The candle test</b><br><span style="color:var(--muted)">candlestick claims vs 900 live candles</span></a>
+      <a href="plainsight-3bB-board-v16-1.html" class="tile3d" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>The whale board</b><br><span style="color:var(--muted)">real wallets' leverage &amp; cushion, live</span></a>
+      <a href="plainsight-company-reading-7.html" class="tile3d" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>Reading a company</b><br><span style="color:var(--muted)">decode a filing, one tap to the real SEC record</span></a>
+      <a href="plainsight-research-desk-1.html" class="tile3d" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem;grid-column:1/-1"><b>The research desk</b><br><span style="color:var(--muted)">observe → request evidence → thesis → confidence → your reasoning graded, on real dated history</span></a>
     </div>
   </div>
 

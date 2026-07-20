@@ -39,6 +39,19 @@
   @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
 
   a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+  /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
+  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.32);transition:transform .07s,box-shadow .07s}
+  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.32)}
+  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.28)}
+  .task{box-shadow:0 3px 0 rgba(0,0,0,.28);transition:transform .07s,box-shadow .07s;cursor:pointer}
+  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+  details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
+    background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
+    box-shadow:0 3px 0 rgba(0,0,0,.22);transition:transform .07s,box-shadow .07s;list-style:none}
+  details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
+    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.22)}
+  details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
 </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
@@ -53,7 +66,7 @@
 
   <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>1. Run the survivorship filter on us.</b> Our bookshelf sorts authors by "did a scorekeeper check this?" Ask it of Xplainsight: who independently checked OUR claims? (Honest answer: mostly nobody yet — one builder, one AI, and your audits. That's a real weakness; the open-source vow exists because of it. If you just thought "wait, the AI helping build the skeptic's tool could itself be confidently wrong" — correct, it was, at least six documented times, caught by the builder — a corrected number is itself proof this list stays honest, not proof the corrections stopped. Now you're doing the exam.)</span></div>
   <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>2. Grade one of our claims with the needle.</b> Pick any confident sentence on any of our pages and grade it yourself: FACT-BACKED → UNSUPPORTED. Check whether we cited a source, whether the source says what we say it says, and whether we showed the counter-evidence. Where we wrote "roughly" or "about," check whether the vagueness hides anything.</span></div>
-  <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>3. Follow OUR money.</b> The bookshelf's test: where does the seller's money come from — using the method or selling it? Apply it here: this tool is free, sells nothing, takes no keys, holds no coins. But ALSO ask the harder version: what does the builder get? (Attention? Reputation? Satisfaction?) No incentive is zero. Decide for yourself whether the remaining incentives could bend the content, and where you'd look for the bend.</span></div>
+  <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>3. Follow OUR money.</b> The bookshelf's test: where does the seller's money come from — using the method or selling it? Apply it here: this tool is free, sells nothing, takes no keys, holds no coins. But ALSO ask the harder version: what does the builder get? (Honest answer: yes — genuine personal satisfaction, building something real and getting to be right about it. That's a real incentive, not a neutral one. No incentive is zero, including this one.) Decide for yourself whether that incentive could bend the content, and where you'd look for the bend.</span></div>
   <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>4. Check the pipes yourself.</b> Open your browser's network tab on the wallet board and verify with your own eyes: every request goes to the public APIs we named and nowhere else; nothing is sent when you close it. Trust was never the ask — checking was.</span></div>
   <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>5. Find the keyhole's edge.</b> Every gauge here reads a slice: ~101 wallets from one list, a weekly lagged government report, one exchange's data. Name one conclusion the tool could tempt you toward that its slice cannot actually support. (There are several. The sample warning boxes name some — find one they missed.)</span></div>
   <div class="task" onclick="tg(this)"><input type="checkbox"><span><b>6. Catch the framing.</b> We argue both sides — but WE chose which side got the last word on each page, and order is influence. Find one page where you'd have ordered the arguments differently, and notice that noticing this is the most advanced skill on the site.</span></div>

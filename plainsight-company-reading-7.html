@@ -84,7 +84,7 @@
 
 <div class="wrap">
   <h1>How to read a company</h1>
-  <p class="sub">A stock is a slice of a real business, and four times a year US law forces every public company to show its homework — the <span class="term" data-def="quarterly report">quarterly report</span>. Almost nobody reads it; the few who do have an honest edge over the many who trade the headline. This page teaches the report in plain words, shows you which numbers matter and which ones lie, and gives you a live tool: type any ticker and see what the company's own <span class="term" data-def="insiders">insiders</span> have been filing. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+  <p class="sub">A stock is a slice of a real business, and four times a year US law forces every public company to show its homework — the <span class="term" data-def="quarterly report">quarterly report</span>. Almost nobody reads it; the few who do have an honest edge over the many who trade the headline. This page teaches the report in plain words, shows you which numbers matter and which ones lie, and gives you a direct path to the real filings — every ticker, every insider trade, straight from the source. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
 
   <h2>📄 The report — one story told as a ladder of numbers</h2>
   <div class="card"><p>Every income statement is the same story: money comes in the top, costs eat it on the way down, and what survives at the bottom belongs to the owners. Read it as a ladder — and know that <b>the higher up the ladder, the harder the number is to fake; the lower down, the more room for makeup.</b></p></div>
@@ -117,11 +117,10 @@
   </div></details>
 
   <div class="card">
-    <p><b>🔎 The checker — type a ticker, see the insider filings.</b> This reads the SEC's own public feed and lists the company's recent Form 4s with dates and direct links to the real documents. Nothing between you and the government record.</p>
-    <input type="text" id="tick" placeholder="Ticker — like AAPL, TSLA, KO" maxlength="10" autocapitalize="characters">
-    <button class="go" id="check">Check insider filings</button>
-    <div style="margin-top:8px"><span class="stat" id="cstat">ready</span></div>
-    <div id="out"></div>
+    <p><b>🔎 Look up any ticker's insider filings — direct from the source.</b> We tried to build a live in-page checker here, and verified before shipping it that we couldn't: the SEC's own developer documentation states plainly that <code>data.sec.gov</code> does not support the cross-origin access a browser page like this needs. That's not a "try again later" problem — it can't work from here, by SEC's own design, and no free workaround exists that doesn't route your request through someone else's server (which breaks our no-server, nothing-in-the-middle rule). So instead of a broken button, here's the real thing, one tap away:</p>
+    <input type="text" id="tick" placeholder="Ticker — like AAPL, TSLA, KO" maxlength="10" autocapitalize="characters" style="text-transform:uppercase">
+    <button class="bigbtn" id="go">Open this ticker's insider filings on SEC.gov →</button>
+    <p class="gmeta">Opens SEC EDGAR's own full-text search in a new tab — the government's own interface, not ours, not a proxy, not a middleman. Source: SEC EDGAR public data<sup><a href="plainsight-citations-1.html#c27" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[27]</a></sup>. If you'd rather browse directly: <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany" style="color:var(--accent)">sec.gov's own company search</a>.</p>
     <p class="gmeta">Source: SEC EDGAR public data<sup><a href="plainsight-citations-1.html#c27" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[27]</a></sup> (data.sec.gov + sec.gov), US government open data — free, keyless. If it can't connect, it says so plainly — nothing is ever guessed. This tool shows each filing's date + link; reading the buy/sell direction inside each document is the named next step, not silently guessed.</p>
   </div>
 
@@ -224,47 +223,13 @@ $("deftip").querySelector(".x").onclick=hideDef;
    Filter to Form 4 / 4/A, list dates + direct links to the documents.
    new until first live browser success. Dark-on-failure. ---- */
 function setC(t,c){const s=$("cstat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
-let tickMap=null;
-async function getJSON(url){
-  const r=await fetch(url,{cache:"no-store"});
-  if(!r.ok) throw new Error("HTTP "+r.status);
-  return r.json();
-}
-async function check(){
+if($("go")) $("go").onclick=function(){
   const t=($("tick").value||"").trim().toUpperCase();
-  if(!t){ $("out").innerHTML=""; setC("type a ticker first","bad"); return; }
-  $("out").innerHTML=""; setC("looking up "+t+"…");
-  try{
-    if(!tickMap) tickMap=await getJSON("https://www.sec.gov/files/company_tickers.json");
-  }catch(e){ setC("couldn't reach the SEC ticker list ("+e.message+") — dark, nothing made up. If this repeats, try again later.","bad"); return; }
-  const hit=Object.values(tickMap).find(x=>x.ticker && x.ticker.toUpperCase()===t);
-  if(!hit){ setC("no company found for "+t+" — check the ticker (US-listed only)","bad"); return; }
-  const cik=String(hit.cik_str).padStart(10,"0");
-  setC("reading filings for "+hit.title+"…");
-  let sub;
-  try{ sub=await getJSON("https://data.sec.gov/submissions/CIK"+cik+".json"); }
-  catch(e){ setC("found "+hit.title+" but couldn't read its filings ("+e.message+") — dark, nothing made up.","bad"); return; }
-  const rec=sub.filings&&sub.filings.recent;
-  if(!rec||!rec.form){ setC("filing feed came back in an unexpected shape — dark. Keys got: "+Object.keys(sub).slice(0,8).join(", "),"bad"); return; }
-  const rows=[];
-  for(let i=0;i<rec.form.length && rows.length<15;i++){
-    if(rec.form[i]==="4"||rec.form[i]==="4/A"){
-      const acc=rec.accessionNumber[i].replace(/-/g,"");
-      const url=`https://www.sec.gov/Archives/edgar/data/${hit.cik_str}/${acc}/${rec.primaryDocument[i]}`;
-      rows.push({date:rec.filingDate[i], amended:rec.form[i]==="4/A", url});
-    }
-  }
-  if(!rows.length){
-    $("out").innerHTML=`<p style="font-size:.86rem;color:var(--muted);margin-top:10px">No Form 4 insider filings in ${hit.title}'s recent feed (the feed holds roughly the last ~1,000 filings of all types — for giant companies that can be a short window). The company page on EDGAR has the full history.</p>`;
-    setC("0 insider filings in recent feed","ok"); return;
-  }
-  $("out").innerHTML=`<p style="font-size:.86rem;margin:10px 0 4px"><b>${hit.title}</b> — ${rows.length} most recent insider filings (newest first). Each link opens the real document on sec.gov, where you can see who traded, how much, at what price, and whether it was an autopilot-plan trade:</p>`
-    + rows.map(r=>`<div class="filing"><span class="d">${r.date}</span><span>Form 4${r.amended?" (amended)":""} — insider trade report</span><a href="${r.url}" target="_blank" rel="noopener">open the filing →</a></div>`).join("")
-    + `<p class="gmeta">Remember the asymmetry while reading: sales have a hundred innocent reasons; open-market BUYS have mostly one. And a single filing means little — patterns and clusters are the read.</p>`;
-  setC("live · "+rows.length+" filings ✓","ok");
-}
-$("check").onclick=check;
-$("tick").addEventListener("keydown",e=>{ if(e.key==="Enter") check(); });
+  if(!t){ setC("type a ticker first","bad"); return; }
+  window.open("https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company="+encodeURIComponent(t)+"&type=4&dateb=&owner=include&count=40","_blank","noopener");
+  setC("opened "+t+"'s insider (Form 4) filings on SEC.gov in a new tab","ok");
+};
+$("tick").addEventListener("keydown",e=>{ if(e.key==="Enter") $("go").click(); });
 </script>
 
 <div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">← The remaining markets</a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: The case for active →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)">🗺 All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">The behavior room</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test 🧪</a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test 🧪</a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The whale board 🧪</a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company 🧪</a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Who called it</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">What we've learned</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">The research desk 🧪</a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-needle-widget-2.html" style="color:var(--accent);text-decoration:none">The needle widget</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>

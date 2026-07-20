@@ -114,7 +114,6 @@
     <a class="b3" href="plainsight-graduation-2.html">🎓 Audit us</a>
   </div>
 
-  <div class="idrule"><b>The rule that spots every fake:</b> Xplainsight never connects to your wallet, never asks for a key or seed phrase, and never touches money. Pasting an address is the only input that exists anywhere here. Anything asking for more is a counterfeit.</div>
   <div class="beta"><b>Beta means honesty:</b> gauges marked <b>new</b> await their first verified pull on real phones — that's you. A gauge that goes dark and says why is the system working. The feedback box below is the flight recorder. <b>If something looks wrong, assume it's a bug — not investment advice.</b></div>
 
   <div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin:14px 0">
@@ -158,7 +157,7 @@
       <a href="plainsight-signal-test-1.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>The signal test</b><br><span style="color:var(--muted)">11 famous signals · 7 checks · 9 countries, one tap</span></a>
       <a href="plainsight-candle-test-1.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>The candle test</b><br><span style="color:var(--muted)">candlestick claims vs 900 live candles</span></a>
       <a href="plainsight-3bB-board-v16-1.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>The whale board</b><br><span style="color:var(--muted)">real wallets' leverage &amp; cushion, live</span></a>
-      <a href="plainsight-company-reading-7.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>EDGAR checker</b><br><span style="color:var(--muted)">any US ticker's real filings, decoded</span></a>
+      <a href="plainsight-company-reading-7.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem"><b>Reading a company</b><br><span style="color:var(--muted)">decode a filing, one tap to the real SEC record</span></a>
       <a href="plainsight-research-desk-1.html" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;text-decoration:none;color:var(--ink);font-size:.8rem;grid-column:1/-1"><b>The research desk</b><br><span style="color:var(--muted)">observe → request evidence → thesis → confidence → your reasoning graded, on real dated history</span></a>
     </div>
   </div>
@@ -239,6 +238,14 @@ The one thing I'd fix first:</textarea>
 </div>
 <style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:"  ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
 <script>(function(){var sel=".keyhole,.warnbox,.filterbox,.counter,.rulebox,.lens";document.querySelectorAll(sel).forEach(function(el){if(el.closest("details")||el.querySelector("details"))return;var b=el.querySelector("b");var label=b?b.textContent.replace(/[\s:—–-]+$/,""):el.textContent.trim().slice(0,60)+"…";if(el.textContent.trim().length<160)return;var d=document.createElement("details");d.className="psfold";var s=document.createElement("summary");s.textContent=label;d.appendChild(s);var inner=document.createElement("div");inner.innerHTML=el.innerHTML;d.appendChild(inner);el.innerHTML="";el.appendChild(d);});})();</script>
+<div class="wrap" style="padding-top:0">
+  <div class="idrule" id="spot-fake" style="margin-top:26px"><b>🛡️ How to spot fake builds of Xplainsight</b>
+    <p style="margin:7px 0">This app is public and forkable on purpose — anyone can copy the code, which also means anyone could copy the look and change the guts. Here's the one test that always works, no matter how convincing the imitation:</p>
+    <p style="margin:7px 0"><b>Xplainsight never connects to your wallet, never asks for a key or seed phrase, and never touches money.</b> Pasting a public address to look something up is the only input that exists anywhere in this app. That's it.</p>
+    <p style="margin:7px 0;color:var(--muted)">Anything calling itself Xplainsight that asks for more than that — a connect-wallet button, a seed phrase, a "verify your wallet" prompt, a deposit, a login — is not this app, whatever it looks like. The real version literally cannot take your money; that's not a promise, it's how it's built. Report it to us: <a href="mailto:Xplainsight@duck.com" style="color:var(--accent)">Xplainsight@duck.com</a>.</p>
+  </div>
+</div>
+
 <div style="max-width:660px;margin:0 auto;padding:10px 16px 30px;text-align:center;font-size:.74rem;color:var(--muted)">© 2026 Xplainsight. All rights reserved. · <a href="plainsight-privacy-trust-1.html" style="color:var(--accent)">Privacy &amp; trust, in plain words</a></div>
 </body>
 </html>

@@ -85,6 +85,7 @@
   <h1>The research desk</h1>
   <p class="sub">Real investors don't guess at squiggles — they <b>observe, request evidence, form a thesis, state their confidence, then commit</b>. This desk makes you practice exactly that, on real dated market history with real prices on the axes. You are graded on two things only: <span class="term" data-def="calibration">calibration</span> (does your sureness match your hit rate) and <b>process</b> (did you look at the evidence before deciding). Being right is not one of the grades — a good decision can lose and a bad one can win, and this desk never confuses the two.</p>
 
+  <div style="border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:9px;padding:9px 12px;margin:10px 0;font-size:.82rem;color:var(--muted)"><b style="color:var(--ink)">An honest limit, up front:</b> this is a <b>close-price line chart</b>, not a full trading terminal. No candlesticks here on purpose — that specific claim gets its own dedicated, harder test on the <a href="plainsight-candle-test-1.html" style="color:var(--accent)">Candle Test</a> page. <b>Volume</b> is real and included for crypto &amp; metals (same data our funding gauges use) — but it doesn't meaningfully exist for currencies, stocks, or rates the way it does for a single exchange, so we say so rather than fake it. Real professional readers do use more inputs than this desk shows; what this desk trains is the <i>habit</i> — look before you decide — which transfers to any chart, however much data it has.</div>
   <div class="rulebox"><b>The resolution rule, written before you play (so it can't bend afterward):</b> over the hidden 30 days, comparing the last shown price to the final price — <b>UP</b> / <b>DOWN</b> means it moved past that market's pre-set cutoff · <b>SIDEWAYS</b> means it stayed inside. Cutoffs are fixed per market in advance, because a "big move" differs by market: <b>crypto ±10% (30 days) · metals ±3% (30 days) · currencies ±1.5% (30 days) · stocks ±10% (12 months) · rates ±10% (12 months)</b>. Same rule for every round, forever.</div>
 
   <div class="card">
@@ -95,7 +96,8 @@
   <div class="card" id="game">
     <div id="ident" style="display:none;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;padding:8px 11px;margin-bottom:10px;font-size:.85rem"></div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>Round <span id="roundNum">1</span></b><span class="stat" id="gstat">tap start</span></div>
-    <div id="chartbox" style="margin:10px 0"><svg role="img" aria-label="data visualization — values described in adjacent text" id="chart" viewBox="0 0 600 260" preserveAspectRatio="none"></svg>
+    <div id="chartbox" style="margin:10px 0"><svg role="img" aria-label="data visualization — values described in adjacent text" id="chart" viewBox="0 0 600 340" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:70vh;display:block;border:1px solid var(--line);border-radius:9px;background:var(--panel2)"></svg>
+      <button id="expandChart" style="margin-top:6px;background:none;border:1px solid var(--line);border-radius:7px;padding:5px 10px;font-size:.74rem;color:var(--muted)">⤢ Bigger view</button>
       <p class="attrib">Real daily prices, named and dated — real price axis, real dates on the chart. Data: CoinGecko (crypto; metals via 1:1 metal-backed tokens), Frankfurter/ECB (currencies), and public-domain (PDDL) datasets — the Shiller S&P 500 series and Federal Reserve H.15 yields (stocks &amp; rates, monthly).</p></div>
     <div id="evPanel" style="display:none;margin:10px 0">
       <div style="font-size:.84rem;margin-bottom:6px"><b>Step 1 · Request your evidence</b> <span style="color:var(--muted)">— real desks pull the numbers before they decide. Each button computes from the chart you see; what you don't request gets named at the reveal.</span></div>
@@ -104,6 +106,7 @@
         <button class="choice" id="evVol" style="font-size:.76rem;padding:9px 6px">🌊 Swings &amp; volatility</button>
         <button class="choice" id="evDD" style="font-size:.76rem;padding:9px 6px">🔻 Drawdown map</button>
         <button class="choice" id="evRange" style="font-size:.76rem;padding:9px 6px">📍 Where in its range</button>
+        <button class="choice" id="evVolu" style="font-size:.76rem;padding:9px 6px;grid-column:1/-1">📊 Volume — how much actually traded</button>
       </div>
       <div id="evOut" style="font-size:.8rem;color:var(--muted)"></div>
       <div style="font-size:.84rem;margin:12px 0 4px"><b>Step 2 · Write your thesis</b> <span style="color:var(--muted)">— one honest sentence: what happens next, and WHY. It gets echoed back at the reveal, where you grade your own reasoning.</span></div>
@@ -199,7 +202,8 @@ async function cgFetch(pool,force){
   const r=await fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=365&interval=daily&_cb=${Date.now()}`,{cache:"no-store"});
   if(!r.ok) throw new Error("HTTP "+r.status);
   const j=await r.json();
-  return {tick, prices:(j.prices||[]).map(p=>({t:p[0],v:p[1]})).filter(p=>isFinite(p.v))};
+  return {tick, prices:(j.prices||[]).map(p=>({t:p[0],v:p[1]})).filter(p=>isFinite(p.v)),
+          volumes:(j.total_volumes||[]).map(p=>({t:p[0],v:p[1]})).filter(p=>isFinite(p.v))};
 }
 
 async function csvFetch(mkt,tick){
@@ -227,6 +231,7 @@ const SHOW=90, HIDE=30; // window sizes unchanged; threshold per-market (MARKET.
 let round=1, rounds=[];           // rounds: {pick, conf, outcome, hit}
 let cur=null;                     // current round state
 let picked=null;
+let revealed=false;               // has this round's hidden window been drawn yet?
 
 function setG(t,c){const s=$("gstat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
 
@@ -244,23 +249,27 @@ async function startRound(){
     $("start").disabled=false; return;
   }
   const prices=got.prices;
+  const volumesAll=got.volumes||null;
   const SHOWN=MARKET.show||SHOW, HIDDEN=MARKET.hide||HIDE, UNIT=MARKET.unit||"days";
   if(!prices||prices.length<SHOWN+HIDDEN+10){ setG("history too short — try again","bad"); $("start").disabled=false; return; }
   const maxCut=prices.length-HIDDEN-1, minCut=SHOWN;
   const cut=minCut+Math.floor(Math.random()*(maxCut-minCut+1));
   const shown=prices.slice(cut-SHOWN,cut+1), hidden=prices.slice(cut+1,cut+1+HIDDEN);
   const base=shown[shown.length-1].v;
+  let volShown=null;
+  if(volumesAll && volumesAll.length===prices.length){ volShown=volumesAll.slice(cut-SHOWN,cut+1).map(p=>p.v); }
   cur={tick:got.tick, n:SHOWN+HIDDEN+1, showN:SHOWN, unit:UNIT, shown:shown.map(p=>p.v/base*100), hidden:hidden.map(p=>p.v/base*100),
-       rawShown:shown.map(p=>p.v), rawHidden:hidden.map(p=>p.v),
+       rawShown:shown.map(p=>p.v), rawHidden:hidden.map(p=>p.v), volShown:volShown,
        dShow0:new Date(shown[0].t).toISOString().slice(0,10), dCut:new Date(shown[shown.length-1].t).toISOString().slice(0,10),
        startDate:new Date(shown[0].t).toISOString().slice(0,10),
        endDate:new Date(hidden[hidden.length-1].t).toISOString().slice(0,10), ev:{}, };
+  revealed=false;
   drawChart(cur.shown,null);
   // identity is SHOWN — this is research, not a guessing game
   $("ident").style.display="";
   $("ident").innerHTML=`<b>${cur.tick}</b> · ${MARKET.label} · real history ${cur.dShow0} → ${cur.dCut} (via ${MARKET.src}) — your task: what did the NEXT ${cur.n-cur.showN-1} ${cur.unit} do?`;
   $("evPanel").style.display=""; $("evOut").innerHTML=""; $("thesis").value="";
-  ["evTrend","evVol","evDD","evRange"].forEach(id=>$(id).className="choice");
+  ["evTrend","evVol","evDD","evRange","evVolu"].forEach(id=>$(id).className="choice");
   picked=null; $("conf").value=50; $("confV").textContent="50%"; $("commit").disabled=true;
   ["cUp","cFlat","cDown"].forEach(i=>$(i).className="choice");
   // per-market pre-registered thresholds shown on the buttons themselves
@@ -278,7 +287,8 @@ function drawChart(shown,hidden){
   const rMin=Math.min(...rawAll), rMax=Math.max(...rawAll);
   const all=hidden?shown.concat(hidden):shown;
   const min=Math.min(...all)*0.98, max=Math.max(...all)*1.02;
-  const ML=52, MB=20, W=600, H=260, PW=W-ML-6, PH=H-MB-6, n=(cur&&cur.n)||SHOW+HIDE+1;
+  const vb=($("chart").getAttribute("viewBox")||"0 0 600 340").split(" ").map(Number);
+  const ML=52, MB=20, W=vb[2]||600, H=vb[3]||340, PW=W-ML-6, PH=H-MB-6, n=(cur&&cur.n)||SHOW+HIDE+1;
   const X=i=>ML+i/(n-1)*PW, Y=v=>6+(PH-(v-min)/(max-min)*PH);
   let ax="";
   [0,0.5,1].forEach(f=>{
@@ -331,6 +341,11 @@ $("evDD").onclick=()=>{ if(cur.ev.evDD)return; const s=cur.shown;
 $("evRange").onclick=()=>{ if(cur.ev.evRange)return; const s=cur.shown;
   const lo=Math.min(...s),hi=Math.max(...s),pos=(s[s.length-1]-lo)/(hi-lo)*100;
   _evLine("evRange","Where in its range",`it now sits at the <b>${pos.toFixed(0)}th percentile</b> of this window's range (0 = the low, 100 = the high). <span style="color:var(--faint)">Near-high feels like strength to momentum readers and danger to mean-reverters — history refuses to settle which, and that disagreement is the honest state of the evidence.</span>`);};
+$("evVolu").onclick=()=>{ if(cur.ev.evVolu)return;
+  if(!cur.volShown){ _evLine("evVolu","Volume",`<b>not meaningfully available for ${MARKET.label.toLowerCase()}.</b> ${MARKET.key==="forex"?"Currencies trade across many venues at once with no single tape — there is no one \"volume\" number that means what it does on an exchange.":"This dataset is a monthly index level, not exchange trades — no per-day volume exists to show."} <span style="color:var(--faint)">Where it genuinely exists (crypto, metals) this desk shows the real number — we don't invent one here.</span>`);
+    return; }
+  const v=cur.volShown, avg=v.reduce((a,b)=>a+b,0)/v.length, last=v[v.length-1], spike=last/avg;
+  _evLine("evVolu","Volume — real, from the same feed",`average daily volume this window: <b>$${(avg/1e6).toFixed(1)}M</b>; the most recent day: <b>$${(last/1e6).toFixed(1)}M</b> (${spike>=1.5?"well above":spike<=0.6?"well below":"close to"} average). <span style="color:var(--faint)">A move on heavy volume is generally read as more "real" (more participants agreeing) than the same move on thin volume — one of the few reads that needs volume specifically, which is why we show it here when we have it.</span>`);};
 
 $("commit").onclick=()=>{
   if(!picked||!cur) return;
@@ -344,12 +359,13 @@ $("commit").onclick=()=>{
   const evN=Object.keys(cur.ev).length;
   const thesis=$("thesis").value.trim();
   rounds.push({pick:picked,conf,outcome,hit,evN});
+  revealed=true;
   drawChart(cur.shown,cur.hidden);
   $("commitUI").style.display="none"; $("evPanel").style.display="none"; $("ident").style.display="none";
   $("resultBox").innerHTML=`<div class="result ${hit?'hit':'miss'}">
     <b>${hit?"Hit":"Miss"}.</b> You committed <b>${picked}</b> at ${conf}% sure. Reality: the hidden ${cur.n-cur.showN-1<0?"":""}window (${(cur.n-cur.showN-1)} ${cur.unit}) moved <b>${chg>=0?"+":""}${chg.toFixed(1)}%</b> → <b>${outcome}</b> by this market's pre-set ±${TH}% rule.
     <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${cur.tick}'s hidden window ran ${cur.dCut} → ${cur.endDate}. ${hit?"A hit proves the read <i>or</i> the luck — one round can't say which.":"A miss proves the read wrong <i>or</i> unlucky — one round can't say which."} Only your pattern across rounds means anything.</div>
-    <div style="border:1px solid var(--line);border-left:3px solid ${evN>=3?"var(--up)":evN>=1?"var(--warn)":"var(--down)"};border-radius:9px;padding:9px 12px;margin-top:8px;font-size:.82rem;color:var(--muted)"><b style="color:var(--ink)">Your process, graded:</b> you requested <b>${evN} of 4</b> evidence reads before committing${evN<4?" — ignored: "+["evTrend","evVol","evDD","evRange"].filter(k=>!cur.ev[k]).map(k=>({evTrend:"the trend read",evVol:"the swings",evDD:"the drawdown map",evRange:"range position"})[k]).join(", "):" — the full desk"}.
+    <div style="border:1px solid var(--line);border-left:3px solid ${evN>=3?"var(--up)":evN>=1?"var(--warn)":"var(--down)"};border-radius:9px;padding:9px 12px;margin-top:8px;font-size:.82rem;color:var(--muted)"><b style="color:var(--ink)">Your process, graded:</b> you requested <b>${evN} of 5</b> evidence reads before committing${evN<5?" — ignored: "+["evTrend","evVol","evDD","evRange","evVolu"].filter(k=>!cur.ev[k]).map(k=>({evTrend:"the trend read",evVol:"the swings",evDD:"the drawdown map",evRange:"range position",evVolu:"volume"})[k]).join(", "):" — the full desk"}.
       <div style="margin-top:5px"><b style="color:var(--ink)">Your thesis, echoed back:</b> <i>"${thesis}"</i> — now that you know the outcome, grade the REASONING yourself: was it sound and ${hit?"rewarded":"unlucky"}, or flawed and ${hit?"lucky":"exposed"}? A well-reasoned miss beats a badly-reasoned hit, every time — that's the whole desk.</div></div>
     <div style="border:1px solid var(--line);border-left:3px solid var(--define);border-radius:9px;padding:9px 12px;margin-top:8px;font-size:.82rem;color:var(--muted)"><b style="color:var(--ink)">What this round teaches:</b> ${hit?"Right — but hold the celebration: guessing blind lands near <b>33%</b> here (three outcomes), so one hit can't tell reading from luck.":"Missed — in good company: most confident famous forecasts in our Who Called It room missed too. The miss isn't the lesson; what your confidence said <i>before</i> the reveal is."} The one skill this simulator grades is <b>calibration</b> — whether your ${conf}% sureness matches how often you're actually right. Watch the gap shrink (or not) across rounds. <span style="color:var(--faint)">Honest limit: nothing was at stake, so your fear never voted — real money adds a player this practice can't include.</span></div>
   </div>`;
@@ -370,11 +386,19 @@ function renderTally(){
   else if(gap<-15) verdict=`<b style="color:var(--accent)">Underconfident:</b> you hit more than you claim. Rare, and safer than the opposite.`;
   else verdict=`<b style="color:var(--up)">Well-calibrated so far:</b> your sureness roughly matches your results. That's the actual skill.`;
   $("tally").style.display="";
-  $("tally").innerHTML=`<b>Your session:</b> ${n} round${n>1?"s":""} · hit ${hits} (${hr.toFixed(0)}%) · random baseline ≈ 33% · average sureness ${avgC.toFixed(0)}% · evidence used ${avgEv.toFixed(1)}/4 per round<br>${verdict}
+  $("tally").innerHTML=`<b>Your session:</b> ${n} round${n>1?"s":""} · hit ${hits} (${hr.toFixed(0)}%) · random baseline ≈ 33% · average sureness ${avgC.toFixed(0)}% · evidence used ${avgEv.toFixed(1)}/5 per round<br>${verdict}
   <div style="font-size:.76rem;color:var(--faint);margin-top:6px">Lives only on this page — closing the tab clears it. No account, no storage.</div>`;
 }
 
 $("start").onclick=startRound;
+let _big=false;
+$("expandChart").onclick=()=>{
+  _big=!_big;
+  $("chart").style.maxHeight=_big?"none":"70vh";
+  $("chart").setAttribute("viewBox", _big?"0 0 600 520":"0 0 600 340");
+  $("expandChart").textContent=_big?"⤢ Compact view":"⤢ Bigger view";
+  if(cur) drawChart(cur.shown, revealed?cur.hidden:null);
+};
 
 // market picker (v2): one button per module; switching allowed between rounds
 function renderMkts(){

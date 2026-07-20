@@ -17,7 +17,7 @@
   Plain language, 8th grade, tap-to-define throughout (house GLOSSARY mechanism).
 -->
 <style>
-  :root{--bg:#0E1116;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+  :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
     --muted:#99A1AB;--faint:#5A626C;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
     --warn:#C9A227;--define:#A78BFA;}
   *{box-sizing:border-box}
@@ -69,16 +69,16 @@
   a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
   /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
-  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.32);transition:transform .07s,box-shadow .07s}
-  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.32)}
-  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.28)}
-  .task{box-shadow:0 3px 0 rgba(0,0,0,.28);transition:transform .07s,box-shadow .07s;cursor:pointer}
-  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
+  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
+  .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
+  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
   details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
     background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
-    box-shadow:0 3px 0 rgba(0,0,0,.22);transition:transform .07s,box-shadow .07s;list-style:none}
+    box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
   details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
-    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.22)}
+    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
   details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
 </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>

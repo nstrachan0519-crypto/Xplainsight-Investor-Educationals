@@ -41,7 +41,7 @@
 -->
 <style>
   :root{
-    --bg:#0E1116; --panel:#141A22; --panel2:#1B222C; --line:#232A33;
+    --bg:#111419; --panel:#141A22; --panel2:#1B222C; --line:#232A33;
     --ink:#E8EAED; --muted:#99A1AB; --faint:#8F97A2;
     --accent:#7FB0E8; --up:#5FBF8F; --down:#E0906C; --define:#A78BFA; --warn:#C9A227;
   }
@@ -57,12 +57,12 @@
   .term:active{opacity:.6}
 
   .start{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
-  .bigbtn{width:100%;background:var(--accent);color:#06121f;border:0;border-radius:10px;padding:14px;font-size:1rem;font-weight:680;cursor:pointer;margin-bottom:6px;box-shadow:0 3px 0 rgba(0,0,0,.28);transition:transform .08s,box-shadow .08s}
+  .bigbtn{width:100%;background:var(--accent);color:#06121f;border:0;border-radius:10px;padding:14px;font-size:1rem;font-weight:680;cursor:pointer;margin-bottom:6px;box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .08s,box-shadow .08s}
   .bigbtn.blue{background:var(--accent);color:#06121f}
   .bigbtn.green{background:var(--up);color:#06120c}
   .bigbtn.alt{box-shadow:none}
   .bigbtn.alt:active{transform:none;box-shadow:none}
-  .bigbtn:active{opacity:.9;transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+  .bigbtn:active{opacity:.9;transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
   .startnote{font-size:.82rem;color:var(--muted);margin:6px 0 14px;text-align:center}
   .or{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:.78rem;margin:6px 0 12px}
   .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
@@ -156,16 +156,16 @@
   a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
   /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
-  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.32);transition:transform .07s,box-shadow .07s}
-  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.32)}
-  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.28)}
-  .task{box-shadow:0 3px 0 rgba(0,0,0,.28);transition:transform .07s,box-shadow .07s;cursor:pointer}
-  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
+  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
+  .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
+  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
   details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
     background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
-    box-shadow:0 3px 0 rgba(0,0,0,.22);transition:transform .07s,box-shadow .07s;list-style:none}
+    box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
   details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
-    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.22)}
+    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
   details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
 </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>

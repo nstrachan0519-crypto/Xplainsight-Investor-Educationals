@@ -3,217 +3,217 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xplainsight — market positioning data</title>
+<title>Xplainsight — read the data in every market</title>
 <!--
- XPLAINSIGHT — multi-market pack, first build (S16). new until a live run.
- One data source powers every gauge on this page: the CFTC's weekly Commitments of
- Traders (COT) report, via the CFTC's own public Socrata API
- (https://publicreporting.cftc.gov/resource/6dca-aqww.json — Legacy, futures-only).
- WHY THIS SOURCE FIRST:
- - US government open data = public domain. Rule 10 (redistribution check before
- wiring) is satisfied by construction — zero terms risk, the safest source class
- that exists. First source in the project with that property.
- - One schema covers stock indexes, forex, commodities, AND treasuries -> one fetch
- pattern, four market gauges (the 3a-template discipline: build once, copy).
- - Socrata SODA APIs are CORS-enabled by design [DOC-EXPECTED — the live run from
- the phone browser is the proof, same as OKX/HL were proven].
- HONESTY LINES PRINTED ON THE FACE:
- - COT is WEEKLY and LAGGED (published Friday, data as of Tuesday). Not live.
- - Futures positioning is a WINDOW into each market, not the whole market.
- - Positioning describes the crowd; it predicts nothing. Same rule as crypto 3c.
- DISCIPLINE: cache-busted no-store, latency shown, dark-on-failure (never fabricated),
- field-name self-reconciliation on first read (the WS-probe pattern), tap-to-define,
- 8th-grade language. Educates strategies per market; endorses none.
+  XPLAINSIGHT — multi-market pack, first build (S16). new until a live run.
+  One data source powers every gauge on this page: the CFTC's weekly Commitments of
+  Traders (COT) report, via the CFTC's own public Socrata API
+  (https://publicreporting.cftc.gov/resource/6dca-aqww.json — Legacy, futures-only).
+  WHY THIS SOURCE FIRST:
+   - US government open data = public domain. Rule 10 (redistribution check before
+     wiring) is satisfied by construction — zero terms risk, the safest source class
+     that exists. First source in the project with that property.
+   - One schema covers stock indexes, forex, commodities, AND treasuries -> one fetch
+     pattern, four market gauges (the 3a-template discipline: build once, copy).
+   - Socrata SODA APIs are CORS-enabled by design [DOC-EXPECTED — the live run from
+     the phone browser is the proof, same as OKX/HL were proven].
+  HONESTY LINES PRINTED ON THE FACE:
+   - COT is WEEKLY and LAGGED (published Friday, data as of Tuesday). Not live.
+   - Futures positioning is a WINDOW into each market, not the whole market.
+   - Positioning describes the crowd; it predicts nothing. Same rule as crypto 3c.
+  DISCIPLINE: cache-busted no-store, latency shown, dark-on-failure (never fabricated),
+  field-name self-reconciliation on first read (the WS-probe pattern), tap-to-define,
+  8th-grade language. Educates strategies per market; endorses none.
 -->
 <style>
- :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
- --muted:#99A1AB;--faint:#5A626C;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
- --warn:#C9A227;--define:#A78BFA;}
- *{box-sizing:border-box}
- html,body{margin:0;background:var(--bg);color:var(--ink);
- font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
- .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
- .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
- h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
- h2{font-size:1.08rem;font-weight:650;margin:30px 0 4px;border-top:1px solid var(--line);padding-top:20px}
- h2:first-of-type{border-top:none;padding-top:0}
- .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
- .sub b,.card b{color:var(--ink);font-weight:620}
- .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
- .term:active{opacity:.6}
- .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
- .card p{font-size:.9rem;margin:8px 0}
- .keyhole{border:1px solid var(--line);border-left:3px solid var(--warn);background:rgba(201,162,39,.06);
- border-radius:9px;padding:11px 13px;margin:12px 0;font-size:.84rem;color:var(--muted)}
- .keyhole b{color:var(--ink)}
- .strat{border-left:3px solid var(--accent);background:rgba(127,176,232,.05);border-radius:9px;padding:10px 13px;margin:8px 0;font-size:.86rem}
- .strat .t{font-weight:650;font-size:.87rem}
- .strat .d{color:var(--muted);margin-top:3px}
- .strat .d b{color:var(--ink)}
- .gauge{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:13px;margin:12px 0}
- .gauge .gt{font-weight:650;font-size:.9rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
- .gauge .gstat{margin-left:auto;font-size:.72rem;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
- .gauge .gstat.ok{color:var(--up);border-color:rgba(95,191,143,.4)}
- .gauge .gstat.dark{color:var(--warn);border-color:rgba(201,162,39,.4)}
- .barwrap{margin:12px 0 4px}
- .barlab{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:3px}
- .bar{height:22px;border-radius:6px;background:var(--panel);border:1px solid var(--line);position:relative;overflow:hidden}
- .bar .fill{position:absolute;top:0;bottom:0}
- .bar .mid{position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--faint)}
- .readout{font-size:.95rem;font-weight:650;margin:8px 0 2px}
- .readsay{font-size:.82rem;color:var(--muted)}
- .gmeta{font-size:.7rem;color:var(--faint);margin-top:8px}
- .gdark{font-size:.84rem;color:var(--warn);margin:8px 0}
- button.go{background:var(--accent);color:#06121f;border:0;border-radius:9px;padding:12px 16px;font-size:.9rem;font-weight:640;cursor:pointer;width:100%;margin:4px 0 2px}
- button.go:active{opacity:.85}
- .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:26px;font-size:.86rem;color:var(--muted)}
- .mirror b{color:var(--ink)}
- #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
- border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
- box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
- #deftip.show{display:block}
- #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
- #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
- #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
- .wrap>*{animation:fadeUp .45s ease both}
- .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
- @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
- @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
- details.mktfold{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px}
- details.mktfold[open]{border-color:rgba(127,176,232,.45)}
- details.mktfold>summary{cursor:pointer;list-style:none;font-weight:660;font-size:.98rem;padding:12px 0}
- details.mktfold>summary::-webkit-details-marker{display:none}
- details.mktfold>summary .chev{float:right;color:var(--muted);transition:transform .18s}
- details.mktfold[open]>summary .chev{transform:rotate(90deg)}
+  :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+    --muted:#99A1AB;--faint:#5A626C;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --warn:#C9A227;--define:#A78BFA;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+  h2{font-size:1.08rem;font-weight:650;margin:30px 0 4px;border-top:1px solid var(--line);padding-top:20px}
+  h2:first-of-type{border-top:none;padding-top:0}
+  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+  .sub b,.card b{color:var(--ink);font-weight:620}
+  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+  .term:active{opacity:.6}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+  .card p{font-size:.9rem;margin:8px 0}
+  .keyhole{border:1px solid var(--line);border-left:3px solid var(--warn);background:rgba(201,162,39,.06);
+    border-radius:9px;padding:11px 13px;margin:12px 0;font-size:.84rem;color:var(--muted)}
+  .keyhole b{color:var(--ink)}
+  .strat{border-left:3px solid var(--accent);background:rgba(127,176,232,.05);border-radius:9px;padding:10px 13px;margin:8px 0;font-size:.86rem}
+  .strat .t{font-weight:650;font-size:.87rem}
+  .strat .d{color:var(--muted);margin-top:3px}
+  .strat .d b{color:var(--ink)}
+  .gauge{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:13px;margin:12px 0}
+  .gauge .gt{font-weight:650;font-size:.9rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .gauge .gstat{margin-left:auto;font-size:.72rem;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .gauge .gstat.ok{color:var(--up);border-color:rgba(95,191,143,.4)}
+  .gauge .gstat.dark{color:var(--warn);border-color:rgba(201,162,39,.4)}
+  .barwrap{margin:12px 0 4px}
+  .barlab{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:3px}
+  .bar{height:22px;border-radius:6px;background:var(--panel);border:1px solid var(--line);position:relative;overflow:hidden}
+  .bar .fill{position:absolute;top:0;bottom:0}
+  .bar .mid{position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--faint)}
+  .readout{font-size:.95rem;font-weight:650;margin:8px 0 2px}
+  .readsay{font-size:.82rem;color:var(--muted)}
+  .gmeta{font-size:.7rem;color:var(--faint);margin-top:8px}
+  .gdark{font-size:.84rem;color:var(--warn);margin:8px 0}
+  button.go{background:var(--accent);color:#06121f;border:0;border-radius:9px;padding:12px 16px;font-size:.9rem;font-weight:640;cursor:pointer;width:100%;margin:4px 0 2px}
+  button.go:active{opacity:.85}
+  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:26px;font-size:.86rem;color:var(--muted)}
+  .mirror b{color:var(--ink)}
+  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+  #deftip.show{display:block}
+  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+  .wrap>*{animation:fadeUp .45s ease both}
+  .wrap>*:nth-child(2){animation-delay:.05s}.wrap>*:nth-child(3){animation-delay:.1s}.wrap>*:nth-child(4){animation-delay:.15s}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){.wrap>*{animation:none}}
+  details.mktfold{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px}
+  details.mktfold[open]{border-color:rgba(127,176,232,.45)}
+  details.mktfold>summary{cursor:pointer;list-style:none;font-weight:660;font-size:.98rem;padding:12px 0}
+  details.mktfold>summary::-webkit-details-marker{display:none}
+  details.mktfold>summary .chev{float:right;color:var(--muted);transition:transform .18s}
+  details.mktfold[open]>summary .chev{transform:rotate(90deg)}
 
- a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
- /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
- .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
- .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
- .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
- .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
- .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
- details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
- background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
- box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
- details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
- transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
- details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
+  /* --- raised/pressable treatment: applied to every button-shaped clickable element --- */
+  .bigbtn,.choice,button:not(.linklike),.tile3d{box-shadow:0 4px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .07s,box-shadow .07s}
+  .bigbtn:active,.choice:active,button:not(.linklike):active,.tile3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+  .choice.sel-up,.choice.sel-down,.choice.sel-flat{box-shadow:0 3px 0 rgba(0,0,0,.55)}
+  .task{box-shadow:0 3px 0 rgba(0,0,0,.55);transition:transform .07s,box-shadow .07s;cursor:pointer}
+  .task:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
+  details.card>summary,details.exhibit>summary,details.spec>summary,details.eng>summary,details.step>summary,details.who>summary,details.mkt>summary,details.row>summary{
+    background:var(--panel2);border-radius:9px;padding:9px 11px;margin:-2px -2px 2px -2px;
+    box-shadow:0 3px 0 rgba(0,0,0,.5);transition:transform .07s,box-shadow .07s;list-style:none}
+  details.card>summary:active,details.exhibit>summary:active,details.spec>summary:active,details.eng>summary:active,details.step>summary:active,details.who>summary:active,details.mkt>summary:active,details.row>summary:active{
+    transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
+  details.card>summary::-webkit-details-marker,details.exhibit>summary::-webkit-details-marker,details.spec>summary::-webkit-details-marker{display:none}
 </style>
- <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="6df0224d-7c71-4973-8a3c-f42029682732"></script>
 </head>
 <body>
 <div style="position:sticky;top:0;z-index:40;background:rgba(14,17,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)"><div style="max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:8px"><a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#7FB0E8" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="#5FBF8F" stroke-width="2.2" stroke-linecap="round"/></svg>Xplainsight</a><span style="margin-left:auto;font-size:.7rem;color:var(--faint)">measuring history, not selling predictions</span></div></div>
 
 <div class="wrap">
- <h1>Market positioning data</h1>
- <p class="sub">Eight big markets, read the same plain way: <b>stocks, currencies, gold, rates, oil, gas, corn, and wheat.</b> Tap the pull button, then open any market — each teaches how that market works, what its players are actually doing, how its common strategies use the data — and then shows you a <b>live reading</b> of who's positioned which way. It endorses nothing. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+  <h1>Read the data in every market</h1>
+  <p class="sub">Eight big markets, read the same plain way: <b>stocks, currencies, gold, rates, oil, gas, corn, and wheat.</b> Tap the pull button, then open any market — each teaches how that market works, what its players are actually doing, how its common strategies use the data — and then shows you a <b>live reading</b> of who's positioned which way. It endorses nothing. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
 
- <div class="keyhole"><b>One report powers every gauge on this page — and it's the safest data source we've ever used.</b> Every Friday, the US government's futures regulator (the <span class="term" data-def="cftc">CFTC</span>) publishes exactly who holds what in the <span class="term" data-def="futures">futures</span> markets — the <span class="term" data-def="cot">Commitments of Traders</span> report. It's government open data: free to everyone, no key, no terms to break. The honest limits, up front: it's <b>weekly and lagged</b> (Friday's report shows Tuesday's positions), it's a <b>window</b> into each market (futures traders, not everyone), and — same rule as our crypto gauges — <b>positioning describes the crowd; it predicts nothing.</b></div>
+  <div class="keyhole"><b>One report powers every gauge on this page — and it's the safest data source we've ever used.</b> Every Friday, the US government's futures regulator (the <span class="term" data-def="cftc">CFTC</span>) publishes exactly who holds what in the <span class="term" data-def="futures">futures</span> markets — the <span class="term" data-def="cot">Commitments of Traders</span> report. It's government open data: free to everyone, no key, no terms to break. The honest limits, up front: it's <b>weekly and lagged</b> (Friday's report shows Tuesday's positions), it's a <b>window</b> into each market (futures traders, not everyone), and — same rule as our crypto gauges — <b>positioning describes the crowd; it predicts nothing.</b></div>
 
- <div class="card">
- <p><b>The one skill this whole page teaches:</b> every market's data splits its players into two kinds, and the split is the reading.</p>
- <p><b><span class="term" data-def="hedger">Hedgers</span></b> are real businesses using the market as insurance — a farmer locking in a wheat price, an airline locking in fuel, an exporter locking in a currency rate. They're not betting; they're offsetting a risk they already have.</p>
- <p><b><span class="term" data-def="speculator">Speculators</span></b> are betting on the price itself. They provide the other side of the hedgers' insurance — and when they crowd hard onto one side, that's the same "packed trade" our crypto funding gauge (3a) and crowding gauge (3c) read.</p>
- <p>This is the original version of the read we built for crypto — the COT report has been showing it since 1986, and it's where the "COT-style positioning" idea in our crypto gauge 3c came from in the first place.</p>
- </div>
+  <div class="card">
+    <p><b>The one skill this whole page teaches:</b> every market's data splits its players into two kinds, and the split is the reading.</p>
+    <p><b><span class="term" data-def="hedger">Hedgers</span></b> are real businesses using the market as insurance — a farmer locking in a wheat price, an airline locking in fuel, an exporter locking in a currency rate. They're not betting; they're offsetting a risk they already have.</p>
+    <p><b><span class="term" data-def="speculator">Speculators</span></b> are betting on the price itself. They provide the other side of the hedgers' insurance — and when they crowd hard onto one side, that's the same "packed trade" our crypto funding gauge (3a) and crowding gauge (3c) read.</p>
+    <p>This is the original version of the read we built for crypto — the COT report has been showing it since 1986, and it's where the "COT-style positioning" idea in our crypto gauge 3c came from in the first place.</p>
+  </div>
 
- <!-- ================= LOAD ================= -->
- <div class="card">
- <p><b>Pull all four readings live.</b> One tap fetches the latest weekly COT report for all eight markets straight from the CFTC's public API — no key, no sign-in, nothing between you and the regulator's own numbers. If any read fails, that gauge goes dark and says so; nothing is ever made up.</p>
- <button class="go" id="loadAll">Pull the latest positioning — all eight markets</button>
- <p class="gmeta" id="loadmeta">Source: publicreporting.cftc.gov (CFTC Socrata open-data API, Legacy futures-only report). Weekly; published Fridays with Tuesday's positions. Live government data, read straight from your phone — no key, no account.</p>
- </div>
+  <!-- ================= LOAD ================= -->
+  <div class="card">
+    <p><b>Pull all four readings live.</b> One tap fetches the latest weekly COT report for all eight markets straight from the CFTC's public API — no key, no sign-in, nothing between you and the regulator's own numbers. If any read fails, that gauge goes dark and says so; nothing is ever made up.</p>
+    <button class="go" id="loadAll">Pull the latest positioning — all eight markets</button>
+    <p class="gmeta" id="loadmeta">Source: publicreporting.cftc.gov (CFTC Socrata open-data API, Legacy futures-only report). Weekly; published Fridays with Tuesday's positions. Live government data, read straight from your phone — no key, no account.</p>
+  </div>
 
- <!-- ================= STOCKS ================= -->
- <details class="mktfold"><summary> Stocks — owning slices of businesses<span class="chev">▸</span></summary>
- <div class="card">
- <p><b>What the market is:</b> a share of stock is a small ownership slice of a real company. Its long-run value comes from the business's profits; its daily price comes from the crowd's mood about those profits.</p>
- <p><b>The strategies people run here (described, not endorsed):</b></p>
- <div class="strat"><div class="t">Indexing (own everything, sit still)</div><div class="d">Buy the whole market cheaply and wait. <b>How it uses data:</b> almost none — that's the point. The scorekeepers (SPIVA) show ~92% of US stock funds failed to beat their benchmarks<sup><a href="plainsight-citations-1.html#c5" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[5]</a></sup> over the 20 years through 2025. Its data need is one number: the fund's yearly cost.</div></div>
- <div class="strat"><div class="t">Value investing (buy cheap slices)</div><div class="d">Graham's game: find businesses priced below what they're worth. <b>How it uses data:</b> company report data — profits, debt, assets (free from <span class="term" data-def="edgar">SEC EDGAR</span>). The read is business quality vs. price, not charts.</div></div>
- <div class="strat"><div class="t">Trend / momentum (ride the crowd)</div><div class="d">Buy what's rising, sell what's falling. <b>How it uses data:</b> price history and positioning — including the exact gauge below. Note the mirror: this strategy IS the herd, on purpose, with an exit plan. Most who try it have no exit plan.</div></div>
- <p><b>The positioning read for stocks:</b> the S&amp;P 500 futures contract is where big money hedges and bets on the whole US stock market at once. When speculators there are heavily one-sided, the crowd is leaning.</p>
- </div>
- <div class="gauge" id="g-stocks"></div>
+  <!-- ================= STOCKS ================= -->
+  <details class="mktfold"><summary>📈 Stocks — owning slices of businesses<span class="chev">▸</span></summary>
+  <div class="card">
+    <p><b>What the market is:</b> a share of stock is a small ownership slice of a real company. Its long-run value comes from the business's profits; its daily price comes from the crowd's mood about those profits.</p>
+    <p><b>The strategies people run here (described, not endorsed):</b></p>
+    <div class="strat"><div class="t">Indexing (own everything, sit still)</div><div class="d">Buy the whole market cheaply and wait. <b>How it uses data:</b> almost none — that's the point. The scorekeepers (SPIVA) show ~92% of US stock funds failed to beat their benchmarks<sup><a href="plainsight-citations-1.html#c5" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[5]</a></sup> over the 20 years through 2025. Its data need is one number: the fund's yearly cost.</div></div>
+    <div class="strat"><div class="t">Value investing (buy cheap slices)</div><div class="d">Graham's game: find businesses priced below what they're worth. <b>How it uses data:</b> company report data — profits, debt, assets (free from <span class="term" data-def="edgar">SEC EDGAR</span>). The read is business quality vs. price, not charts.</div></div>
+    <div class="strat"><div class="t">Trend / momentum (ride the crowd)</div><div class="d">Buy what's rising, sell what's falling. <b>How it uses data:</b> price history and positioning — including the exact gauge below. Note the mirror: this strategy IS the herd, on purpose, with an exit plan. Most who try it have no exit plan.</div></div>
+    <p><b>The positioning read for stocks:</b> the S&amp;P 500 futures contract is where big money hedges and bets on the whole US stock market at once. When speculators there are heavily one-sided, the crowd is leaning.</p>
+  </div>
+  <div class="gauge" id="g-stocks"></div>
 
- </details>
+  </details>
 
- <!-- ================= FOREX ================= -->
- <details class="mktfold"><summary> Currencies (forex) — the price of money itself<span class="chev">▸</span></summary>
- <div class="card">
- <p><b>What the market is:</b> the biggest market on Earth — trading one country's money for another's. Prices move on interest rates, trade, and fear. Nobody "owns" a currency long-term the way you own a stock; every position is one money <b>against</b> another.</p>
- <p><b>The strategies people run here (described, not endorsed):</b></p>
- <div class="strat"><div class="t">Carry (earn the interest gap)</div><div class="d">Hold the currency that pays higher interest, funded by one that pays less. <b>How it uses data:</b> central-bank interest rates (free from each central bank, and our FRED macro gauge reads the US side). The known failure mode: it earns small steadily, then loses big suddenly — "picking up pennies in front of a steamroller."</div></div>
- <div class="strat"><div class="t">Trend following</div><div class="d">Same as stocks — ride moves. Currencies trend when interest-rate gaps widen. <b>How it uses data:</b> price plus positioning like the gauge below.</div></div>
- <div class="strat"><div class="t">Retail leveraged FX (the warning label)</div><div class="d">Most small-account forex is done through <span class="term" data-def="cfd">CFDs</span> — the same instrument as crypto perpetuals. The EU regulator's own data (ESMA, from our field guide): <b>74–89% of these accounts lose</b>, and leverage is the named driver. Same machine, same result, different market.</div></div>
- <p><b>The positioning read for currencies:</b> euro futures show how speculators are leaning on the world's biggest currency pair (euro vs. dollar).</p>
- </div>
- <div class="gauge" id="g-fx"></div>
+  <!-- ================= FOREX ================= -->
+  <details class="mktfold"><summary>💱 Currencies (forex) — the price of money itself<span class="chev">▸</span></summary>
+  <div class="card">
+    <p><b>What the market is:</b> the biggest market on Earth — trading one country's money for another's. Prices move on interest rates, trade, and fear. Nobody "owns" a currency long-term the way you own a stock; every position is one money <b>against</b> another.</p>
+    <p><b>The strategies people run here (described, not endorsed):</b></p>
+    <div class="strat"><div class="t">Carry (earn the interest gap)</div><div class="d">Hold the currency that pays higher interest, funded by one that pays less. <b>How it uses data:</b> central-bank interest rates (free from each central bank, and our FRED macro gauge reads the US side). The known failure mode: it earns small steadily, then loses big suddenly — "picking up pennies in front of a steamroller."</div></div>
+    <div class="strat"><div class="t">Trend following</div><div class="d">Same as stocks — ride moves. Currencies trend when interest-rate gaps widen. <b>How it uses data:</b> price plus positioning like the gauge below.</div></div>
+    <div class="strat"><div class="t">Retail leveraged FX (the warning label)</div><div class="d">Most small-account forex is done through <span class="term" data-def="cfd">CFDs</span> — the same instrument as crypto perpetuals. The EU regulator's own data (ESMA, from our field guide): <b>74–89% of these accounts lose</b>, and leverage is the named driver. Same machine, same result, different market.</div></div>
+    <p><b>The positioning read for currencies:</b> euro futures show how speculators are leaning on the world's biggest currency pair (euro vs. dollar).</p>
+  </div>
+  <div class="gauge" id="g-fx"></div>
 
- </details>
+  </details>
 
- <!-- ================= COMMODITIES ================= -->
- <details class="mktfold"><summary> Commodities — real stuff: metal, fuel, food<span class="chev">▸</span></summary>
- <div class="card">
- <p><b>What the market is:</b> futures on physical things — gold, oil, wheat, copper. This is the market the COT report was literally invented for: farmers and factories hedging, speculators taking the other side.</p>
- <p><b>The strategies people run here (described, not endorsed):</b></p>
- <div class="strat"><div class="t">Hedging (the original purpose)</div><div class="d">A wheat farmer sells futures at planting time to lock a price before harvest. Not a bet — insurance. <b>How it uses data:</b> the producer's own costs vs. today's lockable price.</div></div>
- <div class="strat"><div class="t">Following the "smart money" (the folklore read)</div><div class="d">A famous old read says: watch the hedgers, because they know their own business best. <b>The honest status:</b> studies disagree on whether this predicts anything — it's folklore with mixed evidence, and we say so rather than sell it. The data below shows you both sides' positions; the folklore is one interpretation, not a fact.</div></div>
- <div class="strat"><div class="t">Gold as fear insurance</div><div class="d">Gold pays nothing and builds nothing — its price is mostly a reading of fear and interest rates (when rates are high, holding a thing that pays nothing costs more). <b>How it uses data:</b> real interest rates (our FRED gauge, DFII10) plus positioning below.</div></div>
- <p><b>The positioning read for commodities:</b> gold futures — where fear, rates, and the crowd meet.</p>
- </div>
- <div class="gauge" id="g-gold"></div>
+  <!-- ================= COMMODITIES ================= -->
+  <details class="mktfold"><summary>🌾 Commodities — real stuff: metal, fuel, food<span class="chev">▸</span></summary>
+  <div class="card">
+    <p><b>What the market is:</b> futures on physical things — gold, oil, wheat, copper. This is the market the COT report was literally invented for: farmers and factories hedging, speculators taking the other side.</p>
+    <p><b>The strategies people run here (described, not endorsed):</b></p>
+    <div class="strat"><div class="t">Hedging (the original purpose)</div><div class="d">A wheat farmer sells futures at planting time to lock a price before harvest. Not a bet — insurance. <b>How it uses data:</b> the producer's own costs vs. today's lockable price.</div></div>
+    <div class="strat"><div class="t">Following the "smart money" (the folklore read)</div><div class="d">A famous old read says: watch the hedgers, because they know their own business best. <b>The honest status:</b> studies disagree on whether this predicts anything — it's folklore with mixed evidence, and we say so rather than sell it. The data below shows you both sides' positions; the folklore is one interpretation, not a fact.</div></div>
+    <div class="strat"><div class="t">Gold as fear insurance</div><div class="d">Gold pays nothing and builds nothing — its price is mostly a reading of fear and interest rates (when rates are high, holding a thing that pays nothing costs more). <b>How it uses data:</b> real interest rates (our FRED gauge, DFII10) plus positioning below.</div></div>
+    <p><b>The positioning read for commodities:</b> gold futures — where fear, rates, and the crowd meet.</p>
+  </div>
+  <div class="gauge" id="g-gold"></div>
 
- </details>
+  </details>
 
- <!-- ================= RATES / BONDS ================= -->
- <details class="mktfold"><summary> Bonds &amp; interest rates — the market under every other market<span class="chev">▸</span></summary>
- <div class="card">
- <p><b>What the market is:</b> lending. A bond is a loan you can trade. Its price and its <span class="term" data-def="yield">yield</span> move opposite each other, and the interest rate on safe US government debt is the "price of waiting" that every other market is measured against — it's the Constraints force on our crypto dashboard, generalized.</p>
- <p><b>The strategies people run here (described, not endorsed):</b></p>
- <div class="strat"><div class="t">Laddering (the boring one)</div><div class="d">Buy bonds maturing in steps (1yr, 2yr, 3yr…) and hold to maturity. <b>How it uses data:</b> just the posted yields. No prediction involved.</div></div>
- <div class="strat"><div class="t">Curve reading (the famous signal)</div><div class="d">Compare short-term vs long-term rates. When short rates rise above long rates (an "inverted curve"), recessions have often followed. <b>The honest status:</b> a real historical pattern with a real miss rate — a base-rate read, not a prophecy. Free from FRED/Treasury data.</div></div>
- <div class="strat"><div class="t">Duration betting (the leveraged one)</div><div class="d">Betting on the direction of rates using long bonds or futures. Rate moves hit long bonds hard in both directions — this is the bond market's version of leverage.</div></div>
- <p><b>The positioning read for rates:</b> 10-year Treasury note futures — where the biggest interest-rate bets in the world sit.</p>
- </div>
- <div class="gauge" id="g-rates"></div>
+  <!-- ================= RATES / BONDS ================= -->
+  <details class="mktfold"><summary>🏦 Bonds &amp; interest rates — the market under every other market<span class="chev">▸</span></summary>
+  <div class="card">
+    <p><b>What the market is:</b> lending. A bond is a loan you can trade. Its price and its <span class="term" data-def="yield">yield</span> move opposite each other, and the interest rate on safe US government debt is the "price of waiting" that every other market is measured against — it's the Constraints force on our crypto dashboard, generalized.</p>
+    <p><b>The strategies people run here (described, not endorsed):</b></p>
+    <div class="strat"><div class="t">Laddering (the boring one)</div><div class="d">Buy bonds maturing in steps (1yr, 2yr, 3yr…) and hold to maturity. <b>How it uses data:</b> just the posted yields. No prediction involved.</div></div>
+    <div class="strat"><div class="t">Curve reading (the famous signal)</div><div class="d">Compare short-term vs long-term rates. When short rates rise above long rates (an "inverted curve"), recessions have often followed. <b>The honest status:</b> a real historical pattern with a real miss rate — a base-rate read, not a prophecy. Free from FRED/Treasury data.</div></div>
+    <div class="strat"><div class="t">Duration betting (the leveraged one)</div><div class="d">Betting on the direction of rates using long bonds or futures. Rate moves hit long bonds hard in both directions — this is the bond market's version of leverage.</div></div>
+    <p><b>The positioning read for rates:</b> 10-year Treasury note futures — where the biggest interest-rate bets in the world sit.</p>
+  </div>
+  <div class="gauge" id="g-rates"></div>
 
- </details>
+  </details>
 
- <!-- ================= ENERGY & FOOD (v5 — added after the 4/4 live verification) ================= -->
- <details class="mktfold"><summary> Fuel & food — the report's original home<span class="chev">▸</span></summary>
- <div class="card">
- <p><b>These are the markets the COT report was invented for in the first place:</b> farmers locking crop prices before harvest, refiners and utilities locking fuel costs — real businesses hedging real stuff, with speculators taking the other side. Everything you learned above applies unchanged; the crowd's lean here moves grocery bills and gas pumps, not just portfolios.</p>
- </div>
- <div class="gauge" id="g-oil"></div>
- <div class="gauge" id="g-gas"></div>
- <div class="gauge" id="g-corn"></div>
- <div class="gauge" id="g-wheat"></div>
+  <!-- ================= ENERGY & FOOD (v5 — added after the 4/4 live verification) ================= -->
+  <details class="mktfold"><summary>🛢🌽 Fuel & food — the report's original home<span class="chev">▸</span></summary>
+  <div class="card">
+    <p><b>These are the markets the COT report was invented for in the first place:</b> farmers locking crop prices before harvest, refiners and utilities locking fuel costs — real businesses hedging real stuff, with speculators taking the other side. Everything you learned above applies unchanged; the crowd's lean here moves grocery bills and gas pumps, not just portfolios.</p>
+  </div>
+  <div class="gauge" id="g-oil"></div>
+  <div class="gauge" id="g-gas"></div>
+  <div class="gauge" id="g-corn"></div>
+  <div class="gauge" id="g-wheat"></div>
 
 
- </details>
+  </details>
 
- <div class="card">
- <p><b>How to read the bars (one lesson, four markets):</b> each bar shows the <span class="term" data-def="speculator">speculators'</span> net lean — how far their "price up" bets outweigh their "price down" bets (or the reverse), as a share of all open positions. Center line = balanced. The <span class="term" data-def="hedger">hedgers</span> sit roughly opposite by construction (someone has to take the other side).</p>
- <p><b>What it does NOT mean:</b> a crowded side is not a prediction. Crowds have stayed crowded for years and been right; crowds have flipped in a week. It's the same lesson as crypto funding: the reading tells you <b>where the crowd is</b>, so you're no longer the only one who can't see it. What it means next is exactly what nobody verified.</p>
- </div>
+  <div class="card">
+    <p><b>How to read the bars (one lesson, four markets):</b> each bar shows the <span class="term" data-def="speculator">speculators'</span> net lean — how far their "price up" bets outweigh their "price down" bets (or the reverse), as a share of all open positions. Center line = balanced. The <span class="term" data-def="hedger">hedgers</span> sit roughly opposite by construction (someone has to take the other side).</p>
+    <p><b>What it does NOT mean:</b> a crowded side is not a prediction. Crowds have stayed crowded for years and been right; crowds have flipped in a week. It's the same lesson as crypto funding: the reading tells you <b>where the crowd is</b>, so you're no longer the only one who can't see it. What it means next is exactly what nobody verified.</p>
+  </div>
 
- <details class="mkt" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:10px 0;padding:2px 14px">
- <summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.95rem;font-weight:650"> Who actually trades food and oil — and why you don't</summary>
- <div style="font-size:.86rem;color:var(--muted);border-top:1px solid var(--line);padding:10px 0">
- <p><b>These markets weren't built for investors at all.</b> Futures exist so a farmer can lock in a wheat price before harvest and an airline can lock in fuel before winter — <b>producers and users trading away risk</b>, with speculators paid (in opportunity) to absorb it. That's the whole original machine, and it's why the COT report splits players into hedgers and speculators in the first place: the categories ARE the market's design.</p>
- <p><b>Why ordinary people don't trade these directly — the sizes are industrial:</b> one corn contract is <b>5,000 bushels</b> (~130 tons); one oil contract is <b>1,000 barrels</b>. Get the wrong side of a delivery month and you haven't lost an app balance — you've bought actual barrels. In April 2020 this stopped being a joke: with storage full, the expiring US oil future traded <b>below zero</b> — sellers paying buyers to take oil — and retail traders in brokered products discovered that "oil can't go below zero" was folklore. A price with warehouses attached obeys warehouse rules, not chart rules.</p>
- <p><b>The onion that banned a market:</b> in the 1950s two traders cornered the US onion futures market so completely — at one point holding most of the onions in Chicago — that prices collapsed to less than the cost of the bags they came in. Farmers were wrecked; Congress responded with the <b>Onion Futures Act (1958)</b>, and onion futures are <b>still illegal in the United States today</b>. It's the cleanest historical proof that "the market" is a set of rules people wrote — and can rewrite when a market stops serving its purpose. (Historical record; the era's details are well documented.)</p>
- <p><b>What changed since your grandparents' commodities:</b> in the 2000s, index money arrived — pensions and funds buying baskets of commodity futures as an "asset class," rolling contracts forever without ever wanting a single barrel. This <b>financialization</b> is why the speculator share in the gauges above is structurally bigger than in old textbooks, and it's an honest open question in the research: how much does investment money move food and fuel prices? Both "a lot" and "less than headlines claim" have serious defenders — we show the positioning and leave the verdict unclaimed.</p>
- <p><b>The plain takeaway:</b> for a household, exposure to commodities happens at the pump and the grocery store already. The gauges above aren't an invitation to trade corn — they're a window into a professional risk-transfer machine, shown so the machine can't be mythologized to you.</p>
- </div>
- </details>
+  <details class="mkt" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:10px 0;padding:2px 14px">
+    <summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.95rem;font-weight:650">🌾 Who actually trades food and oil — and why you don't</summary>
+    <div style="font-size:.86rem;color:var(--muted);border-top:1px solid var(--line);padding:10px 0">
+    <p><b>These markets weren't built for investors at all.</b> Futures exist so a farmer can lock in a wheat price before harvest and an airline can lock in fuel before winter — <b>producers and users trading away risk</b>, with speculators paid (in opportunity) to absorb it. That's the whole original machine, and it's why the COT report splits players into hedgers and speculators in the first place: the categories ARE the market's design.</p>
+    <p><b>Why ordinary people don't trade these directly — the sizes are industrial:</b> one corn contract is <b>5,000 bushels</b> (~130 tons); one oil contract is <b>1,000 barrels</b>. Get the wrong side of a delivery month and you haven't lost an app balance — you've bought actual barrels. In April 2020 this stopped being a joke: with storage full, the expiring US oil future traded <b>below zero</b> — sellers paying buyers to take oil — and retail traders in brokered products discovered that "oil can't go below zero" was folklore. A price with warehouses attached obeys warehouse rules, not chart rules.</p>
+    <p><b>The onion that banned a market:</b> in the 1950s two traders cornered the US onion futures market so completely — at one point holding most of the onions in Chicago — that prices collapsed to less than the cost of the bags they came in. Farmers were wrecked; Congress responded with the <b>Onion Futures Act (1958)</b>, and onion futures are <b>still illegal in the United States today</b>. It's the cleanest historical proof that "the market" is a set of rules people wrote — and can rewrite when a market stops serving its purpose. (Historical record; the era's details are well documented.)</p>
+    <p><b>What changed since your grandparents' commodities:</b> in the 2000s, index money arrived — pensions and funds buying baskets of commodity futures as an "asset class," rolling contracts forever without ever wanting a single barrel. This <b>financialization</b> is why the speculator share in the gauges above is structurally bigger than in old textbooks, and it's an honest open question in the research: how much does investment money move food and fuel prices? Both "a lot" and "less than headlines claim" have serious defenders — we show the positioning and leave the verdict unclaimed.</p>
+    <p><b>The plain takeaway:</b> for a household, exposure to commodities happens at the pump and the grocery store already. The gauges above aren't an invitation to trade corn — they're a window into a professional risk-transfer machine, shown so the machine can't be mythologized to you.</p>
+    </div>
+  </details>
 
- <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650"> The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror">
- <b>The mirror, as always:</b> four markets, one skill — see who's positioned where, know how stale and how partial the window is, and know that positioning describes, never predicts. Each strategy above is shown with how it uses data and what the scorekeepers found about it — never as a recommendation. What you do with any of it is yours.
- </div></details>
+  <details style="background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:24px 0 10px;padding:2px 14px"><summary style="cursor:pointer;list-style:none;padding:12px 0;font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div style="font-size:.84rem;color:var(--muted);padding:6px 0 8px"><b style="color:var(--ink)">What &quot;the mirror&quot; means (it ends every room):</b> after testing everyone else's claims, we turn the same test on ourselves — in two words: <b style="color:var(--ink)">self-check</b>. Three questions, every time: what did this page actually prove, what can it NOT know, and did it ever slip from showing you what IS into telling you what to DO? A page anywhere else that never holds a mirror to itself is telling you something too.</div><div class="mirror">
+    <b>The mirror, as always:</b> four markets, one skill — see who's positioned where, know how stale and how partial the window is, and know that positioning describes, never predicts. Each strategy above is shown with how it uses data and what the scorekeepers found about it — never as a recommendation. What you do with any of it is yours.
+  </div></details>
 </div>
 
 <div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
@@ -239,29 +239,29 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(
 $("deftip").querySelector(".x").onclick=hideDef;
 
 /* ---------- gauges: one pattern, four markets (the 3a discipline) ----------
- Source: CFTC Legacy futures-only COT, Socrata SODA API. Government open data.
- Field names new: market_and_exchange_names, report_date_as_yyyy_mm_dd,
- open_interest_all, noncomm_positions_long_all, noncomm_positions_short_all,
- comm_positions_long_all, comm_positions_short_all.
- Self-reconciliation: on first read we CHECK those fields exist; if any are missing
- the gauge goes dark and prints the keys it actually got (the WS-probe pattern). */
+   Source: CFTC Legacy futures-only COT, Socrata SODA API. Government open data.
+   Field names new: market_and_exchange_names, report_date_as_yyyy_mm_dd,
+   open_interest_all, noncomm_positions_long_all, noncomm_positions_short_all,
+   comm_positions_long_all, comm_positions_short_all.
+   Self-reconciliation: on first read we CHECK those fields exist; if any are missing
+   the gauge goes dark and prints the keys it actually got (the WS-probe pattern).  */
 const API="https://publicreporting.cftc.gov/resource/6dca-aqww.json";
 const MARKETS=[
- {el:"g-stocks", label:"US stock market (S&P 500 futures)", kw:"E-MINI S&P 500", coin:"S&P 500"},
- {el:"g-fx", label:"Euro vs dollar (euro futures)", kw:"EURO FX", coin:"the euro"},
- {el:"g-gold", label:"Gold (gold futures)", kw:"GOLD", coin:"gold"},
- {el:"g-rates", label:"US interest rates (10-yr Treasury futures)", kw:"10Y", coin:"10-yr Treasuries"},
- {el:"g-oil", label:"Oil (WTI crude futures)", kw:"CRUDE OIL", coin:"crude oil"},
- {el:"g-gas", label:"Natural gas (Henry Hub futures)", kw:"NATURAL GAS", coin:"natural gas"},
- {el:"g-corn", label:"Corn (CBOT futures)", kw:"CORN", coin:"corn"},
- {el:"g-wheat", label:"Wheat (Chicago SRW futures)", kw:"WHEAT", coin:"wheat"}
+  {el:"g-stocks", label:"US stock market (S&P 500 futures)", kw:"E-MINI S&P 500", coin:"S&P 500"},
+  {el:"g-fx",     label:"Euro vs dollar (euro futures)",      kw:"EURO FX",        coin:"the euro"},
+  {el:"g-gold",   label:"Gold (gold futures)",                kw:"GOLD",           coin:"gold"},
+  {el:"g-rates",  label:"US interest rates (10-yr Treasury futures)", kw:"10Y", coin:"10-yr Treasuries"},
+  {el:"g-oil",    label:"Oil (WTI crude futures)",            kw:"CRUDE OIL", coin:"crude oil"},
+  {el:"g-gas",    label:"Natural gas (Henry Hub futures)",    kw:"NATURAL GAS", coin:"natural gas"},
+  {el:"g-corn",   label:"Corn (CBOT futures)",                kw:"CORN", coin:"corn"},
+  {el:"g-wheat",  label:"Wheat (Chicago SRW futures)",        kw:"WHEAT", coin:"wheat"}
 ];
 const NEED=["market_and_exchange_names","report_date_as_yyyy_mm_dd","open_interest_all",
- "noncomm_positions_long_all","noncomm_positions_short_all",
- "comm_positions_long_all","comm_positions_short_all"];
+  "noncomm_positions_long_all","noncomm_positions_short_all",
+  "comm_positions_long_all","comm_positions_short_all"];
 
 function gaugeShell(m,statTxt,statCls,bodyHtml){
- return `<div class="gt">${m.label}<span class="gstat ${statCls||""}">${statTxt}</span></div>${bodyHtml||""}`;
+  return `<div class="gt">${m.label}<span class="gstat ${statCls||""}">${statTxt}</span></div>${bodyHtml||""}`;
 }
 MARKETS.forEach(m=>{ $(m.el).innerHTML=gaugeShell(m,"not pulled yet","", `<p class="readsay" style="margin-top:8px">Tap the pull button below the four markets to load this reading.</p>`); });
 
@@ -270,68 +270,68 @@ const fmtPct=n=>(isNaN(n)||!isFinite(n))?"—":(n>=0?"+":"")+n.toFixed(1)+"%";
 const fmtInt=n=>isNaN(n)?"—":Number(n).toLocaleString();
 
 async function fetchMarket(m){
- // keyword match on contract name, newest report first, cache-busted
- const q = API + "?$where=" + encodeURIComponent(`upper(market_and_exchange_names) like '%${m.kw}%'`)
- + "&$order=report_date_as_yyyy_mm_dd%20DESC&$limit=3"; // no _cb: Socrata rejects unknown params (S18 live-test finding)
- const t0=performance.now();
- const r=await fetch(q,{cache:"no-store"});
- const ms=Math.round(performance.now()-t0);
- if(!r.ok) throw new Error("HTTP "+r.status+" ("+ms+"ms)");
- const rows=await r.json();
- if(!rows.length) throw new Error("no contract matched '"+m.kw+"' ("+ms+"ms)");
- const row=rows[0];
- // field-name self-reconciliation (WS-probe pattern): verify before trusting
- const missing=NEED.filter(k=>!(k in row));
- if(missing.length) { const got=Object.keys(row).slice(0,12).join(", ");
- throw new Error("fields missing: "+missing.join(", ")+" — got: "+got+"…"); }
- return {row,ms};
+  // keyword match on contract name, newest report first, cache-busted
+  const q = API + "?$where=" + encodeURIComponent(`upper(market_and_exchange_names) like '%${m.kw}%'`)
+    + "&$order=report_date_as_yyyy_mm_dd%20DESC&$limit=3";  // no _cb: Socrata rejects unknown params (S18 live-test finding)
+  const t0=performance.now();
+  const r=await fetch(q,{cache:"no-store"});
+  const ms=Math.round(performance.now()-t0);
+  if(!r.ok) throw new Error("HTTP "+r.status+" ("+ms+"ms)");
+  const rows=await r.json();
+  if(!rows.length) throw new Error("no contract matched '"+m.kw+"' ("+ms+"ms)");
+  const row=rows[0];
+  // field-name self-reconciliation (WS-probe pattern): verify before trusting
+  const missing=NEED.filter(k=>!(k in row));
+  if(missing.length) { const got=Object.keys(row).slice(0,12).join(", ");
+    throw new Error("fields missing: "+missing.join(", ")+" — got: "+got+"…"); }
+  return {row,ms};
 }
 
 function renderMarket(m,row,ms){
- const oi=num(row.open_interest_all);
- const specL=num(row.noncomm_positions_long_all), specS=num(row.noncomm_positions_short_all);
- const hedL=num(row.comm_positions_long_all), hedS=num(row.comm_positions_short_all);
- if([oi,specL,specS,hedL,hedS].some(isNaN)||oi<=0){ 
- $(m.el).innerHTML=gaugeShell(m,"dark — bad numbers","dark",
- `<p class="gdark">The report row came back but the numbers didn't parse. Nothing made up.</p>`); return; }
- const specNet=(specL-specS)/oi*100; // speculators' net lean, % of open interest
- const hedNet=(hedL-hedS)/oi*100; // hedgers' mirror
- const date=(row.report_date_as_yyyy_mm_dd||"").slice(0,10);
- const lean=Math.max(-50,Math.min(50,specNet)); // clamp bar only, never the number
- const w=Math.abs(lean), left=lean>=0?50:50-w;
- const col=specNet>=0?"var(--up)":"var(--down)";
- const side=specNet>=0?"price-up":"price-down";
- const strength=Math.abs(specNet)<5?"close to balanced":Math.abs(specNet)<15?"a lean":"a heavy lean";
- $(m.el).innerHTML=gaugeShell(m,"live · "+ms+"ms","ok",`
- <div class="barwrap">
- <div class="barlab"><span>crowd bets DOWN</span><span>balanced</span><span>crowd bets UP</span></div>
- <div class="bar"><div class="mid"></div><div class="fill" style="left:${left}%;width:${w}%;background:${col};opacity:.75"></div></div>
- </div>
- <div class="readout"><span class="term" data-def="speculator">Speculators'</span> <span class="term" data-def="net lean">net lean</span>: ${fmtPct(specNet)} of <span class="term" data-def="open interest">open interest</span> — ${strength}, toward ${side}</div>
- <p class="readsay"><span class="term" data-def="hedger">Hedgers</span> sit near the mirror image: ${fmtPct(hedNet)}. Contract read: <span class="mono">${row.market_and_exchange_names}</span></p>
- <p class="readsay">Plain words: of all the bets open on ${m.coin}, the betting crowd's up-bets ${specNet>=0?"outweigh":"trail"} their down-bets by about ${Math.abs(specNet).toFixed(1)} contracts per hundred open. That describes the crowd — it predicts nothing.</p>
- <div class="gmeta">Report date ${date} (positions as of that Tuesday — this is a weekly, lagged reading, not live). Open interest ${fmtInt(oi)} contracts. Source: CFTC public API, read straight from your browser<sup><a href="plainsight-citations-1.html#c25" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[25]</a></sup>.</div>`);
+  const oi=num(row.open_interest_all);
+  const specL=num(row.noncomm_positions_long_all), specS=num(row.noncomm_positions_short_all);
+  const hedL=num(row.comm_positions_long_all), hedS=num(row.comm_positions_short_all);
+  if([oi,specL,specS,hedL,hedS].some(isNaN)||oi<=0){ 
+    $(m.el).innerHTML=gaugeShell(m,"dark — bad numbers","dark",
+      `<p class="gdark">The report row came back but the numbers didn't parse. Nothing made up.</p>`); return; }
+  const specNet=(specL-specS)/oi*100;      // speculators' net lean, % of open interest
+  const hedNet=(hedL-hedS)/oi*100;         // hedgers' mirror
+  const date=(row.report_date_as_yyyy_mm_dd||"").slice(0,10);
+  const lean=Math.max(-50,Math.min(50,specNet));  // clamp bar only, never the number
+  const w=Math.abs(lean), left=lean>=0?50:50-w;
+  const col=specNet>=0?"var(--up)":"var(--down)";
+  const side=specNet>=0?"price-up":"price-down";
+  const strength=Math.abs(specNet)<5?"close to balanced":Math.abs(specNet)<15?"a lean":"a heavy lean";
+  $(m.el).innerHTML=gaugeShell(m,"live · "+ms+"ms","ok",`
+    <div class="barwrap">
+      <div class="barlab"><span>crowd bets DOWN</span><span>balanced</span><span>crowd bets UP</span></div>
+      <div class="bar"><div class="mid"></div><div class="fill" style="left:${left}%;width:${w}%;background:${col};opacity:.75"></div></div>
+    </div>
+    <div class="readout"><span class="term" data-def="speculator">Speculators'</span> <span class="term" data-def="net lean">net lean</span>: ${fmtPct(specNet)} of <span class="term" data-def="open interest">open interest</span> — ${strength}, toward ${side}</div>
+    <p class="readsay"><span class="term" data-def="hedger">Hedgers</span> sit near the mirror image: ${fmtPct(hedNet)}. Contract read: <span class="mono">${row.market_and_exchange_names}</span></p>
+    <p class="readsay">Plain words: of all the bets open on ${m.coin}, the betting crowd's up-bets ${specNet>=0?"outweigh":"trail"} their down-bets by about ${Math.abs(specNet).toFixed(1)} contracts per hundred open. That describes the crowd — it predicts nothing.</p>
+    <div class="gmeta">Report date ${date} (positions as of that Tuesday — this is a weekly, lagged reading, not live). Open interest ${fmtInt(oi)} contracts. Source: CFTC public API, read straight from your browser<sup><a href="plainsight-citations-1.html#c25" style="color:var(--accent);text-decoration:none;font-size:.72em;font-weight:700">[25]</a></sup>.</div>`);
 }
 
 async function loadAll(){
- $("loadmeta").textContent="Pulling all eight from publicreporting.cftc.gov…";
- const results=await Promise.allSettled(MARKETS.map(m=>fetchMarket(m)));
- let okN=0;
- results.forEach((res,i)=>{ const m=MARKETS[i];
- if(res.status==="fulfilled"){ okN++; renderMarket(m,res.value.row,res.value.ms); }
- else { $(m.el).innerHTML=gaugeShell(m,"dark","dark",
- `<p class="gdark">Couldn't read this market: ${res.reason&&res.reason.message?res.reason.message:"fetch failed"}. The gauge stays dark — nothing made up. If ALL are dark, the source may be blocking phone browsers right now — try again in a bit.</p>`); }
- });
- $("loadmeta").textContent = okN===8
- ? "All eight read live ✓"
- : okN>0 ? okN+" of 8 read; the dark ones say why."
- : "0 of 8 read. Either offline, or the source is blocking phone browsers right now — try again in a bit.";
+  $("loadmeta").textContent="Pulling all eight from publicreporting.cftc.gov…";
+  const results=await Promise.allSettled(MARKETS.map(m=>fetchMarket(m)));
+  let okN=0;
+  results.forEach((res,i)=>{ const m=MARKETS[i];
+    if(res.status==="fulfilled"){ okN++; renderMarket(m,res.value.row,res.value.ms); }
+    else { $(m.el).innerHTML=gaugeShell(m,"dark","dark",
+      `<p class="gdark">Couldn't read this market: ${res.reason&&res.reason.message?res.reason.message:"fetch failed"}. The gauge stays dark — nothing made up. If ALL are dark, the source may be blocking phone browsers right now — try again in a bit.</p>`); }
+  });
+  $("loadmeta").textContent = okN===8
+    ? "All eight read live ✓"
+    : okN>0 ? okN+" of 8 read; the dark ones say why."
+    : "0 of 8 read. Either offline, or the source is blocking phone browsers right now — try again in a bit.";
 }
 $("loadAll").onclick=async()=>{await loadAll();document.querySelectorAll("details.mktfold").forEach(x=>x.open=true);};
 </script>
 
-<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">← The risk board </a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: Bonds & metals →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)"> All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">How your mind works against you</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test </a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test </a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The risk board </a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company </a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Predictions, graded</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">Our findings</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">Practice reading the market </a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
-<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:" ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
+<div style="max-width:660px;margin:0 auto;padding:0 16px 40px"><div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:.82rem;line-height:1.7"><div style="display:flex;justify-content:space-between;gap:10px;font-size:.82rem;flex-wrap:wrap"><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">← The whale board 🧪</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none;font-weight:650">Next on the path: Bonds & metals →</a></div><details style="margin-top:9px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--ink)">🗺 All rooms ▾</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:.78rem;padding:8px 0;line-height:1.6"><a href="plainsight-start-here-1.html" style="color:var(--accent);text-decoration:none">Start here</a><a href="plainsight-behavior-room-1.html" style="color:var(--accent);text-decoration:none">The behavior room</a><a href="plainsight-counterfeit-gallery-1.html" style="color:var(--accent);text-decoration:none">The counterfeit gallery</a><a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">The signal test 🧪</a><a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test 🧪</a><a href="plainsight-living-museum-1.html" style="color:var(--accent);text-decoration:none">The living museum</a><a href="plainsight-3bB-board-v16-1.html" style="color:var(--accent);text-decoration:none">The whale board 🧪</a><a href="plainsight-markets-pack-6.html" style="color:var(--accent);text-decoration:none">The markets pack</a><a href="plainsight-bonds-metals-2.html" style="color:var(--accent);text-decoration:none">Bonds & metals</a><a href="plainsight-remaining-markets-2.html" style="color:var(--accent);text-decoration:none">The remaining markets</a><a href="plainsight-company-reading-7.html" style="color:var(--accent);text-decoration:none">Reading a company 🧪</a><a href="plainsight-case-for-active-2.html" style="color:var(--accent);text-decoration:none">The case for active</a><a href="plainsight-who-called-it-1.html" style="color:var(--accent);text-decoration:none">Who called it</a><a href="plainsight-wealth-bookshelf-4.html" style="color:var(--accent);text-decoration:none">The wealth bookshelf</a><a href="plainsight-learned-1.html" style="color:var(--accent);text-decoration:none">What we've learned</a><a href="plainsight-getting-help-1.html" style="color:var(--accent);text-decoration:none">Getting help</a><a href="plainsight-graduation-2.html" style="color:var(--accent);text-decoration:none">Graduation — audit us</a><a href="plainsight-research-desk-1.html" style="color:var(--accent);text-decoration:none">The research desk 🧪</a><a href="plainsight-citations-1.html" style="color:var(--accent);text-decoration:none">Citations — every source</a><a href="plainsight-needle-widget-2.html" style="color:var(--accent);text-decoration:none">The needle widget</a><a href="plainsight-privacy-trust-1.html" style="color:var(--accent);text-decoration:none">Privacy & trust</a></div></details></div></div>
+<style>.psfold summary{cursor:pointer;list-style:none;font-weight:650}.psfold summary::-webkit-details-marker{display:none}.psfold summary:after{content:"  ⌄ tap to read";font-size:.7rem;color:#8A9099;font-weight:500;white-space:nowrap}.psfold[open] summary:after{content:""}.psfold>div{margin-top:8px}</style>
 <script>(function(){var sel=".keyhole,.warnbox,.filterbox,.counter,.rulebox,.lens";document.querySelectorAll(sel).forEach(function(el){if(el.closest("details")||el.querySelector("details"))return;var b=el.querySelector("b");var label=b?b.textContent.replace(/[\s:—–-]+$/,""):el.textContent.trim().slice(0,60)+"…";if(el.textContent.trim().length<160)return;var d=document.createElement("details");d.className="psfold";var s=document.createElement("summary");s.textContent=label;d.appendChild(s);var inner=document.createElement("div");inner.innerHTML=el.innerHTML;d.appendChild(inner);el.innerHTML="";el.appendChild(d);});})();</script>
 <style>details.secfold{border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px;background:rgba(20,26,34,.5)}details.secfold[open]{border-color:rgba(127,176,232,.4)}details.secfold>summary{cursor:pointer;list-style:none;font-weight:660;font-size:.98rem;padding:12px 0;color:var(--ink)}details.secfold>summary::-webkit-details-marker{display:none}details.secfold>summary:after{content:" ⌄";color:#8A9099}details.secfold[open]>summary:after{content:""}</style>
 <script>(function(){

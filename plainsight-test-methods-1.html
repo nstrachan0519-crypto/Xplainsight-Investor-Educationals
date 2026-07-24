@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Xplainsight — how we test, and how to check us</title>
+<!--
+  XPLAINSIGHT — TEST METHODS PAGE v1 (S22).
+  Built after an adversarial audit of our own statistical engine found real bugs.
+  PURPOSE: make the testing method fully public and checkable. Nothing here is
+  proprietary. If a reader wants to grade whether we are doing this honestly,
+  this page is where they start.
+  LOCKED RULE INTRODUCED HERE — THE RECEIPTS RULE: a grade without its arithmetic
+  is an opinion. Every evidence-needle position must carry the number that
+  produced it, one tap away, everywhere in the app. Release condition, not polish.
+  CORE refs: §1 guardrail 4 (every number next to its meaning, range, receipts),
+  §1.6 (needle scale), §2.1 (three claim buckets), §2.8 (four gates),
+  §2.9 (verification ≠ validation), §4 (assumption honesty).
+  Method Rule 0 (Triangulation) governs every result reported here.
+  Dark-on-failure. No external code. No storage. Static.
+-->
+<style>
+  :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+    --muted:#99A1AB;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --warn:#C9A227;--define:#A78BFA;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+  h2{font-size:1.04rem;font-weight:660;margin:26px 0 8px}
+  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+  .sub b,.card b{color:var(--ink);font-weight:620}
+  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+  .card p{font-size:.88rem;margin:8px 0}
+  .rule{border:1px solid rgba(127,176,232,.45);border-left:3px solid var(--accent);background:rgba(127,176,232,.06)}
+  .warnbox{border:1px solid rgba(201,162,39,.4);border-left:3px solid var(--warn);background:rgba(201,162,39,.06);border-radius:10px;padding:11px 14px;margin:10px 0;font-size:.86rem}
+  .warnbox b{color:var(--warn)}
+  details.sig{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px}
+  details.sig>summary{cursor:pointer;list-style:none;padding:12px 0;font-size:.92rem;font-weight:640}
+  details.sig>summary::-webkit-details-marker{display:none}
+  .sigbody{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding:10px 0}
+  .sigbody b{color:var(--ink)}
+  .needle{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}
+  .step{flex:1;min-width:96px;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:.68rem;text-align:center;background:var(--panel2)}
+  .s1{border-color:rgba(95,191,143,.5);color:var(--up)}
+  .s2{border-color:rgba(127,176,232,.5);color:var(--accent)}
+  .s3{border-color:rgba(153,161,171,.5);color:var(--muted)}
+  .s4{border-color:rgba(201,162,39,.5);color:var(--warn)}
+  .s5{border-color:rgba(224,144,108,.5);color:var(--down)}
+  table{width:100%;border-collapse:collapse;font-size:.8rem;margin:8px 0}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{background:var(--panel2);font-weight:640;color:var(--ink)}
+  td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pass{color:var(--up)} .fail{color:var(--down)}
+  .mono{font-family:ui-monospace,Menlo,monospace;font-size:.82em}
+  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+  #deftip.show{display:block}
+  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+  a{color:var(--accent)}
+  a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>How we test — and how to catch us being wrong</h1>
+  <p class="sub">Nothing on this page is secret. There is no proprietary method here, because a checking tool that hides its checking is asking for the same blind trust it warns you about. This page shows <b>every test we run</b>, <b>the bugs we found in ourselves</b>, and <b>what we still can't do</b>. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+
+  <div class="card rule">
+    <p><b>The receipts rule (locked):</b> a grade without its arithmetic is an opinion.</p>
+    <p>Everywhere in this app, when we grade a claim, <b>the number that produced that grade is one tap away</b>. Not sometimes. Not on request. Every time.</p>
+    <p>The reason is simple. If we print "UNSUPPORTED" and don't show you why, we're just asserting something with a confident face — which is the exact behaviour this whole project exists to warn you about. A grade with no receipt is our opinion wearing a lab coat.</p>
+    <p>So: if you ever find a grade in this app with no number behind it, <b>that is a bug, and it's the kind we most want reported.</b></p>
+  </div>
+
+  <h2>What the grades mean</h2>
+  <p class="sub">Our scale never says "true" or "false," and never says anyone is lying. The worst it reaches is "go verify this yourself."</p>
+  <div class="needle">
+    <div class="step s1">FACT-BACKED</div>
+    <div class="step s2">SUPPORTED</div>
+    <div class="step s3">UNVERIFIED</div>
+    <div class="step s4">STRETCHED</div>
+    <div class="step s5">UNSUPPORTED<br>CONCLUSION</div>
+  </div>
+  <div class="card">
+    <p><b>UNVERIFIED is a real position, not a failure.</b> It means: nobody has checked this properly yet, including us. A lot of true things sit here. So do a lot of false ones. The honest move is to say so rather than round it up to "supported" or down to "nonsense."</p>
+    <p><b>Why we never say "lying":</b> we can measure what was said and what the numbers show. We cannot see inside someone's head, and a tool that guesses at motive is inventing a fact it doesn't have. We <span class="term" data-def="force not motive">measure the force, not the motive</span> — you decide the intent.</p>
+  </div>
+
+  <h2>The tests we run on a signal</h2>
+  <p class="sub">Every trading rule we check has to get past the same set. They are grouped by <b>the question they answer</b>, not counted as equal votes — because several of them turned out to be asking the same question in different words, and we only found that by testing.</p>
+
+  <details class="sig"><summary>1 · Is there enough data to answer at all? ▾</summary><div class="sigbody">
+    <p>This runs <b>first</b>, and it can stop everything. We work out the <span class="term" data-def="mde">smallest edge this test could reliably have spotted</span>. If that number is bigger than an edge worth acting on, we return <b>"cannot determine"</b> and refuse to grade.</p>
+    <p><b>Why refusing matters:</b> "no evidence" and "cannot determine" sound similar and mean opposite things. One says we looked and it isn't there. The other says we couldn't see. A test too weak to see anything will report "nothing here" every time — which quietly confirms whatever the tester already believed. We measured this: <b>0% of genuinely real edges were ever wrongly reported as "no evidence."</b></p>
+  </div></details>
+
+  <details class="sig"><summary>2 · Did it survive randomness? ▾</summary><div class="sigbody">
+    <p>Four different checks, treated as <b>one question</b>, not four votes:</p>
+    <p><b>The blind dart.</b> Pick the same number of random moments and see what pure luck scores. A real signal has to beat luck's usual range.</p>
+    <p><b>The shuffle test.</b> Keep the signal's exact firing pattern — every gap, every burst — and slide the whole pattern to a random new point in history. If its timing carries no real information, it should do about as well anywhere.</p>
+    <p><b>The overlap correction.</b> A maths fix (<span class="term" data-def="newey-west">Newey-West</span>) for the fact that measurements taken close together aren't independent facts.</p>
+    <p><b>The many-tries correction.</b> Test nine rules and one will look brilliant by luck alone. <span class="term" data-def="holm">Holm-Bonferroni</span> raises the bar to account for how many we tried.</p>
+    <div class="warnbox"><b>Why these count as one question, not four:</b> we tested them on markets containing no real pattern at all. Two of them agreed with each other <b>34 times against 19 disagreements</b>. They are four windows into one room. Calling that "four independent checks agreed" would have told you something four times more reassuring than the truth.</div>
+  </div></details>
+
+  <details class="sig"><summary>3 · Did it beat the alternatives? ▾</summary><div class="sigbody">
+    <p><b>Beat doing nothing.</b> If prices rose 55% of the time anyway, a signal has to beat 55%, not zero.</p>
+    <p><b>Beat deliberate nonsense.</b> We run four rules built to mean nothing — "every 17th bar," "the price ends in a 7." A nonsense rule can't know anything, so it should land at the average. Any real signal has to beat what the junk scored.</p>
+    <p>We attacked this one too, trying to prove one of our "nonsense" rules was secretly picking up something real. <b>The attack failed and the controls held.</b></p>
+  </div></details>
+
+  <details class="sig"><summary>4 · Did it hold up under stress? ▾</summary><div class="sigbody">
+    <p><b>Across time.</b> We cut the history into chunks and check the signal points the same way in most of them. A rule that only worked in one stretch is describing that stretch, not a pattern.</p>
+    <p><b>On separate cases only.</b> Signals fire in bunches, and bunched fires often measure nearly the same stretch of price over and over. We re-run using only cases far enough apart to be genuinely separate stories.</p>
+  </div></details>
+
+  <details class="sig"><summary>5 · Is it big enough to matter? ▾</summary><div class="sigbody">
+    <p>A real edge smaller than the cost of trading is not usable. You set the cost yourself; the bar moves with it. A signal can be statistically real and still fail here — and that's not a technicality, it's the difference between a fact and a usable fact.</p>
+  </div></details>
+
+  <h2>The tests we run on our own tests</h2>
+  <p class="sub">This is the part almost nobody publishes. A test can be broken while looking perfectly healthy, so we check the checkers.</p>
+
+  <div class="card">
+    <p><b>Known-answer markets.</b> We build fake markets where we already know the truth — some with no pattern at all, some with a pattern we planted ourselves. Then we see whether the engine says so. On markets with nothing in them, it should find nothing.</p>
+    <p><b>Eight different kinds of market.</b> Our first version was tested on one kind of fake market, and a reviewer pointed out that a result from one simulator describes the simulator, not the engine. Re-measured across eight — including <span class="term" data-def="fat tails">fat-tailed</span>, <span class="term" data-def="vol clustering">volatility-clustering</span>, regime-switching and jumpy markets — the same engine ranged from 1.7% to 8.3%. <b>The single number we first reported was wrong to state as a property of the engine.</b></p>
+    <p><b>Rules that must always hold.</b> Checked against many random datasets rather than a few hand-picked ones: a probability must stay between 0 and 1; the same input must always give the same answer; an impossibly good result must produce a small p-value; an impossibly bad one must produce a large one.</p>
+    <p><b>Comparison against software we didn't write.</b> The most useful check available to you if you can't read our code. Our maths is run against <span class="term" data-def="scipy">SciPy</span> — written by thousands of contributors, used in published research worldwide — on identical data. Agreement ranged from 1e-9 to 1e-15 (that is, matching to between nine and fifteen decimal places).</p>
+  </div>
+
+  <div class="warnbox"><b>A warning about that last one, from our own near-miss.</b> Our first comparison of the overlap correction <i>passed</i> — while barely exercising the thing it was testing. The corrected and uncorrected answers differed by 1.00×, meaning the test proved almost nothing. Re-run on data that actually stressed it, the result moved from "clearly significant" to "not significant" — and still matched to fifteen decimal places. <b>A passing test on a case that doesn't stress the code is not evidence.</b> If you ever want to check us, that's the question to ask: not "did it pass," but "did the test have any teeth."</div>
+
+  <h2>Bugs we found in ourselves</h2>
+  <p class="sub">Listed because a methods page that only shows what works is an advertisement.</p>
+  <table>
+    <tr><th>What was broken</th><th>How we know</th><th>Status</th></tr>
+    <tr><td>The random number generator, which every shuffle and dart test depended on</td><td class="n">Repeated every 10,466 draws; one test needs ~180,000. Uniformity score 499.6 against a 30.1 pass mark.</td><td class="pass">fixed</td></tr>
+    <tr><td>Grading used the wrong bell curve, making results look more significant than they were</td><td class="n">Overstated by 14% to 58% depending on sample size</td><td class="pass">fixed</td></tr>
+    <tr><td>Scores could be padded by weak checks outvoting the ones that catch luck</td><td class="n">A rule scored "moderate evidence" on pure noise while failing every luck check</td><td class="pass">fixed</td></tr>
+    <tr><td>The shuffle test was too easy to pass when signals fire in bunches</td><td class="n">Wrongly found "significance" 25.75% of the time where 5% is correct</td><td class="pass">fixed</td></tr>
+    <tr><td>Users could try rule after rule with no correction for how many they'd tried</td><td class="n">50 attempts on meaningless data produced ~3 false "winners"</td><td class="pass">fixed</td></tr>
+    <tr><td>Missing trading-volume readings were counted as zero, not skipped</td><td class="n">Dragged the average down, making "unusual volume" fire too often</td><td class="pass">fixed</td></tr>
+  </table>
+  <p style="font-size:.8rem;color:var(--faint)">Every one of these was found by deliberately attacking our own work, or by an outside reviewer. <b>None was found by the code feeling uncertain about itself.</b> That is the general lesson: confidence is not a bug detector.</p>
+
+  <h2>What we cannot do</h2>
+  <div class="card">
+    <p><b>We have no out-of-sample holdout.</b> Every test we run uses history we have already seen. By our own rules that caps us at <b>"measured, not predictive"</b> — we can say what happened, not what will. Anyone claiming otherwise about their own backtest, including us, should be asked this question first.</p>
+    <p><b>Passing our tests is not the same as being right about markets.</b> Offline tests show the maths is sound and honestly bounded. Whether a gauge is right about the real world is a separate verdict that only live data can give.</p>
+    <p><b>Some published methods we don't yet implement:</b> White's Reality Check, Hansen's SPA test, the Probability of Backtest Overfitting, and automatic lag selection for the overlap correction. Named here rather than left for you to discover.</p>
+    <p><b>Our crypto prices are an average across many exchanges.</b> Single exchanges can differ from that average by 1–3% during volatile periods. If you compare our numbers to one exchange's chart and they disagree slightly, that's usually why — not an error in either.</p>
+  </div>
+
+  <h2>Opinions, if we ever publish them</h2>
+  <div class="card">
+    <p>Everything above is measurement. If this project ever publishes <b>warnings or opinions</b> — a concern the builder holds, an argument about what the numbers might mean — it will follow three rules, set in advance, here, before any such page exists:</p>
+    <p><b>1. It will be visually unmistakable.</b> Opinion will never share a page or a style with measurement. You will never have to work out which one you're reading.</p>
+    <p><b>2. It gets graded like everything else.</b> An opinion carries a needle position too, and the same receipts rule applies. If a warning is UNVERIFIED, it says UNVERIFIED — with the number that put it there.</p>
+    <p><b>3. Waiting for certainty is not the honest option.</b> Our own testing shows this engine can't reliably detect small effects. A concern held to a near-certainty standard would stay unpublished forever, including when it's correct. So a warning may be published as <b>UNVERIFIED with weak evidence shown</b>, clearly labelled as one person's concern. That is more honest than silence — and it's exactly what the UNVERIFIED slot is for.</p>
+  </div>
+
+  <div class="card" style="border-color:rgba(95,191,143,.35)">
+    <p><b>How to catch us.</b> Three questions that work on us and on anyone else:</p>
+    <p>1. <b>"Show me the number behind that grade."</b> If it isn't there, the grade is an opinion.</p>
+    <p>2. <b>"Did your test have teeth?"</b> A test that passes without stressing the thing it tests proves nothing. We nearly shipped one.</p>
+    <p>3. <b>"What did you try that didn't work?"</b> Anyone showing only their successes is showing you a selection, not a result.</p>
+  </div>
+
+  <div class="card" style="font-size:.78rem;color:var(--faint);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <a href="plainsight-citations-1.html" style="text-decoration:none">← Citations &amp; sources</a>
+    <a href="plainsight-signal-test-1.html" style="text-decoration:none">The signal test →</a>
+  </div>
+</div>
+
+<div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const GLOSSARY={
+  "__demo":"Just like this: tap any underlined word and a plain meaning appears.",
+  "mde":"Minimum detectable effect. The smallest edge a test is strong enough to reliably notice. If a test can only spot edges of 1% or bigger, then anything smaller is invisible to it — and 'we found nothing' says more about the test than about the market.",
+  "newey-west":"A maths fix named after two economists. It corrects for measurements taken close together not being fully separate facts. Here, two signals firing hours apart look at overlapping stretches of price, so they are partly the same story counted twice.",
+  "holm":"Holm-Bonferroni. A way of raising the pass mark when you test several things at once. Test nine rules and one will look great by luck; this adjusts for that, and unlike simpler methods it adapts to how many tests you actually ran.",
+  "force not motive":"We report what happened and what the structure looks like. We never claim to know why someone did something. Intent lives inside a person's head, and a tool that guesses at it is inventing a fact it doesn't have.",
+  "fat tails":"A market where extreme moves happen far more often than a normal bell curve predicts. Real markets have them; simple maths models usually don't, which is why testing only on gentle fake markets can flatter a method.",
+  "vol clustering":"Calm periods follow calm periods and wild days follow wild days, rather than being scattered randomly. Real markets do this. It matters because tests that assume days are independent get fooled by it.",
+  "scipy":"A free, open scientific-maths library used by researchers worldwide, built and checked by thousands of contributors. We compare our numbers against it because neither we nor you wrote it — so agreement is evidence that doesn't rely on trusting us."
+};
+function showDef(t){const b=GLOSSARY[t.toLowerCase()];if(!b)return;
+ $("dt-w").textContent=t==="__demo"?"tap-to-define":t;$("dt-b").textContent=b;$("deftip").classList.add("show");}
+function hideDef(){$("deftip").classList.remove("show");}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");
+ if(t){showDef(t.getAttribute("data-def"));return;} if(!e.target.closest("#deftip"))hideDef();});
+$("deftip").querySelector(".x").onclick=hideDef;
+// Receipts-rule self-check: every tap target must resolve to a definition.
+(function(){const miss=[];document.querySelectorAll("[data-def]").forEach(el=>{
+ const k=el.getAttribute("data-def").toLowerCase(); if(!GLOSSARY[k])miss.push(k);});
+ if(miss.length)console.warn("RECEIPTS RULE VIOLATION — undefined tap targets:",miss);
+ else console.log("receipts self-check: all tap targets defined");})();
+</script>
+</body>
+</html>

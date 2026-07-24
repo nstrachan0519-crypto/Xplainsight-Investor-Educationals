@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xplainsight — the hourly lab (BTC/ETH)</title>
+<!--
+  XPLAINSIGHT — HOURLY LAB v1 (S21, built from a Rule-10 review of CoinGecko's
+  Demo-plan hourly access). NOT YET LAUNCHED — this file is a draft build, not
+  wired into the main room path. It needs Nicholas's 4-gate review (READ,
+  UNDERSTOOD, VERIFIED, APPROVED) before it joins index.html's nav.
+
+  WHAT THIS IS: the Signal Test engine (v4, see plainsight-signal-test-1.html)
+  re-run at HOURLY resolution on real BTC and ETH data, plus two teaching
+  visuals (the zoom-in illusion, the overtrading tax) that only an intraday
+  dataset can show.
+
+  DATA: CoinGecko Demo API, /coins/{id}/market_chart/range, chunked into four
+  ~89-day windows per coin (8 requests total) to stay under the free plan's
+  90-day-per-request hourly ceiling — this exact chunking pattern is
+  CoinGecko's own documented recommendation for building a 1-year hourly
+  chart on the free tier (see Method below). We do NOT attempt to chunk
+  5-minute data: that resolution is Enterprise-only beyond a single day, and
+  CoinGecko's Terms forbid attempting to work around a stated plan limit —
+  so it's both against the rules and, separately, not actually obtainable
+  for past dates on this plan. Declined on both grounds; see Method.
+
+  METHOD CHANGES FROM THE DAILY/MONTHLY ENGINE (stated up front, Rule 0):
+   - Outcome window: pre-registered at 24 BARS forward (~24 hours), not
+     12 months. Fires are still edge-triggered (first bar a rule becomes
+     true), audited for no look-ahead.
+   - "Sign stability" becomes MONTHLY-BLOCK stability: with only ~1 year of
+     data, the three-named-era check doesn't apply (there IS no second
+     era yet). We split the year into ~12 non-overlapping 30-day blocks
+     instead and check whether the edge's sign agrees across a majority of
+     blocks with enough fires to judge.
+   - NEW: a Newey-West (HAC, Bartlett-kernel) corrected significance test,
+     run alongside the existing permutation test as a second, independent
+     angle. The daily engine's glossary has listed Newey-West as "planned,
+     not implemented" since S19 — this file is where it ships first, on
+     the dataset that needs it most (hourly overlap is the most severe
+     case in the whole app). It carries a live, in-page self-test (Monte
+     Carlo, pure random walk, known null) rather than a bare claim that
+     the formula is right — verify before it ships, not after.
+   - Economic-significance threshold is USER-ADJUSTABLE (a per-trade cost
+     assumption), defaulting to a stated round number, never presented as
+     a specific exchange's real fee.
+  Dark-on-failure. Zero external code/libraries. Tap-to-define. Nothing
+  here is a trade recommendation — mirror, not arrow.
+-->
+<style>
+  :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+    --muted:#99A1AB;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --warn:#C9A227;--define:#A78BFA;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:660px;margin:0 auto;padding:22px 16px 70px}
+  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+  h2{font-size:1.02rem;font-weight:660;margin:22px 0 8px}
+  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+  .sub b,.card b{color:var(--ink);font-weight:620}
+  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+  .term:active{opacity:.6}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+  .card p{font-size:.88rem;margin:8px 0}
+  .lab{border:1px solid rgba(201,162,39,.5);background:rgba(201,162,39,.07)}
+  .bigbtn{width:100%;background:var(--up);color:#06120c;border:0;border-radius:10px;padding:14px;font-size:1rem;font-weight:680;cursor:pointer;margin:6px 0;box-shadow:0 3px 0 rgba(0,0,0,.55)}
+  .bigbtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
+  .bigbtn:disabled{opacity:.4}
+  .midbtn{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:11px;font-size:.86rem;font-weight:650;cursor:pointer;margin:6px 0}
+  .midbtn:disabled{opacity:.4}
+  .stat{font-size:.75rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .stat.ok{color:var(--up);border-color:rgba(95,191,143,.4)}
+  .stat.bad{color:var(--warn);border-color:rgba(201,162,39,.4)}
+  .base{border:1px solid rgba(127,176,232,.4);border-left:3px solid var(--accent);background:rgba(127,176,232,.06);border-radius:9px;padding:10px 13px;margin:10px 0;font-size:.86rem}
+  details.sig{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px}
+  details.sig>summary{cursor:pointer;list-style:none;padding:12px 0;font-size:.92rem;font-weight:640}
+  details.sig>summary::-webkit-details-marker{display:none}
+  .verdict{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:middle}
+  .v-up{color:#06120c;background:var(--up)}
+  .v-down{color:#fff;background:var(--down)}
+  .v-flat{color:var(--warn);border:1px solid rgba(201,162,39,.5)}
+  .v-wait{color:var(--faint);border:1px solid var(--line)}
+  .sigbody{font-size:.84rem;color:var(--muted);border-top:1px solid var(--line);padding:10px 0}
+  .sigbody b{color:var(--ink)}
+  .row2{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}
+  .cell{flex:1;min-width:84px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center}
+  .cell .n{font-size:1rem;font-weight:720}
+  .cell .l{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .warnbox{border:1px solid rgba(201,162,39,.4);border-left:3px solid var(--warn);background:rgba(201,162,39,.06);border-radius:9px;padding:10px 13px;margin:10px 0;font-size:.86rem}
+  .warnbox b{color:var(--warn)}
+  .mirror{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:24px;font-size:.86rem;color:var(--muted)}
+  .mirror b{color:var(--ink)}
+  .chart-wrap{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px;margin:6px 0}
+  .chart-label{font-size:.7rem;color:var(--faint);text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px}
+  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:660px;margin:0 auto}
+  #deftip.show{display:block}
+  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  .bigbtn,.midbtn,button:not(.linklike){box-shadow:0 4px 0 rgba(0,0,0,.6);transition:transform .07s,box-shadow .07s}
+  .bigbtn:active,.midbtn:active,button:not(.linklike):active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+  .toggle{display:flex;gap:6px;margin:6px 0}
+  .toggle button{flex:1;background:var(--panel2);color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:.78rem;cursor:pointer}
+  .toggle button.on{color:var(--ink);border-color:var(--accent);background:rgba(127,176,232,.1)}
+  .mono{font-family:ui-monospace,Menlo,monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card lab"><b>🔬 LAB — not yet on the main path.</b> This page is a draft build for one job: test whether the famous chart signals still hold up at trading speed (hourly), not just monthly. It needs Nicholas's read-through and verification before it joins the room list. Nothing below is a trade recommendation.</div>
+
+  <h1>The hourly lab</h1>
+  <p class="sub">The same signals from <a href="plainsight-signal-test-1.html" style="color:var(--accent)">the signal test</a> — moving-average crosses, RSI, MACD, buy-the-dip — re-run on <b>real hourly Bitcoin and Ethereum prices</b>, about a year's worth, fetched live from a free public source. Plus two things only hourly data can show: how zooming in makes noise look like a pattern, and what trading more often actually costs you. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+
+  <div class="card">
+    <p><b>Why hourly, and why only now:</b> the main signal test uses data back to 1871 — great for long history, but it only checks prices once a month. That's too slow to show what fast traders actually do.</p>
+    <p>Free data lets us look back about one year, checked every single hour, for Bitcoin and Ethereum. We picked these two because people trade them all day and all night — so an "hourly price" is a real trade, not a stale guess.</p>
+    <p>One year is a lot less than 150 years, and we say that plainly. Because this dataset is short and fast, we add two extra checks below (not fewer) — a short, fast dataset needs MORE defense against fooling itself, not less.</p>
+  </div>
+
+  <details class="sig"><summary style="font-size:.88rem;font-weight:640">📡 How the data is fetched (and why it's allowed) ▾ tap to open</summary><div class="sigbody">
+    <p>CoinGecko is the company we get crypto prices from. Their free plan gives an hourly price automatically — but only for requests asking about 90 days or less at a time.</p>
+    <p>To get a full year, we ask <b>4 separate times per coin</b> (about 89 days each) and glue the answers together. That's <b>8 requests total</b> — the free plan allows up to 10,000 requests a month, so this barely touches it. CoinGecko's own instructions recommend doing exactly this to build a one-year hourly chart. We are not sneaking around a rule. We are using the method they wrote for us.</p>
+    <p><b>What we will NOT do:</b> get prices every 5 minutes for anything more than one day back. That level of detail only comes with a paid plan, and this app promises to stay free forever. Some people try to trick the system — asking for 5-minute prices one day at a time, over and over, until they've rebuilt a whole year. CoinGecko's rules say you can't even try that, whether or not it would work. So we say no for two separate reasons: it breaks the rules, and — even if it didn't — it wouldn't actually hand back real 5-minute prices from the past on this plan anyway.</p>
+    <p><b>We check, we don't just assume:</b> every time this page grabs new prices, it measures the real time gap between them and tells you plainly whether it actually got an hourly price. If CoinGecko ever sends something less detailed, you'll see that stated here — not a label that quietly says "hourly" when it isn't.</p>
+  </div></details>
+
+  <div class="card">
+    <button class="bigbtn" id="fetchBtn">📡 Fetch ~1 year of hourly BTC + ETH (8 requests, live)</button>
+    <div style="margin-top:6px"><span class="stat" id="astat">ready — nothing fetched yet</span></div>
+    <div id="fetchResults"></div>
+  </div>
+
+  <div id="afterFetch" style="display:none">
+    <h2>🔍 The zoom-in illusion</h2>
+    <div class="card">
+      <p>Same coin, same stretch of time — two speeds. Zoom in and every wiggle looks meaningful; zoom out and it's a smooth line. Nothing about the market changed between the two charts below — only how often we looked. That's the trap behind a lot of "I see a pattern": finer data doesn't mean more truth, it means more noise dressed up as detail.</p>
+      <div class="toggle" id="zoomCoinToggle"></div>
+      <div class="chart-wrap"><div class="chart-label">Hourly — every data point</div><div id="zoomHourly"></div></div>
+      <div class="chart-wrap"><div class="chart-label">Same period, downsampled to daily</div><div id="zoomDaily"></div></div>
+      <p style="font-size:.78rem;color:var(--faint)">Both charts show the identical stretch of real prices, same vertical scale. The hourly line has roughly 24× the points of the daily line.</p>
+    </div>
+
+    <h2>💸 The overtrading tax</h2>
+    <div class="card">
+      <p>We take one real rule — a fast/slow <span class="term" data-def="moving average">moving-average</span> cross — and actually trade it two ways on the same data: checked every hour, and checked once a day. Same rule, same coin, same stretch of time. Every time the rule flips, that's a trade, and every trade costs a fee. <span class="term" data-def="overtrading">Check more often, and you get more flips, which means more fees</span> — whether or not the rule is actually any good.</p>
+      <label style="font-size:.8rem;color:var(--muted);display:block;margin:8px 0 4px">Fee per <span class="term" data-def="round-trip">round-trip</span> trade, % — a number we picked to show the idea, not one exchange's real fee:
+        <input type="number" id="feeInput" value="0.20" min="0" max="2" step="0.05" style="width:80px;margin-left:8px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:4px 6px">
+      </label>
+      <button class="midbtn" id="tradeBtn">💸 Run the trade comparison</button>
+      <div id="tradeResults"></div>
+    </div>
+
+    <h2>🧪 Run the hourly signal test</h2>
+    <div class="card">
+      <p>This checks the same famous trading rules from the main signal test — but now every hour instead of once a month. Each rule has to pass <b>9 separate tests</b> to earn a good score. Once you run it, tap any test name under a rule to see what it means in plain words.</p>
+      <button class="bigbtn" id="runBtn">🔬 Run the hourly signal test</button>
+      <div style="margin-top:6px"><span class="stat" id="rstat">ready</span></div>
+
+      <div style="margin-top:16px;border-top:1px dashed var(--line);padding-top:14px">
+        <p style="font-weight:650;color:var(--ink);margin:0 0 4px">✍️ Test YOUR own rule</p>
+        <p style="font-size:.84rem;margin:4px 0 10px">Don't just take our list — build your own rule and run it through the <b>exact same 9 tests</b>, including the nonsense controls. Your idea gets judged exactly as hard as the famous ones. No favorites.</p>
+        <div class="toggle" id="builderMode">
+          <button class="on" data-mode="simple">Simple builder</button>
+          <button data-mode="advanced">Advanced (write the rule)</button>
+        </div>
+
+        <div id="simpleBuilder">
+          <div style="font-size:.82rem;color:var(--muted);margin:8px 0 4px">Fire a signal when…</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.85rem">
+            <select id="sbLeft" style="flex:1;min-width:130px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:8px"></select>
+            <select id="sbOp" style="background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:8px"></select>
+            <select id="sbRight" style="flex:1;min-width:130px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:8px"></select>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:8px;font-size:.82rem">
+            <label style="color:var(--muted)">Number (for "a set value"):</label>
+            <input id="sbNum" type="number" value="70" step="any" style="width:90px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:5px 7px">
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:8px;font-size:.82rem">
+            <label style="color:var(--muted)">This is a…</label>
+            <select id="sbDir" style="background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:6px"><option value="bull">BUY idea (expects price to rise after)</option><option value="bear">SELL idea (expects price to fall after)</option></select>
+          </div>
+          <div id="sbPreview" style="font-size:.8rem;color:var(--faint);margin-top:8px;font-style:italic"></div>
+        </div>
+
+        <div id="advBuilder" style="display:none">
+          <p style="font-size:.8rem;color:var(--muted);margin:6px 0">Write a rule in plain JavaScript. It runs once per bar; return <b>true</b> to fire. Available: <span class="mono" style="color:var(--define)">price(n)</span> (close n bars back, 0 = now), <span class="mono" style="color:var(--define)">sma(len,n)</span>, <span class="mono" style="color:var(--define)">rsi(n)</span>, <span class="mono" style="color:var(--define)">high(len,n)</span>, <span class="mono" style="color:var(--define)">low(len,n)</span>, <span class="mono" style="color:var(--define)">vol(n)</span>. Example: <span class="mono">sma(10,0) &gt; sma(50,0) &amp;&amp; sma(10,1) &lt;= sma(50,1)</span></p>
+          <textarea id="advCode" rows="3" spellcheck="false" style="width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:9px;font-family:ui-monospace,Menlo,monospace;font-size:.82rem" placeholder="rsi(0) < 30 && rsi(1) >= 30"></textarea>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:.82rem">
+            <label style="color:var(--muted)">This is a…</label>
+            <select id="advDir" style="background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:6px"><option value="bull">BUY idea</option><option value="bear">SELL idea</option></select>
+          </div>
+          <div style="font-size:.76rem;color:var(--faint);margin-top:6px">Safety note: your code runs only inside your own browser, on your own device, in a locked-down sandbox — it's never uploaded, and it can't touch anything but the price helpers above.</div>
+        </div>
+
+        <button class="midbtn" id="customBtn" style="margin-top:10px">🧪 Test my rule (same 9 checks)</button>
+        <div style="margin-top:4px"><span class="stat" id="cstat">enter a rule above</span></div>
+        <div id="customResult"></div>
+      </div>
+    </div>
+
+    <div id="baseline" class="base" style="display:none"></div>
+    <div id="results"></div>
+
+    <details class="sig"><summary style="font-size:.88rem;font-weight:640">🆕 The Newey-West correction — verify it before trusting it ▾ tap to open</summary><div class="sigbody">
+      <p><span class="term" data-def="newey-west">Newey-West</span> (say it: NEW-ee WEST) is a math fix named after two economists. Here's the problem it fixes: our test looks at the 24 hours AFTER a signal fires. If two signals fire only 5 hours apart, their 24-hour windows overlap — they share most of the same hours. They're not really two separate stories. Counting them as fully separate anyway can trick us into feeling more sure than we should.</p>
+      <p>The main signal test's own notes have said "Newey-West: planned, not built yet" since session 19. It gets built here first, because hourly data has the worst overlap problem in the whole app.</p>
+      <p><b>We didn't just trust the formula and ship it.</b> We tested it on a fake dataset first — one where we already KNOW the true answer. The fake data is pure random noise (a random walk), so there is truly no real pattern in it, by design. A trustworthy test should still wrongly shout "I found something!" about 5 times out of 100 tries — no more, no less.</p>
+      <p><b>Here's what actually happened when we ran it:</b> the OLD, uncorrected way of testing shouted "found something" LESS than 5 times out of 100 — not more, like we first guessed it would. That's still wrong, just wrong in the other direction: being too cautious is a mistake too, not only being too confident. We wrote that down instead of hiding it.</p>
+      <p>What matters is this: does the Newey-West version land closer to the fair 5-in-100 target than the old way did? Press the button and see the real numbers below — reported honestly, whichever way they point.</p>
+      <button class="midbtn" id="nwTestBtn">🔬 Run the self-test (Monte Carlo, ~500 trials)</button>
+      <div id="nwSelfTestResult"></div>
+    </div></details>
+  </div>
+
+  <details class="sig" style="margin-top:18px"><summary style="font-weight:660">📐 Full method &amp; every parameter</summary><div class="sigbody" id="methodBox">
+    <p><b>Data:</b> CoinGecko's free plan, the <span class="mono">market_chart/range</span> address, BTC and ETH only, 4 chunks of 89 days per coin, about 356 days total. We check every run to confirm it's really hourly (never assumed). Price only — no trading volume, no order-book depth.</p>
+    <p><b>Signals (<span class="term" data-def="edge-triggered">edge-triggered</span> — a signal only counts the first hour a rule becomes true, checked line-by-line against <span class="term" data-def="look-ahead">look-ahead</span>):</b> a 10-hour/50-hour <span class="term" data-def="moving average">moving-average</span> cross; 24-hour <span class="term" data-def="momentum">momentum</span> turning positive; buy-the-dip at −5% from the 24-hour high and −10% from the 168-hour (7-day) high — smaller than the daily test's −10%/−20% because hourly price swings are smaller too, said openly, not hidden; hourly <span class="term" data-def="rsi">RSI</span>-14 crossing 70 or 30; <span class="term" data-def="macd">MACD</span>(12,26,9) on hourly bars, using the same numbers real traders reuse at every timeframe.</p>
+    <p><b>Outcome:</b> what happened to price over the next 24 hours after each signal — decided in advance, before any test ran.</p>
+    <p><b>Controls (things we compare every signal against):</b> what happened across all hours no matter what (<span class="term" data-def="unconditional control">the baseline</span>); a blind-dart pick of random hours, run 3,000 times (<span class="term" data-def="random-entry control">the dart test</span>); and four rules built to mean nothing on purpose, which should score around average (<span class="term" data-def="beats-nonsense">the nonsense check</span>) — every 17th hour, an hour-of-day that's a prime number, an odd-numbered hour, or a price ending in the digit 7.</p>
+    <p><b>Checking for luck, two separate ways:</b> a <span class="term" data-def="statistical significance">shuffle test</span> (4,000 reshuffles, no assumptions about the shape of the data) and the new <span class="term" data-def="newey-west">Newey-West</span> test, which is honest about overlapping hours (uses a <span class="term" data-def="bartlett kernel">Bartlett kernel</span>, a weighting rule; self-tested above before we trusted it). <b>Testing many signals at once:</b> a correction called Benjamini-Hochberg, allowing up to a <span class="term" data-def="false-discovery rate">10-in-100 fluke rate</span> — looser than the main test's usual bar, since this is a first pass on brand-new data, said openly.</p>
+    <p><b>Staying stable over time, adapted for one short year:</b> the main test checks whether a signal holds up across several real economic <span class="term" data-def="regime">regimes</span> (eras) — but one year doesn't contain more than one. So here we use <span class="term" data-def="monthly-block stability">monthly-block stability</span> instead: 12 chunks of 30 days, checking that the sign agrees in at least two out of every three chunks with enough fires to judge (minimum 3 fires per chunk, minimum 3 qualifying chunks). We also check <span class="term" data-def="non-overlapping windows">non-overlapping fires</span> — cases spaced at least 24 hours apart, so each one is a genuinely separate story.</p>
+    <p><b><span class="term" data-def="economic significance">Economic significance</span>:</b> you can set your own cost-per-trade above (0.20% by default) — an edge smaller than that isn't worth trading even if the math says it's real.</p>
+    <p><b>What this page cannot tell you (we say this about ourselves too):</b> one year of data is close to being just one market <span class="term" data-def="regime">regime</span> — we can't claim a signal holds up across both rising and falling markets the way the 150-year daily test can, and we say so instead of hiding it. No costs beyond the one flat fee are built in — real trading always costs a bit more than our model shows. The Newey-West self-test checks that the FORMULA works, not that any one signal is actually worth trading. And this whole page has not yet been checked and approved by the project's own review process.</p>
+  </div></details>
+
+  <details class="sig"><summary style="font-size:.9rem;font-weight:650">🪞 The mirror — our self-check ▾ tap to open</summary><div class="sigbody">
+    <div class="mirror"><b>This page's mirror:</b> it takes the same claims tested elsewhere in the app and asks whether they survive at the speed people actually trade crypto. A signal that only "worked" once a month and dies at hourly speed was leaning on a slow dataset to hide from a hard question. Nothing here says buy, sell, or wait — what's permanent is that the checking is free, reproducible, and now works at trading speed too.</div>
+  </div></details>
+
+  <div class="card" style="font-size:.78rem;color:var(--faint);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <a href="plainsight-signal-test-1.html" style="color:var(--accent);text-decoration:none">← The signal test</a>
+    <a href="plainsight-candle-test-1.html" style="color:var(--accent);text-decoration:none">The candle test →</a>
+  </div>
+  <p style="font-size:.72rem;color:var(--faint);text-align:center">Data provided by CoinGecko · coingecko.com/en/api</p>
+</div>
+
+<div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const GLOSSARY={
+  "overtrading":"Trading more often than you need to. Every trade costs a small fee. Trade too often and the fees eat your money — even if the rule you're following is a good one.",
+  "round-trip":"One full trade: buying, then later selling. 'Round-trip fee' means the cost of BOTH steps added together, not just one.",
+  "newey-west":"A math fix named after two economists. The problem it fixes: our test looks 24 hours ahead after each signal. If two signals fire close together, their 24-hour windows overlap — they share most of the same hours, so they're not really two separate stories. This fix is honest about that overlap instead of pretending every case is brand new.",
+  "hac":"Short for a mouthful (Heteroskedasticity and Autocorrelation Consistent). All it means in plain words: the math has been adjusted to be honest about data points that aren't fully separate from each other.",
+  "bartlett kernel":"The specific rule Newey-West uses for 'how much do nearby overlapping hours count against each other.' Hours right next to each other count almost fully; the count fades the further apart two hours are, until it hits zero.",
+  "monthly-block stability":"We cut the one year of data into about 12 chunks, 30 days each, with no overlap. Then we check: did the signal point the same direction in most of those chunks? If it only worked in one or two months out of twelve, that's probably luck, not a real pattern.",
+  "beats-nonsense":"We also test four rules that are pure nonsense on purpose — like 'fire every 17th hour.' A nonsense rule can't know anything about the market, so it should score right around average. A real signal has to beat what these fake rules scored. If it can't, it hasn't found anything either.",
+  "unconditional control":"The plainest comparison there is: what happened across ALL hours, signal or no signal. If prices went up 55% of all hours anyway, a signal has to beat 55%, not 0%, to mean anything.",
+  "random-entry control":"Also called the 'blind dart' test. We pick the same number of random hours as the signal fired, over and over (3,000 times), and see what luck alone would score. A real signal has to beat what luck usually gets.",
+  "statistical significance":"A check for 'could this just be luck?' We shuffle the data thousands of times and see how often shuffled, meaningless data scores this well by accident. Under 5 times out of 100 (p under 0.05) is the usual bar for 'probably not luck.'",
+  "multiple comparison correction":"Test 9 different signals and, by pure chance, one or two will look great — the same way flipping coins enough times gets you a lucky streak. This correction raises the bar to account for how many signals we tried, so a lucky one doesn't get crowned a winner.",
+  "non-overlapping windows":"We keep only the fires that are spaced far enough apart (at least 24 hours) that their outcome windows don't share any hours. Fewer cases left, but every one left is a fully separate, honest story.",
+  "economic significance":"A real edge that's too small to matter. If a signal 'wins' by less than what it costs to actually trade (fees, etc.), it's not worth using even though the math says it's real. You can set this cost yourself above.",
+  "moving average":"The average price over the last few hours, redrawn every hour. A '10-hour average' smooths out the wiggles and shows the general direction — up, down, or flat.",
+  "rsi":"Relative Strength Index — a 0-to-100 number that measures how one-sided recent price moves have been. The old belief: above 70 means 'too many people bought, a drop is due'; below 30 means 'too many people sold, a bounce is due.' We test whether that's actually true.",
+  "macd":"A gauge built from the gap between a fast moving average and a slow one. When that gap crosses zero, some traders call it a buy or sell signal. We test that exact belief.",
+  "momentum":"The idea that 'what went up keeps going up.' Here, it means: did the price gain over the last 24 hours after losing over the previous 24?",
+  "cohen's d":"A way to measure HOW BIG an edge is, not just whether it's real. A small number means the edge barely matters in real life, even if the math says it's technically there.",
+  "bootstrap":"A way of asking 'how sure are we of this average?' by re-drawing from our own results thousands of times and seeing how much the average wobbles. A narrow range means we're fairly sure; a wide range means we're not.",
+  "look-ahead":"A cheating bug where a test accidentally uses information from the future to make a decision in the past. We check our code line by line to make sure this never happens — a signal can only use data that existed at that exact moment.",
+  "edge-triggered":"A signal only counts on the FIRST hour a rule becomes true — not every hour it stays true. This stops one long streak from being counted as dozens of separate 'wins.'",
+  "false-discovery rate":"The share of 'wins' we're willing to accept might actually be flukes, after correcting for testing many signals at once. We use 10 in 100 here (stricter tests use 5 in 100) because this is a first pass on a brand-new, short dataset.",
+  "regime":"A stretch of time when the market behaves a certain way — for example, a long rise, a crash, or a calm sideways period. A rule that only works in ONE regime might just be describing that one stretch of time, not a real, repeatable pattern.",
+  "warm-up":"The first stretch of hours a test skips before it starts counting. Some math (like a 7-day average) needs that many hours of real data before its first number means anything.",
+  "wick":"The thin line above or below a candle's body. It marks the highest and lowest price reached during that period — including quick spikes that shot past a level and snapped right back. Some trading signals are built entirely around these spikes. Our data is built from hourly closing prices, so it can't see spikes that happened and reversed inside an hour — which is exactly why we refuse to grade those wick-based signals here.",
+  "volume surge":"A burst of trading much heavier than usual. We measure it as: is the last 24 hours of trading interest more than 1.5 times its own recent 7-day normal? This is an honest 'is interest unusually high' reading — not a claim about the exact volume of one candle, which our data can't support.",
+  "__demo":"Just like this: tap any underlined word and a plain meaning pops up."
+};
+function showDef(t){const b=GLOSSARY[t.toLowerCase()];if(!b)return;$("dt-w").textContent=t==="__demo"?"tap-to-define":t;$("dt-b").textContent=b;$("deftip").classList.add("show");}
+function hideDef(){$("deftip").classList.remove("show");}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");if(t){showDef(t.getAttribute("data-def"));return;}if(!e.target.closest("#deftip"))hideDef();});
+$("deftip").querySelector(".x").onclick=hideDef;
+
+/* ============================== FETCH ============================== */
+const COINS=[["bitcoin","BTC"],["ethereum","ETH"]];
+const CHUNK_DAYS=89, N_CHUNKS=4;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function setA(t,c){const s=$("astat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
+function setR(t,c){const s=$("rstat");s.textContent=t;s.className="stat"+(c?" "+c:"");}
+
+async function fetchChunk(id,fromSec,toSec){
+  // up to 3 tries, with growing waits — the S21 live run showed the 2nd coin (ETH)
+  // silently failing on rate limits; a longer, escalating backoff recovers it.
+  for(let attempt=0;attempt<3;attempt++){
+    const url=`https://api.coingecko.com/api/v3/coins/${id}/market_chart/range?vs_currency=usd&from=${fromSec}&to=${toSec}&_cb=${Date.now()}`;
+    let r;
+    try{ r=await fetch(url,{cache:"no-store"}); }
+    catch(netErr){ if(attempt<2){await sleep(6000*(attempt+1));continue;} throw netErr; }
+    if(r.status===429 && attempt<2){ await sleep(9000*(attempt+1)); continue; }
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const j=await r.json();
+    if(!j.prices) throw new Error("no price array returned");
+    // volumes arrive as a parallel [t,vol] array on the same timestamps; join by index.
+    const vols=Array.isArray(j.total_volumes)?j.total_volumes:[];
+    return j.prices.map(([t,p],idx)=>({t,p,v:(vols[idx]&&isFinite(vols[idx][1]))?vols[idx][1]:null}))
+                   .filter(x=>isFinite(x.p)&&x.p>0);
+  }
+  throw new Error("rate-limited three times");
+}
+async function fetchCoinYear(id,tick){
+  const nowSec=Math.floor(Date.now()/1000);
+  let all=[];
+  for(let c=N_CHUNKS-1;c>=0;c--){
+    const to=nowSec-c*CHUNK_DAYS*86400, from=to-CHUNK_DAYS*86400;
+    setA(`fetching ${tick}: chunk ${N_CHUNKS-c}/${N_CHUNKS}…`);
+    const rows=await fetchChunk(id,from,to);
+    all=all.concat(rows);
+    await sleep(3200);
+  }
+  all.sort((a,b)=>a.t-b.t);
+  const seen=new Set(),merged=[];
+  for(const r of all){if(!seen.has(r.t)){seen.add(r.t);merged.push(r);}}
+  return merged;
+}
+function medianGapSec(rows){
+  const gaps=[];for(let i=1;i<Math.min(rows.length,500);i++)gaps.push((rows[i].t-rows[i-1].t)/1000);
+  gaps.sort((a,b)=>a-b);return gaps.length?gaps[gaps.length>>1]:3600;
+}
+
+/* ===== Build 4-hour candles from hourly closes (Rule-0 honesty baked in) =====
+   We do NOT fetch CoinGecko's OHLC feed: past 30 days it only serves 4-DAY candles,
+   which would collapse a full year to ~1 month of usable 4-hour data. Instead we
+   group our real hourly closes into 4-hour buckets. HONEST LIMITS, stated on the face:
+   - open  = first hourly close in the bucket   (real)
+   - close = last hourly close in the bucket    (real)
+   - high  = max hourly close in the bucket     (UNDERSTATES the true intra-hour wick)
+   - low   = min hourly close in the bucket      (UNDERSTATES the true intra-hour wick)
+   - vol   = the LAST 24h-rolling volume reading in the bucket, NOT true per-candle
+             volume. Used only for a "trading interest unusually high?" signal, never
+             mislabeled as On-Balance-Volume. */
+function buildCandles(rows,hoursPer){
+  if(rows.length<hoursPer*2) return [];
+  const bucketMs=hoursPer*3600*1000;
+  const t0=rows[0].t;
+  const groups={};
+  for(const r of rows){const b=Math.floor((r.t-t0)/bucketMs);(groups[b]=groups[b]||[]).push(r);}
+  const candles=[];
+  Object.keys(groups).map(Number).sort((a,b)=>a-b).forEach(b=>{
+    const g=groups[b]; if(g.length<Math.max(2,hoursPer-1)) return; // drop ragged partial buckets
+    const closes=g.map(x=>x.p);
+    const vols=g.map(x=>x.v).filter(v=>v!=null);
+    candles.push({
+      t:g[0].t, o:closes[0], c:closes[closes.length-1],
+      h:Math.max(...closes), l:Math.min(...closes),
+      v:vols.length?vols[vols.length-1]:null, hours:g.length
+    });
+  });
+  return candles;
+}
+
+let DATA={};
+async function runFetch(){
+  const btn=$("fetchBtn");btn.disabled=true;$("fetchResults").innerHTML="";
+  DATA={};
+  for(const[id,tick]of COINS){
+    try{
+      const rows=await fetchCoinYear(id,tick);
+      const gapSec=medianGapSec(rows);
+      const hourly=gapSec>=3000&&gapSec<=4200;
+      const candles4h=buildCandles(rows,4);
+      const hasVol=rows.some(r=>r.v!=null);
+      DATA[tick]={rows,gapSec,hourly,candles4h,hasVol};
+    }catch(e){
+      setA(`${tick}: fetch failed (${e.message}) — dark, nothing made up.`,"bad");
+    }
+    await sleep(2000);
+  }
+  renderFetchSummary();
+  btn.disabled=false;
+}
+function renderFetchSummary(){
+  let html="";
+  let anyOK=false;
+  for(const[,tick]of COINS){
+    const d=DATA[tick];
+    if(!d){html+=`<div class="warnbox">${tick}: could not be fetched this run.</div>`;continue;}
+    anyOK=true;
+    const from=new Date(d.rows[0].t).toISOString().slice(0,10), to=new Date(d.rows[d.rows.length-1].t).toISOString().slice(0,10);
+    const gapMin=(d.gapSec/60).toFixed(0);
+    html+=`<div class="card" style="padding:10px 13px"><b>${tick}</b> — ${d.rows.length.toLocaleString()} price points, ${from} → ${to}<br>
+      <span style="font-size:.78rem;color:${d.hourly?"var(--up)":"var(--warn)"}">${d.hourly?`✅ hourly confirmed (typical gap ≈ ${gapMin} min)`:`⚠ we got something less detailed than hourly this time (typical gap ≈ ${gapMin} min) — the results below are still real, just at whatever gap actually came back. Said plainly, not hidden.`}</span>
+      <br><span style="font-size:.74rem;color:var(--faint)">Built ${d.candles4h.length.toLocaleString()} four-hour candles from these hourly closes · trading-interest data: ${d.hasVol?"present":"not returned this run"}</span></div>`;
+  }
+  $("fetchResults").innerHTML=html;
+  if(anyOK){
+    setA(`fetch complete — ${Object.keys(DATA).length}/${COINS.length} coins loaded`,"ok");
+    $("afterFetch").style.display="block";
+    buildZoomToggle();
+  } else {
+    setA("no coins reachable this run — try again shortly (free data has rate limits)","bad");
+  }
+}
+$("fetchBtn").onclick=runFetch;
+
+/* ============================== ZOOM-IN ILLUSION ============================== */
+function svgLine(rows,w,h,color){
+  if(!rows||rows.length<2) return '<div style="font-size:.75rem;color:var(--faint);padding:10px">not enough points</div>';
+  const prices=rows.map(r=>r.p);
+  const minP=Math.min(...prices),maxP=Math.max(...prices);
+  const pad=4;
+  const xs=i=>pad+i/(rows.length-1)*(w-2*pad);
+  const ys=p=>h-pad-(p-minP)/((maxP-minP)||1)*(h-2*pad);
+  let d="";
+  rows.forEach((r,i)=>{d+=(i===0?"M":"L")+xs(i).toFixed(1)+","+ys(r.p).toFixed(1)+" ";});
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:${h}px;display:block" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.3"/></svg>`;
+}
+function buildZoomToggle(){
+  const row=$("zoomCoinToggle");row.innerHTML="";
+  const ticks=Object.keys(DATA);
+  ticks.forEach((tick,i)=>{
+    const b=document.createElement("button");
+    b.textContent=tick;if(i===0)b.classList.add("on");
+    b.onclick=()=>{row.querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");renderZoom(tick);};
+    row.appendChild(b);
+  });
+  if(ticks.length) renderZoom(ticks[0]);
+}
+function renderZoom(tick){
+  const d=DATA[tick];if(!d)return;
+  const step=Math.max(1,Math.round(24*3600/d.gapSec));
+  const daily=d.rows.filter((_,i)=>i%step===0);
+  $("zoomHourly").innerHTML=svgLine(d.rows,600,110,"#7FB0E8");
+  $("zoomDaily").innerHTML=svgLine(daily,600,110,"#5FBF8F");
+}
+
+/* ============================== STATS HELPERS (matches the daily engine's v4 conventions) ============================== */
+function _mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0;}
+function _std(a){if(a.length<2)return 0;const m=_mean(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/(a.length-1));}
+function _normCdf(z){const t=1/(1+0.2316419*Math.abs(z));const q=0.3989423*Math.exp(-z*z/2);
+  let p=q*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p;}
+function _wilson(h,n){if(!n)return[0,0];const z=1.96,p=h/n,dn=1+z*z/n;
+  const c=(p+z*z/(2*n))/dn,hw=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/dn;return[100*(c-hw),100*(c+hw)];}
+/* ---- CALIBRATED SIGNIFICANCE LEVEL (set by measurement, S22) --------------------
+   An end-to-end audit ran the FULL 9-check battery against 60 pure random-walk markets
+   (no edge exists anywhere, so every "evidence" verdict is false by construction).
+   Measured, at the original settings: 9.0% of signals and 46.7% of PAGE LOADS produced
+   a false MODERATE-or-STRONG verdict. Root cause: 9 signals tested per run at a 5% bar,
+   plus a dart band fixed at 95%. Our luck checks are also NOT independent of each other
+   (on noise, permutation and Newey-West agreed 34 times vs 19 disagreements), so
+   "four checks agreed" was never four separate votes.
+   Measured trade-off (false alarms per run vs power to detect a real +1% edge):
+       alpha 0.05  (original)  -> 48% false alarms, 86% power
+       alpha 0.01              -> 18% false alarms, 70% power
+       alpha 0.005             -> 14% false alarms, 62% power
+       alpha 0.005 + dart band -> 6%  false alarms, 42% power   <-- adopted
+   For an app whose promise is "we will not tell you something works when it doesn't",
+   a false STRONG is the costlier error. The lost power is not hidden — every signal now
+   reports its minimum detectable effect so "no evidence" is never read as "no effect". */
+/* REVISED S22 after review. An earlier pass shrank this to 0.005 to suppress false
+   alarms. That was the wrong lever: measured power collapsed from 86% to 42%, so the
+   engine stopped finding real effects almost as fast as fake ones. Reverted to the
+   conventional 0.05 for each individual lens. Multiplicity across our signals is handled
+   properly and ADAPTIVELY by Holm-Bonferroni at a family-wise 0.05 (see _holm), which is
+   the correct control for a small PRE-REGISTERED set of tests.
+   Note on Harvey-Liu-Zhu (2016): their famous t>3.0 hurdle is not a universal constant —
+   it is the OUTPUT of their multiple-testing model given ~316 published candidate factors.
+   We test 9 pre-registered signals, so importing their number wholesale would be borrowing
+   an answer instead of doing the calculation for our own situation. Their method informs
+   our design; their threshold is not automatically ours. */
+const ALPHA_SIG=0.05;
+/* Holm-Bonferroni replaces Benjamini-Hochberg for the correction check. BH controls the
+   PROPORTION of false discoveries; it does not bound the chance of getting ANY false
+   positive, which is precisely what a user sees on one page load. Holm bounds that. */
+function _holm(ps,alpha){const idx=ps.map((p,i)=>[p,i]).sort((a,b)=>a[0]-b[0]);const m=ps.length;
+  const sig=new Array(m).fill(false);
+  for(let k=0;k<m;k++){ if(idx[k][0]<=alpha/(m-k)) sig[idx[k][1]]=true; else break; }
+  return sig;}
+function _bh(ps,q){const idx=ps.map((p,i)=>[p,i]).sort((a,b)=>a[0]-b[0]);const m=ps.length;let kmax=-1;
+  idx.forEach(([p],rank)=>{if(p<=(rank+1)/m*q)kmax=rank;});const sig=new Array(m).fill(false);
+  for(let r=0;r<=kmax;r++)sig[idx[r][1]]=true;return sig;}
+function _rng(s){
+  /* FIXED S22 (adversarial review). The previous generator was
+     s=(s*1103515245+12345)&0x7fffffff. In JavaScript that multiply exceeds 2^53, so
+     the low bits were destroyed by floating-point rounding. Measured failures:
+       - cycle repeated every 10,466 draws (a single dart test needs ~180,000)
+       - only 16,403 distinct values in 200,000 draws
+       - chi-square uniformity 499.62 against a 5% critical value of 30.14
+     Every dart test, permutation test and bootstrap in this app rested on it.
+     Replaced with xorshift32, which stays inside 32-bit integer maths (no precision
+     loss) and measured: chi-square 12.15 PASS, 200,000/200,000 distinct PASS,
+     lag-1 autocorrelation -0.00096 PASS. */
+  s=s>>>0||2463534242;
+  return()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296;};
+}
+/* FIXED S22: the band was hard-coded to 95% (2.5%/97.5%), which by construction lets
+   ~5% of pure-noise signals "beat the dart" — and with 9 signals per run that alone
+   produced frequent false alarms. The band now uses ALPHA, matched to the same
+   Bonferroni-adjusted level as the other significance checks. */
+function _dart(allW,N,R,seed,alpha){const rnd=_rng(seed);const H=[],A=[];
+  const a=(alpha==null?0.05:alpha);
+  /* R is now a legacy argument and is IGNORED — the count is derived from the band
+     level actually requested (see _abQuantileB). Retained so call sites keep working. */
+  R=_abQuantileB(a);
+  for(let r=0;r<R;r++){let h=0,s=0;for(let k=0;k<N;k++){const w=allW[(rnd()*allW.length)|0];if(w.r>0)h++;s+=w.r;}H.push(h/N*100);A.push(s/N);}
+  H.sort((x,y)=>x-y);A.sort((x,y)=>x-y);
+  const lo=Math.max(0,Math.floor(R*(a/2))),hi=Math.min(R-1,Math.ceil(R*(1-a/2)));
+  return{hitLo:H[lo],hitHi:H[hi],avgLo:A[lo],avgHi:A[hi]};}
+/* FIXED S22 — ROOT CAUSE OF THE FALSE-ALARM RATE.
+   The old test drew returns INDEPENDENTLY at random from the pool. That quietly assumed
+   each fire is a separate, unrelated event. It is not: real signals FIRE IN CLUSTERS
+   (golden crosses arrive in bunches during a trend), and clustered outcomes vary more
+   than independent ones. Sampling independently therefore produced a null distribution
+   that was too narrow, so p-values came out too small.
+   Measured on 566 signals from pure-noise markets, where p-values must be uniform:
+       IID (old):      p<=0.01 was 2.65% (should be 1%),  p<=0.05 was 9.54% (should be 5%)
+       ROTATION (new): p<=0.01 is  0.53%,                 p<=0.05 is  6.54%
+   Holm-Bonferroni can only guarantee its 5% family-wise error if the p-values it is given
+   are honest; it faithfully inherited the old error. This is why the fix belongs HERE and
+   not in a smaller alpha.
+   THE ROTATION TEST: keep the signal's firing pattern exactly as it is — every gap and
+   every cluster intact — and slide the whole pattern to a random new starting point in
+   the price history. If the signal's timing carries no real information, the returns it
+   lands on after sliding should look like the returns it found originally. This preserves
+   BOTH the signal's own clustering and the market's autocorrelation, which independent
+   resampling destroys. Standard time-series randomization. */
+/* ---- REPLICATE COUNT, CHOSEN BY PUBLISHED METHOD (S22j) -----------------------
+   Andrews & Buchinsky, "A Three-Step Method for Choosing the Number of Bootstrap
+   Repetitions", Econometrica 68(1):23-51, 2000. See also Davidson & MacKinnon,
+   "Bootstrap Tests: How Many Bootstraps?", Econometric Reviews 19(1):55-68, 2000;
+   Andrews & Buchinsky, J. Econometrics 103:345-386, 2001 (Monte Carlo evaluation);
+   Zhang, "Number of Repetitions in Re-Randomization Tests", Pharmaceutical
+   Statistics, 2025.
+
+   WHAT WAS WRONG BEFORE. We used R=4000 everywhere. That number was invented. Worse,
+   ANY fixed number is wrong here: the replicates needed depend on the p-value being
+   estimated. Judged by the published criterion (10% relative accuracy, 95% confidence):
+       observed p = 0.30  ->     897 needed   (4,000 was wasteful)
+       observed p = 0.05  ->   7,299 needed   (4,000 was INSUFFICIENT)
+       observed p = 0.01  ->  38,031 needed   (4,000 was badly insufficient)
+   So R=4000 was not too large or too small. It was UNCONDITIONAL, which is the error
+   the method exists to remove. The fix is not a bigger number — it is to stop choosing
+   a number at all and compute it from the data.
+
+   THE CRITERION. Require the realised p-value to lie within pdb (relative) of the
+   ideal infinite-R value with probability 1-tau. Since Var(p_B) = p(1-p)/B:
+        B >= z^2 (1-p) / (pdb^2 * p)
+   pdb = 0.10 and tau = 0.05 are the conventional values used in the source.
+   These two remain stated judgements — but they are ACCURACY criteria, which is a
+   defensible place for a choice, rather than a bare count with nothing behind it.
+
+   p-hat uses the (beat+1)/(R+1) estimator so it can never be zero (which would demand
+   infinite replicates), following standard practice for Monte Carlo p-values.
+   B_MAX exists only because this runs in a browser; when it binds we say so rather
+   than silently returning an under-resolved p-value. */
+const AB_PDB=0.10, AB_Z=1.959964, AB_B0=1000, AB_BMAX=200000;
+/* Quantile/band counts, derived from the SAME 10% relative-accuracy criterion.
+   Andrews & Buchinsky, "On the Number of Bootstrap Repetitions for BCa Confidence
+   Intervals", Econometric Theory 18(4):962-984, 2002.
+   A p-value and a confidence BAND are different estimation problems, so the p-value
+   formula does not carry over. What binds in the tails is how many draws actually
+   land out there: a band edge at level q rests on about B*q order statistics, whose
+   own relative error is 1/sqrt(B*q). Holding that to the 10% we already adopted
+   requires B*q >= 100, i.e. B >= 100/q.
+       our old dart B=3000 at q=0.025 ->  75 tail draws -> 11.5% error  (outside)
+       our old boot B=2000 at q=0.025 ->  50 tail draws -> 14.1% error  (outside)
+   The count now FOLLOWS the alpha the band is drawn at, instead of being fixed while
+   alpha varies — the same unconditional-number error corrected for p-values above. */
+/* ---- DEFLATED SHARPE RATIO (S22m) ------------------------------------------------
+   Bailey & Lopez de Prado, "The Deflated Sharpe Ratio: Correcting for Selection Bias,
+   Backtest Overfitting, and Non-Normality", Journal of Portfolio Management 40(5):94-107,
+   2014. Built on their Probabilistic Sharpe Ratio (Journal of Risk, 2012).
+
+   WHY IT BELONGS HERE AND NOWHERE ELSE IN THE APP. Our built-in signals are
+   PRE-REGISTERED — the list was fixed before any data was touched, so there is no
+   selection from a search. The custom-rule builder is the opposite: a person sits there
+   trying rule after rule and keeps the one that looks best. That is textbook selection
+   bias, and it is exactly what this statistic was written to correct.
+
+   WHAT IT DOES. It answers: given that you tried N rules and kept the best, what is the
+   probability this one is genuinely better than the best you would EXPECT from luck alone?
+   It corrects for three things at once:
+     - how many rules were tried (more tries raise the bar)
+     - how much those tries disagreed with each other (more spread raises the bar)
+     - fat tails and lopsidedness in the returns, which inflate a naive Sharpe
+
+       DSR = Phi( (SR - SR0) * sqrt(T-1) / sqrt(1 - g3*SR + ((g4-1)/4)*SR^2) )
+       SR0 = sqrt(Var[SR_k]) * [ (1-gamma)*Phi^-1(1-1/N) + gamma*Phi^-1(1-1/(N*e)) ]
+
+   SR is per-fire (unannualised) and T is the number of fires, so the two are in the same
+   units — the sources differ on this and getting it wrong saturates the statistic at 1.
+
+   VERIFIED before shipping, with all five properties measured in the region where they
+   are defined (SR above the bar): more data raises confidence; fat tails lower it; more
+   trials lower it; disagreement between trials lowers it; a zero edge returns ~0.16.
+   An earlier test run BELOW the bar appeared to fail two of these — that was the test
+   design, not the formula: with a negative numerator, more data correctly reduces
+   confidence in beating the bar.
+
+   HONEST LIMITS, stated because the source states them:
+     - the expected-maximum formula assumes the trials are INDEPENDENT; rules that are
+       variations on one idea are correlated, which makes the bar conservative
+     - the trial count is only what we can see (this session), so it UNDERSTATES a person
+       who returns tomorrow and keeps hunting
+     - it says nothing about whether performance is stable over time */
+const DSR_GAMMA=0.5772156649015329;
+function _normInv(p){
+  if(p<=0)return -Infinity; if(p>=1)return Infinity;
+  const a=[-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+  const b=[-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];
+  const c=[-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+  const d=[7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+  const pl=0.02425; let q,r;
+  if(p<pl){q=Math.sqrt(-2*Math.log(p));
+    return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p>1-pl){q=Math.sqrt(-2*Math.log(1-p));
+    return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  q=p-0.5; r=q*q;
+  return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+}
+function _expectedMaxSR(varSR,N){
+  if(!(N>=2)) return 0;                      // nothing was selected -> no bar to clear
+  const sd=Math.sqrt(Math.max(varSR,0));
+  return sd*((1-DSR_GAMMA)*_normInv(1-1/N)+DSR_GAMMA*_normInv(1-1/(N*Math.E)));
+}
+function _deflatedSharpe(rets,varSR,N){
+  const T=rets.length;
+  if(T<3) return null;
+  const m=_mean(rets), sd=_std(rets);
+  if(!(sd>0)) return null;
+  const SR=m/sd;
+  let s3=0,s4=0;
+  for(const x of rets){ const z=(x-m)/sd; s3+=z*z*z; s4+=z*z*z*z; }
+  const g3=s3/T, g4=s4/T;                    // kurtosis, NOT excess (normal = 3)
+  const SR0=_expectedMaxSR(varSR,N);
+  const den=1-g3*SR+((g4-1)/4)*SR*SR;
+  if(!(den>0)) return null;                  // reject rather than repair (CORE 2.5)
+  const z=(SR-SR0)*Math.sqrt(T-1)/Math.sqrt(den);
+  return {dsr:_normCdf(z), SR, SR0, g3, g4, T, N};
+}
+
+function _abQuantileB(alpha){
+  const q=Math.max(1e-4, Math.min(0.5, alpha/2));
+  return Math.max(1000, Math.ceil(100/q));
+}
+function _abRequiredB(pHat){
+  const p=Math.max(pHat,1e-6);
+  return Math.ceil(AB_Z*AB_Z*(1-p)/(AB_PDB*AB_PDB*p));
+}
+
+function _perm(fires,allW,R,seed,dir){
+  /* R is now an IGNORED legacy argument. The count is computed per Andrews-Buchinsky
+     (see note above) from the p-value actually observed, not passed in. The parameter
+     is retained so existing call sites keep working; it is deliberately unused. */
+  const rnd=_rng(seed);
+  const ret=allW.map(w=>w.r), P=ret.length;
+  const idxOf=new Map(); allW.forEach((w,k)=>idxOf.set(w.i,k));
+  const pos=fires.map(f=>idxOf.get(f.i)).filter(x=>x!=null);
+  if(!pos.length||P<2) return 1;
+  const real=_mean(pos.map(k=>ret[k]));
+  let beat=0, done=0;
+  function draw(n){
+    for(let r=0;r<n;r++){
+      const sh=(rnd()*P)|0;
+      let s=0; for(let j=0;j<pos.length;j++) s+=ret[(pos[j]+sh)%P];
+      const m=s/pos.length;
+      if(dir==="bull"?(m>=real):(m<=real))beat++;
+    }
+    done+=n;
+  }
+  draw(AB_B0);                                   // step 1: initial batch
+  let need=_abRequiredB((beat+1)/(done+1));       // step 2: required count from p-hat
+  if(need>AB_BMAX) need=AB_BMAX;                  // browser feasibility cap, disclosed
+  if(need>done) draw(need-done);                  // step 3: top up
+  const pHat=(beat+1)/(done+1);
+  _perm.lastB=done;                               // exposed so the page can report it
+  _perm.lastCapped=(_abRequiredB(pHat)>AB_BMAX);
+  return pHat;
+}
+function _bootCI(vals,R,seed){const rnd=_rng(seed);const ms=[];
+  /* Legacy R ignored; derived from the 95% band this function reports (alpha=0.05),
+     giving B >= 100/0.025 = 4,000 rather than the invented 2,000. */
+  R=_abQuantileB(0.05);
+  for(let r=0;r<R;r++){let s=0;for(let k=0;k<vals.length;k++)s+=vals[(rnd()*vals.length)|0];ms.push(s/vals.length);}
+  ms.sort((a,b)=>a-b);return[ms[(R*.025)|0],ms[(R*.975)|0]];}
+function _cohenD(vals,baseMean,baseSd){return baseSd>0?(_mean(vals)-baseMean)/baseSd:0;}
+function pct(x){return(x>=0?"+":"")+x.toFixed(2)+"%";}
+
+/* ---- MINIMUM DETECTABLE EFFECT (added S22 after a power audit FAILED) --------------
+   Adversarial review measured this engine's statistical POWER — its chance of spotting an
+   edge that genuinely exists — on data with a known planted edge:
+       +0.25% per fire -> 13% power
+       +0.50% per fire -> 27% power
+       +1.00% per fire -> 71% power
+   The accepted minimum standard for a credible study is 80%. So below roughly +1% per
+   fire this engine is close to blind, and "no evidence found" mostly means "too small to
+   see here" — NOT "no effect exists". Reporting a verdict without reporting that blind
+   spot is how an underpowered test quietly confirms whatever the tester already believed.
+   MDE = the smallest average edge this test had an 80% chance of detecting, given the
+   number of INDEPENDENT (non-overlapping) fires actually available.
+   Formula: (z_alpha/2 + z_beta) * sd / sqrt(n_eff), z=1.96 and 0.84 for 5% and 80%. */
+function _mde(sd,nEff){ if(!nEff||nEff<2||!isFinite(sd))return null; return (1.96+0.84)*sd/Math.sqrt(nEff); }
+
+/* ---- NEW: Newey-West (HAC, Bartlett kernel) for a single-regressor OLS slope ---- */
+function _olsSimple(x,y){
+  const n=x.length,mx=_mean(x),my=_mean(y);
+  let sxy=0,sxx=0;
+  for(let i=0;i<n;i++){sxy+=(x[i]-mx)*(y[i]-my);sxx+=(x[i]-mx)*(x[i]-mx);}
+  const b=sxx>1e-12?sxy/sxx:0,a=my-b*mx;
+  const resid=x.map((xi,i)=>y[i]-(a+b*xi));
+  return{a,b,resid,x,mx,sxx,n};
+}
+function _neweyWestSE_b(fit,lag){
+  const{resid,x,mx,sxx,n}=fit;
+  const u=x.map((xi,i)=>(xi-mx)*resid[i]);
+  let S=0;for(let t=0;t<n;t++)S+=u[t]*u[t];
+  for(let l=1;l<=lag;l++){
+    const w=1-l/(lag+1);let cov=0;
+    for(let t=l;t<n;t++)cov+=u[t]*u[t-l];
+    S+=2*w*cov;
+  }
+  return Math.sqrt(Math.max(S,0))/Math.max(sxx,1e-12);
+}
+function _naiveSE_b(fit){
+  const{resid,sxx,n}=fit;
+  const s2=resid.reduce((s,r)=>s+r*r,0)/Math.max(n-2,1);
+  return Math.sqrt(s2/Math.max(sxx,1e-12));
+}
+/* FIXED S22: was 2*(1-_normCdf(|t|)) — the NORMAL curve. With a finite sample and an
+   ESTIMATED variance the t-distribution is correct; the normal has thinner tails, so the
+   old code reported p-values that were too small. Measured understatement at realistic
+   degrees of freedom: 14% (df=40) to 58% (df=15) — enough to flip verdicts at the 0.05
+   line. Degrees of freedom use the EFFECTIVE sample size n/FWD, not the raw row count,
+   because overlapping windows are not independent observations. */
+function _lgamma(z){const g=[76.18009172947146,-86.50532032941677,24.01409824083091,
+  -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let x=z,y=z,tmp=x+5.5;tmp-=(x+0.5)*Math.log(tmp);let ser=1.000000000190015;
+  for(let j=0;j<6;j++)ser+=g[j]/++y;return -tmp+Math.log(2.5066282746310005*ser/x);}
+function _betacf(a,b,x){let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;
+  if(Math.abs(d)<1e-30)d=1e-30;d=1/d;let h=d;
+  for(let m=1;m<=200;m++){const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));
+    d=1+aa*d;if(Math.abs(d)<1e-30)d=1e-30;c=1+aa/c;if(Math.abs(c)<1e-30)c=1e-30;
+    d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
+    d=1+aa*d;if(Math.abs(d)<1e-30)d=1e-30;c=1+aa/c;if(Math.abs(c)<1e-30)c=1e-30;
+    d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<3e-7)break;}
+  return h;}
+function _betai(a,b,x){if(x<=0)return 0;if(x>=1)return 1;
+  const bt=Math.exp(_lgamma(a+b)-_lgamma(a)-_lgamma(b)+a*Math.log(x)+b*Math.log(1-x));
+  return x<(a+1)/(a+b+2)? bt*_betacf(a,b,x)/a : 1-bt*_betacf(b,a,1-x)/b;}
+function _tCdf(t,df){if(!isFinite(t))return t>0?1:0;if(df<1)df=1;
+  const x=df/(df+t*t);const p=0.5*_betai(df/2,0.5,x);return t>0?1-p:p;}
+function _nwTest(allW,fireIdxSet,FWD,dir){
+  const y=allW.map(w=>w.r),x=allW.map(w=>fireIdxSet.has(w.i)?1:0);
+  const fit=_olsSimple(x,y);
+  const seW=_neweyWestSE_b(fit,FWD),seN=_naiveSE_b(fit);
+  const t=seW>0?fit.b/seW:0;
+  const dfEff=Math.max(1,Math.floor(allW.length/Math.max(1,FWD))-2);
+  const pTwo=2*(1-_tCdf(Math.abs(t),dfEff));
+  const pOne = dir==="bull" ? (fit.b>0? pTwo/2 : 1-pTwo/2) : (fit.b<0? pTwo/2 : 1-pTwo/2);
+  return{b:fit.b,seW,seN,t,p:pOne};
+}
+function _smaArr(p,i,n){if(i<n-1||i<0)return null;let s=0;for(let k=i-n+1;k<=i;k++)s+=p[k];return s/n;}
+function _nwSelfTest(R){
+  const rnd=_rng(999);const n=500,FWD=24;
+  let naiveRej=0,nwRej=0;
+  for(let r=0;r<R;r++){
+    const p=[100];for(let t=1;t<n+FWD+1;t++)p.push(p[t-1]*(1+(rnd()*2-1)*0.01));
+    const x=[],y=[];
+    for(let t=0;t<n;t++){
+      const f=_smaArr(p,t,5),s=_smaArr(p,t,20),pf=_smaArr(p,t-1,5),ps=_smaArr(p,t-1,20);
+      x.push((f!=null&&s!=null&&pf!=null&&ps!=null&&f>s&&pf<=ps)?1:0);
+      y.push((p[t+FWD]-p[t])/p[t]*100);
+    }
+    const fit=_olsSimple(x,y);
+    const seN=_naiveSE_b(fit),seW=_neweyWestSE_b(fit,FWD);
+    const tN=seN>0?fit.b/seN:0,tW=seW>0?fit.b/seW:0;
+    if(2*(1-_normCdf(Math.abs(tN)))<0.05)naiveRej++;
+    if(2*(1-_normCdf(Math.abs(tW)))<0.05)nwRej++;
+  }
+  return{naiveRate:naiveRej/R*100,nwRate:nwRej/R*100,R};
+}
+$("nwTestBtn").onclick=()=>{
+  const btn=$("nwTestBtn");btn.disabled=true;btn.textContent="running ~500 synthetic trials…";
+  setTimeout(()=>{
+    const res=_nwSelfTest(500);
+    const nOK=Math.abs(res.naiveRate-5)>Math.abs(res.nwRate-5); // NW should land closer to 5% than naive
+    $("nwSelfTestResult").innerHTML=`<div class="row2" style="margin-top:8px">
+      <div class="cell"><div class="n">${res.naiveRate.toFixed(1)}%</div><div class="l">plain method's false-alarm rate</div></div>
+      <div class="cell"><div class="n">${res.nwRate.toFixed(1)}%</div><div class="l">Newey-West's false-alarm rate</div></div>
+      <div class="cell"><div class="n">5.0%</div><div class="l">honest target</div></div>
+    </div>
+    <p style="font-size:.8rem;margin-top:6px">The old method missed the fair 5-in-100 target by ${Math.abs(res.naiveRate-5).toFixed(1)} points (${res.naiveRate<5?"too cautious":"too confident"}). Newey-West missed it by ${Math.abs(res.nwRate-5).toFixed(1)} points (${res.nwRate<5?"too cautious":"too confident"}).<br>${nOK?`✅ The fix landed closer to the fair target, on fake data built to have NO real pattern in it. That's the known-answer check passing — whichever way the old method's mistake pointed.`:`⚠ This run didn't clearly show the fix helping — worth another look before trusting it. We report every angle honestly, whichever way it points.`}</p>`;
+    btn.disabled=false;btn.textContent="🔬 Run the self-test (Monte Carlo, ~500 trials)";
+  },30);
+};
+
+/* ============================== NONSENSE CONTROL (hourly) ============================== */
+function nonsenseHourly(rows,allW){
+  const defs=[
+    ["Every 17th bar",i=>i%17===0],
+    ["Hour-of-day is a prime number",i=>{const h=new Date(rows[i].t).getUTCHours();return[2,3,5,7,11,13,17,19,23].includes(h);}],
+    ["Odd bar index",i=>i%2===1],
+    ["Price's last digit is 7",i=>Math.floor(rows[i].p*100)%10===7],
+  ];
+  return defs.map(([name,fn])=>{
+    const fires=[];for(let i=0;i<rows.length;i++){let f=false;try{f=fn(i);}catch(e){}if(f){const w=allW.find(x=>x.i===i);if(w)fires.push(w);}}
+    const N=fires.length||1,hit=fires.filter(f=>f.r>0).length/N*100,avg=_mean(fires.map(f=>f.r));
+    return{name,N:fires.length,hit,avg};
+  });
+}
+
+/* ============================== SIGNALS (hourly) ============================== */
+const WARMUP=170;
+function buildHourlySignals(rows){
+  const n=rows.length,prices=rows.map(r=>r.p);
+  function rollMax(w){const out=new Array(n).fill(null);for(let i=0;i<n;i++){const s=Math.max(0,i-w+1);let m=-Infinity;for(let k=s;k<=i;k++)m=Math.max(m,prices[k]);out[i]=m;}return out;}
+  const sma10=[],sma50=[],mom24=[];
+  for(let i=0;i<n;i++){sma10.push(_smaArr(prices,i,10));sma50.push(_smaArr(prices,i,50));
+    mom24.push(i>=24?(prices[i]-prices[i-24])/prices[i-24]*100:null);}
+  const max24=rollMax(24),max168=rollMax(168);
+  // RSI-14 (Wilder)
+  const rsi14=new Array(n).fill(null);let avgG=null,avgL=null;
+  for(let i=1;i<n;i++){
+    const ch=prices[i]-prices[i-1],g=Math.max(ch,0),l=Math.max(-ch,0);
+    if(i<14){avgG=(avgG||0)+g/14;avgL=(avgL||0)+l/14;}
+    else if(i===14){avgG=(avgG||0)+g/14;avgL=(avgL||0)+l/14;rsi14[i]=avgL===0?100:100-100/(1+avgG/avgL);}
+    else{avgG=(avgG*13+g)/14;avgL=(avgL*13+l)/14;rsi14[i]=avgL===0?100:100-100/(1+avgG/avgL);}
+  }
+  // MACD(12,26,9)
+  function ema(prev,price,per){const k=2/(per+1);return prev==null?price:price*k+prev*(1-k);}
+  const macdH=new Array(n).fill(null);let e12=null,e26=null,sig9=null;
+  for(let i=0;i<n;i++){e12=ema(e12,prices[i],12);e26=ema(e26,prices[i],26);
+    const macd=e12-e26;sig9=ema(sig9,macd,9);macdH[i]=i>=26?macd-sig9:null;}
+
+  const F=(name,folk,rule,dir)=>({name,folk,rule,dir,fires:[]});
+  const S=[
+    F("Fast average crosses above slow average (a 'golden cross')","When the fast (10-hour) <span class='term' data-def='moving average'>average</span> price crosses above the slow (50-hour) one, some traders call that a buy signal. It's the same idea as the famous '200-day line,' just run much faster.",
+      i=>i>0&&sma10[i]!=null&&sma50[i]!=null&&sma10[i]>sma50[i]&&sma10[i-1]<=sma50[i-1],"bull"),
+    F("Fast average crosses below slow average (a 'death cross')","The sell side of the same rule — the fast average crosses back below the slow one.",
+      i=>i>0&&sma10[i]!=null&&sma50[i]!=null&&sma10[i]<sma50[i]&&sma10[i-1]>=sma50[i-1],"bear"),
+    F("24-hour momentum turns positive","The old belief that '<span class='term' data-def='momentum'>what went up keeps going up</span>.' Did price gain over the last 24 hours, right after losing over the 24 hours before that?",
+      i=>mom24[i]!=null&&mom24[i]>0&&(mom24[i-1]==null||mom24[i-1]<=0),"bull"),
+    F("Buy the dip: price falls 5%+ from its 24-hour high","A smaller version of the classic 'buy the dip' rule. Hourly price swings are smaller than daily ones, so we lowered the bar too — said openly, not hidden.",
+      i=>i>0&&max24[i]!=null&&prices[i]<=max24[i]*0.95&&prices[i-1]>max24[i-1]*0.95,"bull"),
+    F("Buy the dip: price falls 10%+ from its 7-day high","The same rule, using a wider 7-day window instead of 24 hours.",
+      i=>i>0&&max168[i]!=null&&prices[i]<=max168[i]*0.90&&prices[i-1]>max168[i-1]*0.90,"bull"),
+    F("Hourly RSI climbs above 70 ('too many buyers, sell')","The old <span class='term' data-def='rsi'>RSI</span> belief, tested at the speed real day-traders actually use it.",
+      i=>rsi14[i]!=null&&rsi14[i]>70&&(rsi14[i-1]==null||rsi14[i-1]<=70),"bear"),
+    F("Hourly RSI falls below 30 ('too many sellers, buy')","The other half of the same RSI belief.",
+      i=>rsi14[i]!=null&&rsi14[i]<30&&(rsi14[i-1]==null||rsi14[i-1]>=30),"bull"),
+    F("MACD crosses upward, hourly","<span class='term' data-def='macd'>MACD</span> is the most-reused indicator across timeframes — traders keep the same settings whether they trade daily or hourly. We test that exact habit, unchanged.",
+      i=>macdH[i]!=null&&macdH[i-1]!=null&&macdH[i]>0&&macdH[i-1]<=0,"bull"),
+  ];
+  // Volume-INTEREST signal (only added when volume data is present). We test the honest,
+  // supportable claim — "is trading interest unusually high right now?" — NOT On-Balance-Volume,
+  // which our 24h-rolling volume figure cannot support. See the refuse-list for why OBV is declined.
+  const vols=rows.map(r=>r.v);
+  if(vols.some(v=>v!=null)){
+    /* FIXED S22: previously did vols.map(v=>v==null?0:v) — zeroing missing readings.
+       That drags the 7-day average DOWN, so the "volume > average x1.5" spike test fired
+       more often than it should. Nulls are now EXCLUDED from the mean instead of counted
+       as zero, and a window needs at least half its readings present to produce a value. */
+    const volMA=new Array(n).fill(null);
+    for(let i=0;i<n;i++){
+      if(i<167) continue;
+      let sum=0,cnt=0;
+      for(let k=i-167;k<=i;k++) if(vols[k]!=null){sum+=vols[k];cnt++;}
+      if(cnt>=84) volMA[i]=sum/cnt;
+    }
+    S.push(F("Trading interest spikes above its 7-day normal (volume surge)","'A burst of unusually heavy trading marks a real move, not noise.' We test the honest version this data supports — is 24-hour trading interest well above its recent normal? — never a per-candle volume claim, which this data can't back.",
+      i=>vols[i]!=null&&volMA[i]!=null&&volMA[i]>0&&vols[i]>volMA[i]*1.5&&(vols[i-1]==null||volMA[i-1]==null||vols[i-1]<=volMA[i-1]*1.5),"bull"));
+  }
+  for(const s of S){
+    for(let i=WARMUP;i<n;i++){
+      let f=false;try{f=s.rule(i);}catch(e){}
+      if(f) s.fires.push({i});
+    }
+  }
+  return S;
+}
+
+/* ============================== STABILITY CHECKS ============================== */
+function _nonOverlapFires(fires,FWD){
+  const s=[...fires].sort((a,b)=>a.i-b.i);const kept=[];let last=-Infinity;
+  for(const f of s){if(f.i-last>=FWD){kept.push(f);last=f.i;}}
+  return kept;
+}
+/* SELF-VALIDATING STABILITY CHECK (fixed S22c, after a magic-number audit).
+   The threshold "at least 3 qualifying blocks" was INVENTED — no derivation. Auditing
+   it exposed something worse than an arbitrary number: under the null, where each block
+   is a coin flip, requiring two-thirds agreement across only 3 blocks passes BY LUCK
+   ALONE 50% of the time. The check was contributing a coin flip and being counted as
+   evidence. Exact binomial false-pass rates:
+       3 blocks -> 50.0%    4 -> 31.3%    6 -> 34.4%
+       8 -> 14.5%          20 -> 5.8%    23 -> 5.0%  (first acceptable)
+   One year of hourly data yields ~12 blocks maximum, and only blocks with enough fires
+   qualify — so a valid threshold is NOT REACHABLE on this dataset.
+   The fix is not a different invented number. The check now computes its OWN false-pass
+   rate from the blocks actually available and refuses to return a verdict when that rate
+   is worse than 5% — the same discipline as the adequacy gate. On short data this means
+   stability is honestly "cannot assess", which in turn caps such signals below STRONG.
+   That is the truthful outcome, not a failure of the engine. */
+function _blockFalsePassRate(k){
+  if(k<1) return 1;
+  const C=(n,j)=>{let r=1;for(let i=0;i<j;i++)r=r*(n-i)/(i+1);return r;};
+  const need=Math.ceil(2*k/3);
+  let s=0; for(let j=need;j<=k;j++) s+=C(k,j);
+  return s/Math.pow(2,k);
+}
+function _monthlyBlockStable(fires,rows,dir,baseAvg){
+  if(!fires.length)return{agree:0,total:0,pct:null,falsePass:1,assessable:false};
+  const t0=rows[0].t,blockMs=30*86400*1000;
+  const byBlock={};
+  for(const f of fires){const b=Math.floor((rows[f.i].t-t0)/blockMs);(byBlock[b]=byBlock[b]||[]).push(f.r);}
+  let agree=0,total=0;
+  for(const b in byBlock){const arr=byBlock[b];if(arr.length<3)continue;total++;
+    const m=_mean(arr);const ok=dir==="bull"?(m>baseAvg):(m<baseAvg);if(ok)agree++;}
+  const falsePass=_blockFalsePassRate(total);
+  return{agree,total,pct:total?agree/total*100:null,falsePass,assessable:falsePass<=0.05};
+}
+
+/* ============================== MAIN ENGINE RUN ============================== */
+function _computeAllHourly(rows,FWD){
+  const n=rows.length,prices=rows.map(r=>r.p);
+  const allW=[];for(let i=0;i+FWD<n;i++)allW.push({i,r:(prices[i+FWD]-prices[i])/prices[i]*100});
+  if(allW.length<200)return null;
+  const baseHit=allW.filter(w=>w.r>0).length/allW.length*100,baseAvg=_mean(allW.map(w=>w.r)),baseSd=_std(allW.map(w=>w.r));
+  const nons=nonsenseHourly(rows,allW);
+  const nonsHitMax=Math.max(...nons.map(x=>x.hit)),nonsAvgMax=Math.max(...nons.map(x=>x.avg));
+  const S=buildHourlySignals(rows);
+  // fill in outcomes for fires now that FWD is known
+  for(const s of S){
+    const withR=[];
+    for(const f of s.fires){if(f.i+FWD<n){withR.push({i:f.i,r:(prices[f.i+FWD]-prices[f.i])/prices[f.i]*100});}}
+    s.fires=withR;
+  }
+  const results=[],pvals=[];
+  for(const s of S){
+    const N=s.fires.length;
+    if(N<8){results.push({...s,N,tooRare:true});continue;}
+    const hitN=s.fires.filter(f=>f.r>0).length;
+    const hitRate=hitN/N*100,avg=_mean(s.fires.map(f=>f.r));
+    const ci=_wilson(hitN,N);
+    const dart=_dart(allW,N,null,7+N,ALPHA_SIG);   /* count derived inside from ALPHA_SIG */
+    const permP=_perm(s.fires,allW,null,11+N,s.dir); /* count derived inside per Andrews-Buchinsky */
+    const bootCI=_bootCI(s.fires.map(f=>f.r),null,13+N); /* count derived inside from the band level */
+    const d=_cohenD(s.fires.map(f=>f.r),baseAvg,baseSd);
+    const fireSet=new Set(s.fires.map(f=>f.i));
+    const nw=_nwTest(allW,fireSet,FWD,s.dir);
+    const nonOverlap=_nonOverlapFires(s.fires,FWD);
+    const noHitRate=nonOverlap.length?nonOverlap.filter(f=>f.r>0).length/nonOverlap.length*100:0;
+    const monthly=_monthlyBlockStable(s.fires,rows,s.dir,baseAvg);
+    const mde=_mde(baseSd,nonOverlap.length);
+    pvals.push(permP);
+    results.push({...s,N,hitRate,avg,ci,dart,permP,bootCI,d,nw,nonOverlap,noHitRate,monthly,mde});
+  }
+  const sig=_holm(pvals,0.05);
+  let k=0;for(const r of results){if(!r.tooRare){r.bh=sig[k];k++;}}
+  return{results,baseHit,baseAvg,baseSd,allW,nons,nonsHitMax,nonsAvgMax,N:allW.length};
+}
+
+function _checksFor(r,baseHit,baseAvg,feeThreshold){
+  const isBull=r.dir==="bull";
+  const beatsBaseHit=isBull?r.hitRate>=baseHit+3:r.hitRate<=baseHit-3;
+  const beatsBaseAvg=isBull?r.avg>=baseAvg+1:r.avg<=baseAvg-1;
+  const beatsDart=isBull?(r.hitRate>r.dart.hitHi||r.avg>r.dart.avgHi):(r.hitRate<r.dart.hitLo||r.avg<r.dart.avgLo);
+  const nonsHitMax=r._nonsHitMax,nonsAvgMax=r._nonsAvgMax;
+  const beatsNonsense=isBull?(r.hitRate>nonsHitMax+2||r.avg>nonsAvgMax+1):(r.avg<baseAvg-1);
+  const permSig=r.permP<ALPHA_SIG;
+  const nwSig=r.nw.p<ALPHA_SIG;
+  const bhSig=!!r.bh;
+  /* monthly.assessable is TRUE only when enough blocks exist for the two-thirds rule
+     to have a false-pass rate at or below 5%. Below that it is a coin flip and must
+     not be counted as evidence in either direction. */
+  const monthlyStable=r.monthly.assessable&&r.monthly.pct!=null&&r.monthly.pct>=66.6;
+  const indepHolds=r.nonOverlap.length>=6&&(isBull?r.noHitRate>=baseHit+3:r.noHitRate<=baseHit-3);
+  const econSig=Math.abs(r.avg)>=feeThreshold;
+  return[
+    ["beats-nonsense","Better than fake signals?",beatsNonsense],
+    ["unconditional control","Beat doing nothing?",beatsBaseHit||beatsBaseAvg],
+    ["random-entry control","Beat a blind dart?",beatsDart],
+    ["statistical significance","Probably not luck? (shuffle test)",permSig],
+    ["newey-west","Probably not luck, counting overlap? (Newey-West)",nwSig],
+    ["multiple comparison correction","Still stands after testing 9 signals at once?",bhSig],
+    ["monthly-block stability","Points the same way in most 30-day chunks?",monthlyStable],
+    ["non-overlapping windows","Holds up on fully separate cases?",indepHolds],
+    ["economic significance","Bigger than the trading-cost bar?",econSig],
+  ];
+}
+
+/* ================= EVIDENCE CATEGORIES (S22 redesign) ==========================
+   WHY THIS REPLACED THE OLD "x out of 9" SCORE.
+
+   The old score counted every check as one equal vote. Two audits killed that idea:
+
+   (1) S21: soft descriptive checks could OUTVOTE the luck-detection checks, so a signal
+       could be labelled MODERATE while failing every test designed to catch luck.
+   (2) S22: measured on 60 pure-noise markets, the four "independent" luck checks are not
+       independent at all — permutation and Newey-West agreed 34 times against 19
+       disagreements. They are four LENSES ON THE SAME QUESTION, not four separate
+       confirmations. Counting them as four votes told the reader that four things had
+       agreed when really one thing had been asked four ways.
+
+   The fix is not a smaller alpha (that only trades false alarms for blindness — measured:
+   48%->6% false alarms but 86%->42% power). The fix is to stop double-counting correlated
+   evidence. Checks are now grouped into GENUINELY DIFFERENT QUESTIONS:
+
+     A. Is there enough data to answer at all?   (adequacy — a gate, not a score)
+     B. Did it survive randomness?               (the 4 correlated lenses = ONE category)
+     C. Did it beat the alternatives?            (nonsense rules + doing nothing)
+     D. Did it hold up under stress?             (time stability + separate cases)
+     E. Is it big enough to matter?              (clears real trading costs)
+
+   Category A comes first and can stop everything: if the data cannot detect an effect
+   worth acting on, the honest answer is "cannot determine" — NOT "no evidence". An
+   underpowered test that reports "nothing here" is not neutral; it quietly confirms
+   whatever the tester already believed. */
+const LUCK_CHECK_IDS=["random-entry control","statistical significance","newey-west","multiple comparison correction"];
+function _categorize(checks,r,meaningfulEffect){
+  const get=id=>{const c=checks.find(x=>x[0]===id);return c?c[2]:false;};
+  const lenses=LUCK_CHECK_IDS.map(id=>({id,pass:get(id)}));
+  const lensesPassed=lenses.filter(l=>l.pass).length;
+  // B: the multiple-comparison correction is the family-wise control; it is REQUIRED,
+  // not one vote among four. The other lenses must corroborate rather than outvote it.
+  const survivedRandomness = get("multiple comparison correction") && lensesPassed>=3;
+  const beatAlternatives = get("beats-nonsense") && get("unconditional control");
+  const heldUnderStress  = get("monthly-block stability") && get("non-overlapping windows");
+  const bigEnough        = get("economic significance");
+  const adequate = r && r.mde!=null && meaningfulEffect!=null ? (r.mde<=meaningfulEffect) : null;
+  return{lenses,lensesPassed,survivedRandomness,beatAlternatives,heldUnderStress,bigEnough,adequate};
+}
+function _verdictFor(checks,r,meaningfulEffect){
+  const cat=_categorize(checks,r,meaningfulEffect);
+  const passed=checks.filter(c=>c[2]).length;
+  // A. Adequacy gate: if the test could not have SEEN an effect worth acting on, it may
+  // not deliver a verdict in either direction. Silence is the honest output.
+  if(cat.adequate===false && !cat.survivedRandomness){
+    return{v:["CANNOT DETERMINE — NOT ENOUGH DATA","v-wait"],passed,cat,inconclusive:true};
+  }
+  // B. Randomness is the gate on any positive claim.
+  if(!cat.survivedRandomness){
+    return{v:["NO EVIDENCE IT BEATS CHANCE","v-down"],passed,cat,inconclusive:false};
+  }
+  const supporting=[cat.beatAlternatives,cat.heldUnderStress,cat.bigEnough].filter(Boolean).length;
+  const v = supporting===3?["STRONG HISTORICAL EVIDENCE","v-up"]
+          : supporting===2?["MODERATE HISTORICAL EVIDENCE","v-flat"]
+          :                ["MIXED HISTORICAL EVIDENCE","v-flat"];
+  return{v,passed,cat,inconclusive:false};
+}
+function _catRow(label,state,detail){
+  const icon=state===true?"✅":state===false?"➖":"❓";
+  return `<div style="display:flex;gap:8px;align-items:flex-start;margin:5px 0"><span>${icon}</span><span><b>${label}</b>${detail?`<br><span style="font-size:.78rem;color:var(--faint)">${detail}</span>`:""}</span></div>`;
+}
+
+function renderResults(out){
+  const{results,baseHit,baseAvg,nons,nonsHitMax,nonsAvgMax,N}=out;
+  const feeThreshold=parseFloat($("feeInput").value)||0.2;
+  $("baseline").style.display="block";
+  $("baseline").innerHTML=`<b>Baseline (do nothing):</b> across ${N.toLocaleString()} hourly windows, price was higher 24 hours later <b>${baseHit.toFixed(1)}%</b> of the time, average move <b>${pct(baseAvg)}</b>. Every signal below has to beat THIS, not zero.
+    <div style="font-size:.76rem;color:var(--faint);margin-top:6px">Nonsense-control ceiling (four meaningless rules, should score near baseline): up to ${nonsHitMax.toFixed(1)}% hit-rate, ${pct(nonsAvgMax)} avg. ${nons.map(x=>`${x.name}: ${x.N} fires, ${x.hit.toFixed(0)}% / ${pct(x.avg)}`).join(" · ")}</div>`;
+  let html="";
+  for(const r of results){
+    if(r.tooRare){
+      html+=`<details class="sig"><summary>${r.name}<span class="verdict v-wait">TOO FEW FIRES (${r.N})</span></summary><div class="sigbody"><p>Only ${r.N} fires in ~1 year of hourly data — under our floor of 8. No verdict forced; the honest answer is "too rare to test here."</p></div></details>`;
+      continue;
+    }
+    const checks=_checksFor({...r,_nonsHitMax:nonsHitMax,_nonsAvgMax:nonsAvgMax},baseHit,baseAvg,feeThreshold);
+    const G=_verdictFor(checks,r,feeThreshold);
+    const verdict=G.v, cat=G.cat;
+    html+=`<details class="sig"><summary>${r.name}<span class="verdict ${verdict[1]}">${verdict[0]}</span></summary>
+      <div class="sigbody">
+      <p style="margin:6px 0">${r.folk}</p>
+      ${G.inconclusive?`<div class="warnbox" style="margin:6px 0"><b>We are not giving this a grade, and that is deliberate.</b> With only ${r.nonOverlap.length} fully separate cases, the smallest edge this test could reliably spot is about <b>${r.mde.toFixed(2)}%</b> per fire — but an edge only becomes worth acting on above <b>${feeThreshold.toFixed(2)}%</b> (your trading-cost setting). The test is looking for a coin through a telescope. Saying "no evidence" here would be dishonest: it would sound like proof the signal is worthless, when really we just cannot see that small. <b>Cannot determine ≠ does not work.</b></div>`:""}
+      <div style="font-size:.84rem">
+        ${_catRow("Enough data to answer?",cat.adequate, cat.adequate===null?"not computed":cat.adequate?`yes — can detect edges of ${r.mde.toFixed(2)}% or bigger, and ${feeThreshold.toFixed(2)}% is the bar that matters`:`no — can only see edges of ${r.mde.toFixed(2)}%+, but ${feeThreshold.toFixed(2)}% is what matters`)}
+        ${_catRow("Survived randomness?",cat.survivedRandomness,`${cat.lensesPassed} of 4 lenses agree. <b>These are not four separate votes</b> — they are four ways of asking one question, and on pure noise they tend to agree with each other. So we require the multiple-comparison correction to pass AND at least 3 lenses to corroborate, rather than counting them as four points.`)}
+        ${_catRow("Beat the alternatives?",cat.beatAlternatives,"must beat BOTH the nonsense rules and simply doing nothing")}
+        ${_catRow("Held up under stress?", (r.monthly&&!r.monthly.assessable)?null:cat.heldUnderStress,
+          (r.monthly&&!r.monthly.assessable)
+            ? `cannot assess — only ${r.monthly.total} usable 30-day chunk${r.monthly.total===1?'':'s'}. With that few, a two-thirds agreement happens by luck alone ${(r.monthly.falsePass*100).toFixed(0)}% of the time, so counting it as evidence would be counting a coin flip. Needs about 23 chunks to mean anything.`
+            : "same direction across most 30-day chunks, and holds on fully separate cases")}
+        ${_catRow("Big enough to matter?",cat.bigEnough,`edge must exceed your ${feeThreshold.toFixed(2)}% cost setting`)}
+      </div>
+      <details style="margin-top:6px"><summary style="cursor:pointer;font-size:.78rem;color:var(--accent)">see all 9 underlying checks ▾</summary>
+      <div style="font-size:.82rem;line-height:2">${checks.map(c=>`<div>${c[2]?"✅":"➖"} <span class="term" data-def="${c[0]}">${c[1]}</span></div>`).join("")}</div></details>
+      <details style="margin-top:6px"><summary style="cursor:pointer;font-size:.8rem;font-weight:650;color:var(--accent)">🔬 The math behind the answer ▾</summary>
+      <div class="row2" style="margin-top:6px">
+        <div class="cell"><div class="n">${r.N}</div><div class="l">fires (~1yr hourly)</div></div>
+        <div class="cell"><div class="n">${r.hitRate.toFixed(0)}%</div><div class="l">up next 24h<br>(range ${r.ci[0].toFixed(0)}–${r.ci[1].toFixed(0)}%, base ${baseHit.toFixed(0)}%)</div></div>
+        <div class="cell"><div class="n">${pct(r.avg)}</div><div class="l">avg move<br>(base ${pct(baseAvg)})</div></div>
+      </div>
+      <div class="row2">
+        <div class="cell"><div class="n">p=${r.permP<0.0003?"<0.001":r.permP.toFixed(3)}</div><div class="l">shuffle test</div></div>
+        <div class="cell"><div class="n">p=${r.nw.p<0.0003?"<0.001":r.nw.p.toFixed(3)}</div><div class="l">Newey-West</div></div>
+        <div class="cell"><div class="n">d=${r.d.toFixed(2)}</div><div class="l"><span class="term" data-def="cohen's d">how big?</span><br>(effect size)</div></div>
+      </div>
+      <div class="row2">
+        <div class="cell"><div class="n">${pct(r.bootCI[0]).replace("%","")}–${r.bootCI[1].toFixed(2)}%</div><div class="l">avg, likely range<br>(<span class="term" data-def="bootstrap">bootstrap</span>)</div></div>
+        <div class="cell"><div class="n">${r.monthly.total?r.monthly.agree+"/"+r.monthly.total:"—"}</div><div class="l">30-day chunks<br>agreeing in sign</div></div>
+        <div class="cell"><div class="n">${r.nonOverlap.length}</div><div class="l">non-overlapping<br>cases</div></div>
+      </div>
+      ${r.mde!=null?`<div class="warnbox" style="margin-top:8px"><b>This test's blind spot:</b> with only ${r.nonOverlap.length} fully separate cases, it could reliably spot an edge of about <b>${r.mde.toFixed(2)}% or bigger</b> per fire. Anything smaller than that would probably slip past unnoticed. So a low grade here means <b>"nothing big enough to see"</b> — it does not prove the edge is zero. ${Math.abs(r.avg)<r.mde?`This signal's measured edge (${pct(r.avg)}) is <b>inside the blind spot</b>, so treat its grade as "unknown", not "disproven".`:``}</div>`:""}
+      </details></div></details>`;
+  }
+  // ---- HONEST REFUSAL: wick-dependent SMC signals we will NOT grade at this resolution ----
+  html+=`<details class="sig" style="border-color:rgba(201,162,39,.5)"><summary>Liquidity sweeps · fair-value gaps · order blocks (SMC)<span class="verdict v-wait">NOT GRADED HERE — ON PURPOSE</span></summary>
+    <div class="sigbody">
+    <p><b>We could show you a score for these. We won't, because it wouldn't be honest.</b></p>
+    <p>These signals are all defined by <span class="term" data-def="wick">wicks</span> — the sharp spikes where price pokes past a level and snaps back within the period. Our four-hour candles are built from hourly closing prices, so our "high" and "low" are the highest and lowest <i>hourly close</i> — they literally cannot see a spike that happened and reversed inside an hour. Testing a wick-based claim on data with no wicks would mean grading it with an instrument that can't measure the thing it's grading. That's the exact confident-wrongness this whole app exists to expose in others, so we refuse to do it here.</p>
+    <p><b>These aren't being dodged — they get a real test elsewhere.</b> The <a href="plainsight-signal-test-1.html" style="color:var(--accent)">daily signal test</a> already runs pre-registered liquidity-sweep, fair-value-gap and order-block tests on real daily high/low data, where the wicks are honest. Two of them even passed parts of that test. This page simply isn't the right instrument for them — and saying so plainly is the point.</p>
+    </div></details>`;
+  const nT=results.filter(r=>!r.tooRare).length;
+  if(nT>0) html+=`<div class="warnbox"><b>The luck math:</b> we tested ${nT} signals at the "5 wrong guesses out of 100" bar. That means about ${(nT*0.05).toFixed(1)} of them would look like a "win" by pure chance alone — which is exactly why the correction check exists. One year of hourly data is also close to being just one market mood (all rising, or all falling). Treat "held up here" as weaker proof than the 150-year daily test can offer.</div>`;
+  html+=`<div style="border:1px dashed var(--line);border-radius:10px;padding:11px 13px;margin-top:12px;font-size:.74rem;color:var(--muted)"><b style="color:var(--ink)">Reproduce this run:</b> Data: CoinGecko free Demo API, chunked hourly market_chart/range, fetched live · ${N.toLocaleString()} hourly windows · Engine: in-page JavaScript, readable via view-source · Run: ${new Date().toISOString().slice(0,10)}. Prices move and history extends every day this runs, so numbers shift run to run — the rules never do.</div>`;
+  $("results").innerHTML=html;
+}
+
+function runSignalTest(){
+  const btn=$("runBtn");btn.disabled=true;setR("computing — hourly signals, Newey-West, monthly blocks…");
+  setTimeout(()=>{
+    const allRows=[];
+    for(const tick in DATA) allRows.push(...DATA[tick].rows.map(r=>({t:r.t,p:r.p})));
+    // if both coins loaded, run on whichever has more bars first (BTC by convention); a future
+    // version could pool both coins as separate "assets" the way the daily engine pools countries —
+    // not attempted yet: BTC and ETH prices are too correlated to treat as independent samples
+    // without a real cross-asset design, and pretending otherwise would overstate the evidence.
+    const tick=Object.keys(DATA)[0];
+    if(!tick){setR("no data loaded — fetch first","bad");btn.disabled=false;return;}
+    const rows=DATA[tick].rows;
+    const gapSec=DATA[tick].gapSec;
+    const FWD=Math.max(1,Math.round(24*3600/gapSec));
+    const out=_computeAllHourly(rows,FWD);
+    if(!out){setR("not enough data after warm-up to test — try fetching again","bad");btn.disabled=false;return;}
+    renderResults(out);
+    setR(`test complete on ${tick} — ${out.N.toLocaleString()} hourly windows, forward window = ${FWD} bars (~24h)`,"ok");
+    btn.disabled=false;
+  },30);
+}
+$("runBtn").onclick=runSignalTest;
+
+/* ============================== OVERTRADING TAX ============================== */
+function tradeBacktest(prices,fastN,slowN,feePct){
+  let state="flat",equity=1,entry=null,trades=0;
+  const curve=[];
+  for(let i=slowN;i<prices.length;i++){
+    const f=_smaArr(prices,i,fastN),s=_smaArr(prices,i,slowN);
+    if(f==null||s==null){curve.push(equity);continue;}
+    const want=f>s?"long":"flat";
+    if(want!==state){
+      if(want==="long"){entry=prices[i];equity*=(1-feePct/100);trades++;}
+      else{equity*=(prices[i]/entry)*(1-feePct/100);trades++;}
+      state=want;
+    }
+    const unreal=(state==="long"&&entry)?prices[i]/entry:1;
+    curve.push(equity*unreal);
+  }
+  if(state==="long"&&entry){equity*=(prices[prices.length-1]/entry)*(1-feePct/100);trades++;}
+  return{trades,equityMult:equity,curve};
+}
+function runTradeCompare(){
+  const btn=$("tradeBtn");btn.disabled=true;
+  const tick=Object.keys(DATA)[0];
+  if(!tick){$("tradeResults").innerHTML='<div class="warnbox">No data loaded — fetch first.</div>';btn.disabled=false;return;}
+  const d=DATA[tick],prices=d.rows.map(r=>r.p);
+  const feePct=parseFloat($("feeInput").value)||0.2;
+  const hourlyFee=tradeBacktest(prices,10,50,feePct);
+  const hourlyNoFee=tradeBacktest(prices,10,50,0);
+  const step=Math.max(1,Math.round(24*3600/d.gapSec));
+  const dailyPrices=prices.filter((_,i)=>i%step===0);
+  const dailyFee=tradeBacktest(dailyPrices,10,50,feePct);
+  const dailyNoFee=tradeBacktest(dailyPrices,10,50,0);
+  const dragH=((hourlyNoFee.equityMult-hourlyFee.equityMult)/hourlyNoFee.equityMult*100);
+  const dragD=((dailyNoFee.equityMult-dailyFee.equityMult)/dailyNoFee.equityMult*100);
+  $("tradeResults").innerHTML=`<p style="font-size:.82rem;margin:8px 0">Same 10/50 moving-average cross rule, same ${tick} data, checked at two speeds. "Trades" counts every time the rule flips between long and flat.</p>
+    <div class="row2">
+      <div class="cell"><div class="n">${hourlyFee.trades}</div><div class="l">trades — checked hourly</div></div>
+      <div class="cell"><div class="n">${dailyFee.trades}</div><div class="l">trades — checked daily</div></div>
+    </div>
+    <div class="row2">
+      <div class="cell"><div class="n">${dragH.toFixed(1)}%</div><div class="l">of gains lost to fees<br>(hourly)</div></div>
+      <div class="cell"><div class="n">${dragD.toFixed(1)}%</div><div class="l">of gains lost to fees<br>(daily)</div></div>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px">This is a simple teaching model, not real trading: one position at a time, one flat fee per trade, nothing else added in (real trading always costs a bit more than this). It's not advice to trade this way. The point is the shape of the effect — check more often, flip more often, pay more fees — not these exact numbers.</p>`;
+  btn.disabled=false;
+}
+$("tradeBtn").onclick=runTradeCompare;
+
+/* ============================== CUSTOM SIGNAL BUILDER ============================== */
+// Precompute the helper series once per dataset so a user rule can call them cheaply.
+function _customContext(rows){
+  const n=rows.length,prices=rows.map(r=>r.p),vols=rows.map(r=>r.v);
+  const smaCache={},highCache={},lowCache={};
+  const rsiArr=new Array(n).fill(null);let aG=null,aL=null;
+  for(let i=1;i<n;i++){const ch=prices[i]-prices[i-1],g=Math.max(ch,0),l=Math.max(-ch,0);
+    if(i<14){aG=(aG||0)+g/14;aL=(aL||0)+l/14;}
+    else if(i===14){aG=(aG||0)+g/14;aL=(aL||0)+l/14;rsiArr[i]=aL===0?100:100-100/(1+aG/aL);}
+    else{aG=(aG*13+g)/14;aL=(aL*13+l)/14;rsiArr[i]=aL===0?100:100-100/(1+aG/aL);}}
+  function smaAt(len,idx){if(idx<len-1||idx<0)return null;const key=len;if(!smaCache[key])smaCache[key]={};
+    if(smaCache[key][idx]!=null)return smaCache[key][idx];let s=0;for(let k=idx-len+1;k<=idx;k++)s+=prices[k];
+    return smaCache[key][idx]=s/len;}
+  function extAt(len,idx,isHigh){if(idx<len-1||idx<0)return null;let m=isHigh?-Infinity:Infinity;
+    for(let k=idx-len+1;k<=idx;k++)m=isHigh?Math.max(m,prices[k]):Math.min(m,prices[k]);return m;}
+  return {n,prices,vols,rsiArr,smaAt,extAt};
+}
+// Build a sandboxed evaluator: the user's expression can ONLY see the whitelisted helpers.
+function _makeUserRule(code,ctx){
+  const body="'use strict';return ("+code+");";
+  // eslint-disable-next-line no-new-func
+  const fn=new Function("price","sma","rsi","high","low","vol","i","Math",body);
+  return function(i){
+    const price=n=>{const idx=i-(n||0);return idx>=0&&idx<ctx.n?ctx.prices[idx]:null;};
+    const sma=(len,n)=>ctx.smaAt(len,i-(n||0));
+    const rsi=n=>{const idx=i-(n||0);return idx>=0&&idx<ctx.n?ctx.rsiArr[idx]:null;};
+    const high=(len,n)=>ctx.extAt(len,i-(n||0),true);
+    const low=(len,n)=>ctx.extAt(len,i-(n||0),false);
+    const vol=n=>{const idx=i-(n||0);return idx>=0&&idx<ctx.n?ctx.vols[idx]:null;};
+    const out=fn(price,sma,rsi,high,low,vol,i,Math);
+    return out===true;
+  };
+}
+// Score a single custom signal through the IDENTICAL path as the built-ins.
+function _scoreCustom(rows,FWD,ruleFn,dir,feeThreshold){
+  const n=rows.length,prices=rows.map(r=>r.p);
+  const allW=[];for(let i=0;i+FWD<n;i++)allW.push({i,r:(prices[i+FWD]-prices[i])/prices[i]*100});
+  if(allW.length<200)return{error:"not enough data"};
+  const baseHit=allW.filter(w=>w.r>0).length/allW.length*100,baseAvg=_mean(allW.map(w=>w.r)),baseSd=_std(allW.map(w=>w.r));
+  const nons=nonsenseHourly(rows,allW);
+  const nonsHitMax=Math.max(...nons.map(x=>x.hit)),nonsAvgMax=Math.max(...nons.map(x=>x.avg));
+  // collect fires (edge-triggered is up to the user's rule; we just evaluate it per bar past warm-up)
+  const fires=[];
+  for(let i=WARMUP;i<n;i++){let f=false;try{f=ruleFn(i);}catch(e){throw new Error("your rule crashed on bar "+i+": "+e.message);}
+    if(f&&i+FWD<n)fires.push({i,r:(prices[i+FWD]-prices[i])/prices[i]*100});}
+  const N=fires.length;
+  if(N<8)return{tooRare:true,N,baseHit,baseAvg};
+  const hitN=fires.filter(f=>f.r>0).length,hitRate=hitN/N*100,avg=_mean(fires.map(f=>f.r));
+  const ci=_wilson(hitN,N),dart=_dart(allW,N,null,7+N,ALPHA_SIG),permP=_perm(fires,allW,null,11+N,dir);
+  const bootCI=_bootCI(fires.map(f=>f.r),null,13+N),d=_cohenD(fires.map(f=>f.r),baseAvg,baseSd);
+  const nw=_nwTest(allW,new Set(fires.map(f=>f.i)),FWD,dir);
+  const nonOverlap=_nonOverlapFires(fires,FWD);
+  const noHitRate=nonOverlap.length?nonOverlap.filter(f=>f.r>0).length/nonOverlap.length*100:0;
+  const monthly=_monthlyBlockStable(fires,rows,dir,baseAvg);
+  /* FIXED S22 (adversarial review). This previously read:
+       "a single custom signal is tested alone, so its own p vs 0.10 is the honest bar."
+     That was wrong. The USER is not testing one rule — they try rule after rule until one
+     goes green, and nothing counted the attempts. Measured on data with NO edge at all:
+       1 attempt  -> 0.0 false "significant" hits
+       20 attempts -> 1.2 false hits
+       50 attempts -> 3.2 false hits
+     The built-in list got Benjamini-Hochberg while the user's own rules got nothing —
+     backwards, since the user is the one most likely to keep hunting. The bar is now
+     Sidak-corrected for how many rules have been tried this session. */
+  const attempts=Math.max(1,window.__customAttempts||1);
+  const alphaCorrected=1-Math.pow(1-ALPHA_SIG,1/attempts);
+  const bh=permP<=alphaCorrected;
+  /* DSR needs the spread of Sharpe ratios ACROSS the rules this person has tried,
+     so every attempt's Sharpe is recorded. Session-scoped: it resets on reload, which
+     UNDERSTATES someone who returns later and keeps hunting. Disclosed on the page. */
+  const fireRets=fires.map(f=>f.r);
+  const sdRets=_std(fireRets);
+  const thisSR=sdRets>0?_mean(fireRets)/sdRets:0;
+  window.__customSRs=(window.__customSRs||[]).concat([thisSR]);
+  const srList=window.__customSRs;
+  const varSR=srList.length>1?Math.pow(_std(srList),2):0;
+  const deflated=_deflatedSharpe(fireRets,varSR,srList.length);
+  const r={dir,N,hitRate,avg,ci,dart,permP,bootCI,d,nw,nonOverlap,noHitRate,monthly,bh,
+           deflated,srTried:srList.length,
+           _nonsHitMax:nonsHitMax,_nonsAvgMax:nonsAvgMax};
+  const checks=_checksFor(r,baseHit,baseAvg,feeThreshold);
+  return{r,checks,baseHit,baseAvg,N,nons,nonsHitMax,nonsAvgMax,attempts,alphaCorrected};
+}
+
+// ---- Simple-builder plumbing ----
+const SB_LEFT=[["rsi","RSI right now"],["sma10","10-hour average"],["sma50","50-hour average"],["price","price right now"],["mom24","24-hour price change %"],["vol","trading interest now"]];
+const SB_RIGHT=[["num","a set value (the number below)"],["sma10","10-hour average"],["sma50","50-hour average"],["price","price right now"],["volavg","7-day average interest"],["zero","zero"]];
+const SB_OP=[[">","rises above"],["<","falls below"]];
+function _fillSelect(sel,opts){sel.innerHTML=opts.map(([v,l])=>`<option value="${v}">${l}</option>`).join("");}
+function _sbInit(){
+  _fillSelect($("sbLeft"),SB_LEFT);_fillSelect($("sbOp"),SB_OP);_fillSelect($("sbRight"),SB_RIGHT);
+  ["sbLeft","sbOp","sbRight","sbNum"].forEach(id=>$(id).addEventListener("change",_sbPreview));
+  ["sbLeft","sbOp","sbRight","sbNum"].forEach(id=>$(id).addEventListener("input",_sbPreview));
+  _sbPreview();
+}
+function _sbFind(list,val,fallbackIdx){
+  const hit=list.find(x=>x[0]===val);
+  return hit||list[fallbackIdx||0];
+}
+function _sbExpr(){
+  const L=_sbFind(SB_LEFT,$("sbLeft").value)[0],OP=_sbFind(SB_OP,$("sbOp").value)[0],
+        R=_sbFind(SB_RIGHT,$("sbRight").value)[0],num=parseFloat($("sbNum").value)||0;
+  const term=(t)=>({rsi:"rsi(0)",sma10:"sma(10,0)",sma50:"sma(50,0)",price:"price(0)",
+    mom24:"((price(0)-price(24))/price(24)*100)",vol:"vol(0)",volavg:"volAvg(0)",num:String(num),zero:"0"}[t]);
+  const prevTerm=(t)=>({rsi:"rsi(1)",sma10:"sma(10,1)",sma50:"sma(50,1)",price:"price(1)",
+    mom24:"((price(1)-price(25))/price(25)*100)",vol:"vol(1)",volavg:"volAvg(1)",num:String(num),zero:"0"}[t]);
+  // edge-trigger: true now, was NOT true one bar ago (a fresh crossing, not a held state)
+  const now=`${term(L)} ${OP} ${term(R)}`;
+  const prev=`${prevTerm(L)} ${OP} ${prevTerm(R)}`;
+  return `(${now}) && !(${prev})`;
+}
+function _sbPreview(){
+  const L=_sbFind(SB_LEFT,$("sbLeft").value)[1];
+  const OP=_sbFind(SB_OP,$("sbOp").value)[1];
+  let R=_sbFind(SB_RIGHT,$("sbRight").value)[1];
+  if($("sbRight").value==="num")R=($("sbNum").value||"0");
+  $("sbPreview").textContent=`Fires the first hour that ${L} ${OP} ${R}.`;
+}
+
+// vol helpers for the builder need a 7-day rolling interest average available to user code too
+function _customContextExt(rows){
+  const base=_customContext(rows);
+  const vols=rows.map(r=>r.v==null?0:r.v),n=rows.length;
+  const volAvgArr=new Array(n).fill(null);
+  for(let i=0;i<n;i++)volAvgArr[i]=_smaArr(vols,i,168);
+  base.volAvgArr=volAvgArr;
+  return base;
+}
+function _makeUserRuleExt(code,ctx){
+  const body="'use strict';return ("+code+");";
+  const fn=new Function("price","sma","rsi","high","low","vol","volAvg","i","Math",body);
+  return function(i){
+    const price=n=>{const idx=i-(n||0);return idx>=0&&idx<ctx.n?ctx.prices[idx]:null;};
+    const sma=(len,n)=>ctx.smaAt(len,i-(n||0));
+    const rsi=n=>{const idx=i-(n||0);return idx>=0&&idx<ctx.n?ctx.rsiArr[idx]:null;};
+    const high=(len,n)=>ctx.extAt(len,i-(n||0),true);
+    const low=(len,n)=>ctx.extAt(len,i-(n||0),false);
+    const vol=n=>{const idx=i-(n||0);return idx>=0&&idx<ctx.n?ctx.vols[idx]:null;};
+    const volAvg=n=>{const idx=i-(n||0);return idx>=0&&idx<ctx.n?ctx.volAvgArr[idx]:null;};
+    return fn(price,sma,rsi,high,low,vol,volAvg,i,Math)===true;
+  };
+}
+
+let _builderMode="simple";
+document.querySelectorAll("#builderMode button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("#builderMode button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");_builderMode=b.dataset.mode;
+    $("simpleBuilder").style.display=_builderMode==="simple"?"block":"none";
+    $("advBuilder").style.display=_builderMode==="advanced"?"block":"none";
+  };
+});
+
+function runCustom(){
+  const tick=Object.keys(DATA)[0];
+  if(!tick){$("cstat").textContent="fetch data first (top of page)";$("cstat").className="stat bad";return;}
+  const rows=DATA[tick].rows,gapSec=DATA[tick].gapSec;
+  const FWD=Math.max(1,Math.round(24*3600/gapSec));
+  const feeThreshold=parseFloat($("feeInput").value)||0.2;
+  let code,dir,label;
+  if(_builderMode==="simple"){code=_sbExpr();dir=$("sbDir").value;label=$("sbPreview").textContent;}
+  else{code=$("advCode").value.trim();dir=$("advDir").value;label="Your rule: "+code;
+    if(!code){$("cstat").textContent="type a rule first";$("cstat").className="stat bad";return;}}
+  window.__customAttempts=(window.__customAttempts||0)+1;
+  /* __customSRs accumulates alongside __customAttempts; both are session-scoped */
+  const btn=$("customBtn");btn.disabled=true;$("cstat").textContent="testing your rule against the same 9 checks…";$("cstat").className="stat";
+  setTimeout(()=>{
+    try{
+      const ctx=_customContextExt(rows);
+      const ruleFn=_makeUserRuleExt(code,ctx);
+      // quick smoke: evaluate on a few bars to catch syntax/crash before the full run
+      for(let t=WARMUP;t<WARMUP+3&&t<rows.length;t++) ruleFn(t);
+      const res=_scoreCustom(rows,FWD,ruleFn,dir,feeThreshold);
+      _renderCustom(res,label,dir);
+      $("cstat").textContent="done — your rule judged by the same bar as the famous ones";$("cstat").className="stat ok";
+    }catch(e){
+      $("customResult").innerHTML=`<div class="warnbox"><b>Couldn't run that rule:</b> ${String(e.message||e).replace(/</g,"&lt;")}. Check the spelling of the helpers (price, sma, rsi, high, low, vol) and that your parentheses match.</div>`;
+      $("cstat").textContent="rule error — see above";$("cstat").className="stat bad";
+    }
+    btn.disabled=false;
+  },30);
+}
+function _renderCustom(res,label,dir){
+  if(res.error){$("customResult").innerHTML=`<div class="warnbox">${res.error} — try fetching again.</div>`;return;}
+  if(res.tooRare){
+    $("customResult").innerHTML=`<div class="warnbox"><b>Too few fires to test honestly (${res.N}).</b> Your rule fired under 8 times in a year of hourly data — below the floor where statistics mean anything. That's not a fail, it's "we can't say." Try a rule that triggers more often, or test it on the 150-year daily engine if it's a slow one.</div>`;
+    return;
+  }
+  const {r,checks,baseHit,baseAvg,N,nons,nonsHitMax,nonsAvgMax}=res;
+  const feeThr=parseFloat($("feeInput").value)||0.2;
+  const G=_verdictFor(checks,r,feeThr);
+  const verdict=G.v, passed=G.passed, cat=G.cat;
+  $("customResult").innerHTML=`<div class="base" style="margin-top:10px"><b>Your rule, same 9 checks:</b> ${label}<br>
+    <span style="font-size:.78rem;color:var(--faint)">This is a ${dir==="bull"?"BUY":"SELL"} idea. Baseline to beat: price up ${baseHit.toFixed(1)}% of hours, avg ${pct(baseAvg)}. Nonsense-rule ceiling: ${nonsHitMax.toFixed(0)}% / ${pct(nonsAvgMax)}.</span></div>
+    <details class="sig" open><summary>Your rule<span class="verdict ${verdict[1]}">${verdict[0]}</span></summary>
+    <div class="sigbody">
+    ${G.inconclusive?`<div class="warnbox" style="margin:6px 0"><b>No grade given — on purpose.</b> Your rule produced only ${r.nonOverlap.length} fully separate cases. The smallest edge that could reliably be spotted with that many is about <b>${r.mde.toFixed(2)}%</b> per fire, but only edges above <b>${feeThr.toFixed(2)}%</b> are worth acting on. Calling this "no evidence" would imply we proved it useless. We didn't. We couldn't see.</div>`:""}
+    <div style="font-size:.84rem">
+      ${_catRow("Enough data to answer?",cat.adequate,cat.adequate===null?"not computed":cat.adequate?`yes — can spot edges of ${r.mde.toFixed(2)}%+`:`no — can only spot edges of ${r.mde.toFixed(2)}%+, but ${feeThr.toFixed(2)}% is the bar that matters`)}
+      ${_catRow("Survived randomness?",cat.survivedRandomness,`${cat.lensesPassed} of 4 lenses agree — four ways of asking ONE question, not four separate confirmations`)}
+      ${_catRow("Beat the alternatives?",cat.beatAlternatives,"beats the nonsense rules AND doing nothing")}
+      ${_catRow("Held up under stress?",cat.heldUnderStress,"consistent across time and on separate cases")}
+      ${_catRow("Big enough to matter?",cat.bigEnough,"clears real trading costs")}
+    </div>
+    <details style="margin-top:6px"><summary style="cursor:pointer;font-size:.78rem;color:var(--accent)">see all 9 underlying checks ▾</summary>
+    <div style="font-size:.82rem;line-height:2">${checks.map(c=>`<div>${c[2]?"✅":"➖"} <span class="term" data-def="${c[0]}">${c[1]}</span></div>`).join("")}</div></details>
+    <div class="row2" style="margin-top:8px">
+      <div class="cell"><div class="n">${N}</div><div class="l">times it fired</div></div>
+      <div class="cell"><div class="n">${r.hitRate.toFixed(0)}%</div><div class="l">went ${dir==="bull"?"up":"down"} next 24h<br>(base ${baseHit.toFixed(0)}%)</div></div>
+      <div class="cell"><div class="n">${pct(r.avg)}</div><div class="l">avg move<br>(base ${pct(baseAvg)})</div></div>
+    </div>
+    <div class="row2">
+      <div class="cell"><div class="n">p=${r.permP<0.0003?"<0.001":r.permP.toFixed(3)}</div><div class="l">shuffle test</div></div>
+      <div class="cell"><div class="n">p=${r.nw.p<0.0003?"<0.001":r.nw.p.toFixed(3)}</div><div class="l">Newey-West</div></div>
+      <div class="cell"><div class="n">${r.nonOverlap.length}</div><div class="l">separate cases<br>(non-overlap)</div></div>
+    </div>
+    ${r.deflated?`<div class="base" style="margin-top:10px">
+      <b>Deflated Sharpe Ratio: ${(r.deflated.dsr*100).toFixed(1)}%</b><br>
+      <span style="font-size:.82rem">This is the published correction for exactly what you are doing: trying rules and keeping the best one. It asks — given you have tried <b>${r.srTried}</b> rule${r.srTried===1?'':'s'}, how likely is it that this one is genuinely better than the best you would expect from <b>luck alone</b>?</span><br>
+      <span style="font-size:.8rem;color:var(--faint)">Your rule's reward-to-risk score: <b>${r.deflated.SR.toFixed(3)}</b>. The bar luck alone would be expected to clear after ${r.srTried} tr${r.srTried===1?'y':'ies'}: <b>${r.deflated.SR0.toFixed(3)}</b>. ${r.deflated.SR>r.deflated.SR0?'Your rule is above that bar.':'Your rule is <b>below</b> that bar — luck alone would typically do this well.'}</span><br>
+      <span style="font-size:.78rem;color:var(--faint)">It also corrects for lopsided and fat-tailed results, which flatter a plain score. Yours: lopsidedness ${r.deflated.g3.toFixed(2)}, tail-heaviness ${r.deflated.g4.toFixed(2)} (an even, normal spread would be 0 and 3).</span><br>
+      <span style="font-size:.78rem;color:var(--warn)">Honest limit: this only counts the rules tried <b>in this session</b>. Reload and keep hunting, and the real bar is higher than the one shown. It also assumes your rules were unrelated to each other — variations on one idea make this bar too forgiving.</span>
+    </div>`:``}
+    <div class="warnbox" style="margin-top:8px"><b>Rules you have tried this session: ${res.attempts}.</b> ${res.attempts>1?`Because you have tried ${res.attempts}, the bar has been raised to p &lt; ${res.alphaCorrected.toFixed(4)} (from 0.10). This is not a punishment — it is arithmetic. Try enough rules on any data and one will look brilliant by pure chance. On data with no edge at all, 50 attempts produces about 3 false "winners". The bar must rise with the hunting, or the hunt always "wins".`:`Test more rules and this bar will automatically rise, because trying many rules makes a lucky one more likely. That correction is applied for you.`}</div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px">Same rule, same bar, no favorites. If your idea scored low, that's the machine doing its job — not a knock on you. Most famous signals score low here too. That's the lesson.</p>
+    </div></details>`;
+}
+document.addEventListener("DOMContentLoaded",()=>{ if($("sbLeft")) _sbInit(); });
+if($("sbLeft")) _sbInit();
+$("customBtn").onclick=runCustom;
+
+/* Test hooks (S22e): expose internals so the offline numerical-validity sweep can
+   reach them. Harmless in a browser — it only attaches names to window. */
+try{ Object.assign(window,{_mean,_std,_normCdf,_tCdf,_lgamma,_betai,_wilson,_olsSimple,
+  _naiveSE_b,_neweyWestSE_b,_cohenD,_mde,_blockFalsePassRate,_computeAllHourly,buildCandles,
+  _perm,_dart,_bootCI,_holm,_bh,_rng,_checksFor,_verdictFor,_monthlyBlockStable,
+  _nonOverlapFires,_nwTest,_smaArr,buildHourlySignals,nonsenseHourly}); }catch(e){}
+</script>
+</body>
+</html>

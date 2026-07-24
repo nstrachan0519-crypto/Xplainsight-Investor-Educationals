@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Xplainsight — verification register</title>
+<!--
+  XPLAINSIGHT — VERIFICATION REGISTER v1 (S22)
+  A complete, honest record of: every tool used, whether that tool has itself been
+  checked, every test method, and every claim tested — including the ones we got
+  wrong and withdrew.
+  RECEIPTS RULE (CORE Rule 0B): every claim below carries the number that produced it.
+  A claim with no number is an opinion.
+  Nothing here is proprietary. If you want to grade whether we are doing this
+  honestly, this page and the citations page are where you start.
+-->
+<style>
+  :root{--bg:#111419;--panel:#141A22;--panel2:#1B222C;--line:#232A33;--ink:#E8EAED;
+    --muted:#99A1AB;--faint:#8F97A2;--accent:#7FB0E8;--up:#5FBF8F;--down:#E0906C;
+    --warn:#C9A227;--define:#A78BFA;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:680px;margin:0 auto;padding:22px 16px 70px}
+  h1{font-size:1.3rem;font-weight:680;margin:0 0 6px;letter-spacing:-.01em}
+  h2{font-size:1.04rem;font-weight:660;margin:28px 0 8px}
+  .sub{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+  .sub b,.card b{color:var(--ink);font-weight:620}
+  .term{color:var(--define);border-bottom:1px dotted var(--define);cursor:pointer}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;margin:10px 0}
+  .card p{font-size:.88rem;margin:8px 0}
+  .rule{border:1px solid rgba(127,176,232,.45);border-left:3px solid var(--accent);background:rgba(127,176,232,.06)}
+  .warnbox{border:1px solid rgba(201,162,39,.4);border-left:3px solid var(--warn);background:rgba(201,162,39,.06);border-radius:10px;padding:11px 14px;margin:10px 0;font-size:.86rem}
+  .warnbox b{color:var(--warn)}
+  table{width:100%;border-collapse:collapse;font-size:.78rem;margin:8px 0}
+  th,td{border:1px solid var(--line);padding:6px 7px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);font-weight:640;color:var(--ink);font-size:.74rem;text-transform:uppercase;letter-spacing:.03em}
+  td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ok{color:var(--up);font-weight:640}
+  .no{color:var(--down);font-weight:640}
+  .mid{color:var(--warn);font-weight:640}
+  .dim{color:var(--faint)}
+  details.sig{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:9px 0;padding:2px 14px}
+  details.sig>summary{cursor:pointer;list-style:none;padding:12px 0;font-size:.92rem;font-weight:640}
+  details.sig>summary::-webkit-details-marker{display:none}
+  .sigbody{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding:10px 0}
+  .sigbody b{color:var(--ink)}
+  .mono{font-family:ui-monospace,Menlo,monospace;font-size:.85em}
+  #deftip{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:none;
+    box-shadow:0 -8px 30px rgba(0,0,0,.5);max-width:680px;margin:0 auto}
+  #deftip.show{display:block}
+  #deftip .w{font-weight:660;color:var(--define);font-size:.9rem;margin:0 0 4px}
+  #deftip .b{margin:0;font-size:.88rem;white-space:pre-wrap}
+  #deftip .x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Verification register</h1>
+  <p class="sub">Every tool we used, whether that tool has itself been checked, every test we ran, and every claim we made — <b>including the ones we got wrong and withdrew</b>. Tap any <span class="term" data-def="__demo">underlined word</span> for a plain meaning.</p>
+
+  <div class="card rule">
+    <p><b>Why this page exists.</b> A finding is only as good as the instrument that produced it. We spent a long time reaching conclusions using tools we had never checked. When we finally checked them, we found the checking tools had bugs of their own — so some of our conclusions had to be withdrawn.</p>
+    <p>This page is the receipt for all of it. <b>Every claim carries the number that produced it.</b> A claim with no number is an opinion, and we treat that as a bug.</p>
+  </div>
+
+  <h2>1 · The tools — and whether the tool itself was checked</h2>
+  <p class="sub">"Checked" means the tool was fed inputs whose correct answer was already known, and it returned that answer.</p>
+  <table>
+    <tr><th>Tool</th><th>What it does</th><th>Checked?</th></tr>
+    <tr><td><b>Calibration lab</b></td><td>Builds fake markets where the truth is known, then sees if the engine reports it</td>
+        <td class="ok">YES — all 8 fake-market types verified to produce the property they claim; they also bracket real prices</td></tr>
+    <tr><td><b>Mutation tester</b></td><td>Breaks the engine on purpose to see if our tests notice</td>
+        <td class="mid">PARTLY — demonstrably catches 7 of 8 injected faults; 1 still escapes</td></tr>
+    <tr><td><b>Numerical sweep</b></td><td>Feeds every equation the inputs that break equations</td>
+        <td class="ok">YES — its corruption detector verified correct on 11 of 11 known cases</td></tr>
+    <tr><td><b>SciPy comparison</b></td><td>Runs our maths against software neither we nor you wrote</td>
+        <td class="ok">YES — 13 of 13 constants matched, agreement to between 9 and 15 decimal places</td></tr>
+    <tr><td><b>FFT</b> <span class="dim">(for one of the shuffle tests)</span></td><td>Breaks a price series into its underlying frequencies</td>
+        <td class="ok">YES — round-trip error 3.6e-15; a pure tone put 100% of energy in the correct place</td></tr>
+    <tr><td><b>Browser stub</b></td><td>Lets us run the app's maths outside a browser</td>
+        <td class="ok">YES — two engines loaded differently produced identical results on every field</td></tr>
+    <tr><td><b>Real price data</b></td><td>S&amp;P 500, 3,409 daily closes, 2013–2026</td>
+        <td class="mid">USED — but it is one market over 13 years. The 150-year series is still untested</td></tr>
+  </table>
+
+  <h2>2 · The test methods</h2>
+  <p class="sub">Nine methods. Each answers a different question, and several exist only because an earlier method missed something.</p>
+
+  <details class="sig"><summary>The nine methods ▾ tap to open</summary><div class="sigbody">
+    <p><b>1 · Known-answer markets.</b> Build fake data where we already know the truth — some with no pattern, some with a pattern we planted — and check the engine agrees.</p>
+    <p><b>2 · Many market types, never one.</b> Eight kinds of fake market. Our first version used one, and a reviewer pointed out that a result from one simulator describes the simulator, not the engine.</p>
+    <p><b>3 · <span class="term" data-def="mutation testing">Mutation testing</span>.</b> Break the code on purpose and confirm the tests scream. A test suite that passes a knowingly broken engine is decoration.</p>
+    <p><b>4 · Comparison against software we did not write.</b> Run the same numbers through SciPy — built and checked by thousands of people worldwide. <b>This is your cheapest check on us</b>, because it does not require trusting us.</p>
+    <p><b>5 · Rules that must always hold.</b> Checked against many random datasets, not a few hand-picked ones: a probability must stay between 0 and 1; identical input must give identical output; an impossibly good result must give a tiny p-value; an impossibly bad one a large one.</p>
+    <p><b>6 · Random placement in real history.</b> Scatter fake signals at random points in the real S&amp;P record. No real edge can exist, but every real feature — crashes, calm spells, trends — is kept. <b>This caught things the fake markets missed.</b></p>
+    <p><b>7 · Splitting causes apart.</b> Before accepting any explanation, vary the suspected causes separately and together. Our first, tidier explanation turned out to be half right.</p>
+    <p><b>8 · Threshold sweeps.</b> Change one cut-off, hold the rest, count how many verdicts flip. Separates a number that matters from one that does nothing.</p>
+    <p><b>9 · Working out the luck rate exactly.</b> Compute how often a check passes by chance alone. Arithmetic did what no amount of judgement had: it proved one of our shipped checks was a coin flip.</p>
+  </div></details>
+
+  <h2>3 · Claims we tested — and what happened</h2>
+  <p class="sub">Every claim carries its number. <span class="ok">CONFIRMED</span> means measured and it held. <span class="no">WITHDRAWN</span> means we said it, checked it, and it was wrong.</p>
+
+  <h3 style="font-size:.94rem;margin:18px 0 6px;color:var(--up)">Confirmed by measurement</h3>
+  <table>
+    <tr><th>Claim</th><th>The number behind it</th></tr>
+    <tr><td>Our random number generator was broken</td><td class="n">Repeated every 10,466 draws; one test needs ~180,000. Uniformity 499.6 against a 30.1 pass mark</td></tr>
+    <tr><td>Weak checks could outvote the checks that catch luck</td><td class="n">A rule scored "moderate evidence" on pure noise while failing every luck check</td></tr>
+    <tr><td>We used the wrong bell curve, inflating significance</td><td class="n">p-values too small by 14% to 58%, depending on sample size</td></tr>
+    <tr><td>Users could try rule after rule with no correction</td><td class="n">50 tries on meaningless data produced about 3 false "winners"</td></tr>
+    <tr><td>Overlap and clustering together break the luck test</td><td class="n">25.75% false alarms where 5% is correct. <b>Neither alone caused harm</b></td></tr>
+    <tr><td>The shipped daily engine had the same fault</td><td class="n">19.71% false alarms, and 10.29% in the far tail where 1% is correct</td></tr>
+    <tr><td>Our "independent" checks were not independent</td><td class="n">Two agreed 34 times against 19 on noise; in the daily engine two correlate at 0.79</td></tr>
+    <tr><td>One shipped check was a coin flip</td><td class="n">Passes by luck 50% of the time in theory, <b>65% on real S&amp;P data</b>. Needs 23 chunks to be valid; one year provides ~12</td></tr>
+    <tr><td>Our planted-edge tool was unrealistic</td><td class="n">Left a permanent price step instead of a temporary bump. Power was overstated: 90% claimed, <b>54% true</b></td></tr>
+    <tr><td>A wallet sampler was biased</td><td class="n">First item picked 28.6% of the time instead of 16.7%. Bias score 27,356 against a pass mark of 11.07</td></tr>
+    <tr><td>Malformed candles were accepted</td><td class="n">A row with its high BELOW its low passed our checks and fed the signals</td></tr>
+    <tr><td>Fake data is softer than reality</td><td class="n">Every method was harder on real prices: false alarms 2.9%→5.5%, detection 100%→72%</td></tr>
+    <tr><td>One respected method would have been a disaster</td><td class="n">Wild bootstrap: 41.8% false alarms against a 5% target — worst of all eight</td></tr>
+  </table>
+
+  <h3 style="font-size:.94rem;margin:18px 0 6px;color:var(--down)">Claims we withdrew</h3>
+  <p class="sub">Listed because a record showing only what survived is an advertisement.</p>
+  <table>
+    <tr><th>What we said</th><th>What checking showed</th></tr>
+    <tr><td>"False alarms fell from 46.7% to 3.5%"</td><td class="n">Measured on <b>one</b> fake market. Across eight, the same engine ranged 1.7%–8.3%</td></tr>
+    <tr><td>"Block methods are miscalibrated at 0.29%"</td><td class="n">True only under one harsh setup. Normally 0–2.7% — cautious, not broken</td></tr>
+    <tr><td>"Lower false-alarm rate means missing real things"</td><td class="n">Not a law. One method had a lower rate <b>and equal</b> detection (2.9% vs 17.9%, both 100%)</td></tr>
+    <tr><td>"Detected 5 of 5 planted edges, so the scoring works"</td><td class="n">The planted effect was enormous. The test could only have seen an elephant</td></tr>
+    <tr><td>"The uncorrected method over-claims"</td><td class="n">It <b>under</b>-claimed. Written before running it; the data said the opposite</td></tr>
+    <tr><td>"Months mostly behave independently"</td><td class="n">On real prices they agree 65% of the time, not the 50% predicted</td></tr>
+    <tr><td>"A short outcome window would expose the timing bug"</td><td class="n">Measured 0 difference at 1, 2 and 6 bars — the opposite of the prediction</td></tr>
+    <tr><td>"Maximum entropy is a valid conservative test"</td><td class="n">It is <b>inapplicable</b>. Its p-values sit at 0.41–0.55 always; it can never reject anything</td></tr>
+  </table>
+
+  <div class="warnbox"><b>The pattern behind every withdrawal.</b> Not one was a made-up fact. Every single one was <b>a true thing carrying more weight than it had earned</b> — a real result quoted beyond its range, a real method judged from one setup, a conclusion written before the number arrived. That is the hardest failure to see from the inside, because nothing about it looks wrong. It is why <a href="PLAINSIGHT_CORE-2.md">Rule 0B</a> exists.</div>
+
+  <h2>4 · Not yet checked</h2>
+  <div class="card">
+    <p>Named here rather than left for you to discover:</p>
+    <p><b>· One deliberate bug still escapes our tests.</b> An off-by-one in signal timing. Two explanations were tested and both were wrong, so the cause is <b>unknown</b>. We do not claim our tests detect mis-timing.</p>
+    <p><b>· The daily engine has never been mutation-tested</b> and its cut-off numbers have never been audited for where they came from.</p>
+    <p><b>· The 150-year price series has never been tested</b> — only 13 years of one market. So the daily engine's era-stability check is <b>unverified</b>.</p>
+    <p><b>· Four app pages have never been swept</b> at all: the candle test, the markets pack, an older board version, and part of the research desk.</p>
+    <p><b>· No out-of-sample holdout exists anywhere.</b> Every test uses history we have already seen. By our own rules that caps us at <b>"measured, not predictive."</b></p>
+    <p><b>· Four of eight luck-test families are conservative</b> in ways we have not fully explained, and one is inapplicable.</p>
+  </div>
+
+  <h2>5 · How to catch us</h2>
+  <div class="card" style="border-color:rgba(95,191,143,.35)">
+    <p><b>Don't trust us completely. We are transparent for exactly this reason.</b></p>
+    <p style="font-size:.95rem;color:var(--ink);font-weight:620">A person will miss 100% of the problems they never thought to check for.</p>
+    <p>That applies to us as much as anyone. Every fault on this page was found by attacking our own work, or by an outside reviewer, or by being forced to run a test instead of reasoning about it. <b>None was found by anything feeling uncertain.</b> Confidence does not detect bugs — it ends the search.</p>
+  </div>
+
+  <div class="card" style="font-size:.78rem;color:var(--faint);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <a href="plainsight-test-methods-1.html" style="text-decoration:none">← How we test</a>
+    <a href="plainsight-citations-1.html" style="text-decoration:none">Citations &amp; sources →</a>
+  </div>
+</div>
+
+<div id="deftip"><button class="x" aria-label="close">×</button><p class="w" id="dt-w"></p><p class="b" id="dt-b"></p></div>
+<script>
+const $=id=>document.getElementById(id);
+const GLOSSARY={
+  "__demo":"Just like this: tap any underlined word and a plain meaning appears.",
+  "mutation testing":"Deliberately breaking your own code to see whether your tests notice. If a test suite passes code you KNOW is broken, the suite is decoration. It is the direct answer to 'how do I know your tests are real' — not our word, but a suite that demonstrably screams when sabotaged."
+};
+function showDef(t){const b=GLOSSARY[t.toLowerCase()];if(!b)return;
+ $("dt-w").textContent=t==="__demo"?"tap-to-define":t;$("dt-b").textContent=b;$("deftip").classList.add("show");}
+function hideDef(){$("deftip").classList.remove("show");}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-def]");
+ if(t){showDef(t.getAttribute("data-def"));return;} if(!e.target.closest("#deftip"))hideDef();});
+$("deftip").querySelector(".x").onclick=hideDef;
+/* receipts-rule self-check: every tap target must resolve */
+(function(){const miss=[];document.querySelectorAll("[data-def]").forEach(el=>{
+ const k=el.getAttribute("data-def").toLowerCase(); if(!GLOSSARY[k])miss.push(k);});
+ if(miss.length)console.warn("RECEIPTS RULE VIOLATION — undefined tap targets:",miss);
+ else console.log("receipts self-check: all tap targets defined");})();
+</script>
+</body>
+</html>

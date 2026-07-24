@@ -32,6 +32,17 @@ Every page's claims can be checked. The included `plainsight-validate.py` runs s
 
 Feedback: Xplainsight@duck.com
 
-## Copyright
+## Licence
 
-(c) 2026 Xplainsight. All rights reserved. See COPYRIGHT.txt.
+MIT — see `LICENSE`. You are free to use, copy, modify, merge, publish, distribute,
+sublicense and sell copies of this software, provided the copyright notice and licence
+text travel with it.
+
+This matches the project's founding vow: *free and forkable, public, no hidden logic.*
+An earlier `COPYRIGHT.txt` reserved all rights and granted no licence, which contradicted
+that vow and had no recorded decision behind it. It has been replaced.
+
+**Note on scope:** MIT is a software licence and refers throughout to "the Software".
+This project also contains substantial written educational content. If you want the prose
+explicitly covered too, the usual companion is a Creative Commons licence (CC-BY-4.0) for
+content alongside MIT for code. That decision has not been made here.
